@@ -94,4 +94,6 @@ def create_return(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if data.operator_id is None:
+        data.operator_id = current_user.id
     return incoming_service.create_return(db, data)

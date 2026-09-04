@@ -83,7 +83,7 @@ class IncomingReturnCreate(BaseModel):
     return_qty: int = Field(..., gt=0)
     return_reason: str = Field(..., max_length=255)
     return_date: date
-    operator_id: int
+    operator_id: int | None = None
     change_reason: str | None = None
     remark: str | None = None
 

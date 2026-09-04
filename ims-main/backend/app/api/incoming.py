@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user
 from app.db.database import get_db
 from app.models.user import User
+from app.schemas.common import PageResult, R
 from app.schemas.incoming import (
     IncomingInspectionCreate,
     IncomingInspectionResponse,
@@ -35,7 +36,10 @@ def list_receipts(
     total, items = incoming_service.get_receipts(
         db, page, page_size, keyword, category_id, sku_id, supplier_id, status, start_date, end_date,
     )
-    return {"total": total, "items": items}
+    return R.ok(data=PageResult(
+        total=total, page=page, page_size=page_size,
+        items=[IncomingReceiptResponse.model_validate(item) for item in items],
+    ))
 
 
 @router.get("/receipts/{receipt_id}")

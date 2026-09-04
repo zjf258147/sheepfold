@@ -1,57 +1,57 @@
 import request from '@/utils/request'
 
 export function listRmaReturns(params) {
-  return request.get('/rma/returns', { params })
+  return request.get('/api/v1/rma/returns', { params })
 }
 
 export function getRmaReturn(id) {
-  return request.get(`/rma/returns/${id}`)
+  return request.get(`/api/v1/rma/returns/${id}`)
 }
 
 export function createRmaReturn(data) {
-  return request.post('/rma/returns', data)
+  return request.post('/api/v1/rma/returns', data)
 }
 
 export function assignRmaReturn(id, data) {
-  return request.post(`/rma/returns/${id}/assign`, data)
+  return request.post(`/api/v1/rma/returns/${id}/assign`, data)
 }
 
 export function transferRmaReturn(id, data) {
-  return request.post(`/rma/returns/${id}/transfer`, data)
+  return request.post(`/api/v1/rma/returns/${id}/transfer`, data)
 }
 
 export function getRmaDiagnoses(returnId) {
-  return request.get(`/rma/returns/${returnId}/diagnoses`)
+  return request.get(`/api/v1/rma/returns/${returnId}/diagnoses`)
 }
 
 export function createRmaDiagnosis(data) {
-  return request.post('/rma/diagnoses', data)
+  return request.post('/api/v1/rma/diagnoses', data)
 }
 
 export function getRmaRepairs(returnId) {
-  return request.get(`/rma/returns/${returnId}/repairs`)
+  return request.get(`/api/v1/rma/returns/${returnId}/repairs`)
 }
 
 export function createRmaRepair(data) {
-  return request.post('/rma/repairs', data)
+  return request.post('/api/v1/rma/repairs', data)
 }
 
 export function getRmaScraps(returnId) {
-  return request.get(`/rma/returns/${returnId}/scraps`)
+  return request.get(`/api/v1/rma/returns/${returnId}/scraps`)
 }
 
 export function createRmaScrap(data) {
-  return request.post('/rma/scraps', data)
+  return request.post('/api/v1/rma/scraps', data)
 }
 
 export function approveRmaScrap(id, data) {
-  return request.post(`/rma/scraps/${id}/approve`, data)
+  return request.post(`/api/v1/rma/scraps/${id}/approve`, data)
 }
 
 export function getRmaReships(returnId) {
-  return request.get(`/rma/returns/${returnId}/reships`)
+  return request.get(`/api/v1/rma/returns/${returnId}/reships`)
 }
 
 export function createRmaReship(data) {
-  return request.post('/rma/reships', data)
+  return request.post('/api/v1/rma/reships', data)
 }

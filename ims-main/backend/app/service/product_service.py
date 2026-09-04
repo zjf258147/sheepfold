@@ -40,7 +40,11 @@ def get_skus(db: Session, page: int = 1, page_size: int = 20, category_id: int |
     if category_id:
         query = query.filter(ProductSku.category_id == category_id)
     if keyword:
-        query = query.filter(ProductSku.name.like(f"%{keyword}%") | ProductSku.barcode.like(f"%{keyword}%"))
+        query = query.filter(
+            ProductSku.name.like(f"%{keyword}%")
+            | ProductSku.barcode.like(f"%{keyword}%")
+            | ProductSku.sku_code.like(f"%{keyword}%")
+        )
     total = query.count()
     items = query.order_by(ProductSku.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     return total, items

@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
-from app.models.enums import SnMode
+from app.models.enums import SnMode, SkuType
 
 
 class CategoryCreate(BaseModel):
@@ -42,6 +42,9 @@ class SkuCreate(BaseModel):
     category_id: int
     barcode: str = Field(..., max_length=50)
     unit: str | None = Field(None, max_length=20)
+    sku_code: str | None = Field(None, max_length=50)
+    spec: str | None = Field(None, max_length=100)
+    sku_type: SkuType = SkuType.FINISHED_GOODS
     sn_mode: SnMode = SnMode.BOTH
     status: int = 1
     remark: str | None = None
@@ -60,6 +63,9 @@ class SkuUpdate(BaseModel):
     category_id: int | None = None
     barcode: str | None = None
     unit: str | None = None
+    sku_code: str | None = None
+    spec: str | None = None
+    sku_type: SkuType | None = None
     sn_mode: SnMode | None = None
     status: int | None = None
     remark: str | None = None
@@ -81,6 +87,9 @@ class SkuResponse(BaseModel):
     category_id: int
     barcode: str
     unit: str | None
+    sku_code: str | None
+    spec: str | None
+    sku_type: str
     sn_mode: str
     status: int
     remark: str | None

@@ -4,7 +4,7 @@ import {
   listCategories, createCategory, updateCategory, deleteCategory,
   listSkus, createSku, updateSku, deleteSku,
 } from '@/api/product'
-import { SNNO_IMPORT_MODE_MAP } from '@/constants/enums'
+import { SNNO_IMPORT_MODE_MAP, SKU_TYPE_MAP } from '@/constants/enums'
 import { Edit, Delete } from '@element-plus/icons-vue'
 const activeTab = ref('sku')
 const categories = ref([])
@@ -15,7 +15,7 @@ const loading = ref(false)
 const catDialog = ref(false)
 const catForm = ref({ id: null, name: '' })
 const skuDialog = ref(false)
-const skuForm = ref({ id: null, name: '', category_id: null, barcode: '', unit: '', sn_mode: 'MANUAL', status: 1, remark: '' })
+const skuForm = ref({ id: null, name: '', category_id: null, barcode: '', unit: '', sku_code: '', spec: '', sku_type: 'FINISHED_GOODS', sn_mode: 'MANUAL', status: 1, remark: '' })
 
 const unitOptions = ['个', '台', '件', '套', '张', '份', '副', '盒', '箱', '袋', '包', '卷', '米', '千克', '升']
 
@@ -64,8 +64,8 @@ async function removeCategory(row) {
 
 function openSkuDialog(row = null) {
   skuForm.value = row
-    ? { id: row.id, name: row.name, category_id: row.category_id, barcode: row.barcode, unit: row.unit || '', sn_mode: row.sn_mode, status: row.status, remark: row.remark || '' }
-    : { id: null, name: '', category_id: categories.value[0]?.id || null, barcode: '', unit: '', sn_mode: 'MANUAL', status: 1, remark: '' }
+    ? { id: row.id, name: row.name, category_id: row.category_id, barcode: row.barcode, unit: row.unit || '', sku_code: row.sku_code || '', spec: row.spec || '', sku_type: row.sku_type || 'FINISHED_GOODS', sn_mode: row.sn_mode, status: row.status, remark: row.remark || '' }
+    : { id: null, name: '', category_id: categories.value[0]?.id || null, barcode: '', unit: '', sku_code: '', spec: '', sku_type: 'FINISHED_GOODS', sn_mode: 'MANUAL', status: 1, remark: '' }
   skuDialog.value = true
 }
 
@@ -105,6 +105,11 @@ async function removeSku(row) {
             <template #default="{ row }">{{ categories.find(c => c.id === row.category_id)?.name || row.category_id }}</template>
           </el-table-column>
           <el-table-column prop="unit" label="计量单位" />
+          <el-table-column prop="sku_code" label="物料编码" />
+          <el-table-column prop="spec" label="规格型号" />
+          <el-table-column label="物料类型">
+            <template #default="{ row }">{{ SKU_TYPE_MAP[row.sku_type] || row.sku_type }}</template>
+          </el-table-column>
           <el-table-column label="SN号模式" >
             <template #default="{ row }">{{ SNNO_IMPORT_MODE_MAP[row.sn_mode] }}</template>
           </el-table-column>
@@ -158,6 +163,14 @@ async function removeSku(row) {
         </el-select>
       </el-form-item>
       <el-form-item label="条码编码"><el-input v-model="skuForm.barcode" placeholder="如:691414123456" /></el-form-item>
+      <el-form-item label="物料编码"><el-input v-model="skuForm.sku_code" placeholder="U9物料编码" /></el-form-item>
+      <el-form-item label="规格型号"><el-input v-model="skuForm.spec" placeholder="规格型号" /></el-form-item>
+      <el-form-item label="物料类型">
+        <el-select v-model="skuForm.sku_type" style="width:100%">
+          <el-option label="成品" value="FINISHED_GOODS" />
+          <el-option label="原材料" value="RAW_MATERIAL" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="计量单位">
         <el-select v-model="skuForm.unit" filterable allow-create default-first-option placeholder="请选择或输入" style="width:100%">
           <el-option v-for="u in unitOptions" :key="u" :label="u" :value="u" />

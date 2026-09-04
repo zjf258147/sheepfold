@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, Integer, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
-from app.models.enums import SnMode
+from app.models.enums import SnMode, SkuType
 
 
 class ProductCategory(Base, TimestampMixin):
@@ -31,6 +31,11 @@ class ProductSku(Base, TimestampMixin):
         String(10), default=SnMode.BOTH, nullable=False, comment="SN模式：MANUAL/AUTO/BOTH"
     )
     unit: Mapped[str | None] = mapped_column(String(20), nullable=True, comment="计量单位，如 个/张/份/副")
+    sku_code: Mapped[str | None] = mapped_column(String(50), nullable=True, unique=True, comment="物料编码（U9编码）")
+    spec: Mapped[str | None] = mapped_column(String(100), nullable=True, comment="规格型号")
+    sku_type: Mapped[SkuType] = mapped_column(
+        String(20), default=SkuType.FINISHED_GOODS, nullable=False, comment="物料类型：RAW_MATERIAL/FINISHED_GOODS"
+    )
     status: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False, comment="1=启用 0=停用")
     remark: Mapped[str | None] = mapped_column(String(500), nullable=True, comment="备注")
 

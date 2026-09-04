@@ -242,6 +242,11 @@ export const SNNO_IMPORT_MODE_MAP = {
   BOTH: '两者皆可',
 }
 
+export const SKU_TYPE_MAP = {
+  RAW_MATERIAL: '原材料',
+  FINISHED_GOODS: '成品',
+}
+
 export const USER_ROLE_MAP = {
   ADMIN: '管理员',
   STAFF: '普通员工',

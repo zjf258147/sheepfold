@@ -111,6 +111,12 @@ class SnMode(str, enum.Enum):
     BOTH = "BOTH"
 
 
+class SkuType(str, enum.Enum):
+    """SKU 物料类型。"""
+    RAW_MATERIAL = "RAW_MATERIAL"     # 原材料
+    FINISHED_GOODS = "FINISHED_GOODS" # 成品
+
+
 class UserRole(str, enum.Enum):
     """系统用户角色。"""
     ADMIN = "ADMIN"   # 管理员

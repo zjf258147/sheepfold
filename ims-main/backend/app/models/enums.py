@@ -128,6 +128,15 @@ class UserRole(str, enum.Enum):
     STAFF = "STAFF"                   # 普通员工
 
 
+class RawMaterialSnStatus(str, enum.Enum):
+    """原材料 SN 状态。"""
+    IN_STOCK = "IN_STOCK"       # 在库
+    CONSUMED = "CONSUMED"       # 已消耗
+    DEFECTIVE = "DEFECTIVE"     # 不良品
+    RETURNED = "RETURNED"       # 已退货
+    SCRAPPED = "SCRAPPED"       # 已报废
+
+
 # 出库类型 → 审核后单品库存状态
 OUTBOUND_TO_STOCK_STATUS = {
     OutboundType.SOLD: StockStatus.SOLD,

@@ -247,6 +247,26 @@ export const SKU_TYPE_MAP = {
   FINISHED_GOODS: '成品',
 }
 
+export const INCOMING_STATUS_MAP = {
+  PENDING_INSPECTION: '待检验',
+  INSPECTED: '已检验',
+  ACCEPTED: '合格入库',
+  REJECTED: '不合格退货',
+}
+
+export const INCOMING_STATUS_TAG = {
+  PENDING_INSPECTION: 'warning',
+  INSPECTED: 'info',
+  ACCEPTED: 'success',
+  REJECTED: 'danger',
+}
+
+export const INSPECTION_RESULT_MAP = {
+  ACCEPTED: '合格',
+  CONCESSION_ACCEPTED: '让步接收',
+  REJECTED: '不合格',
+}
+
 export const USER_ROLE_MAP = {
   ADMIN: '管理员',
   WAREHOUSE: '仓库管理员',

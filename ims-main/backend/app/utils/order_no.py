@@ -35,3 +35,24 @@ def generate_outbound_no(db: Session) -> str:
     seq = _next_seq(db, "JOUT")
     today = datetime.now().strftime("%Y%m%d")
     return f"JOUT-{today}-{seq:04d}"
+
+
+def generate_rc_no(db: Session) -> str:
+    """生成到货单号：RC{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "RC")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"RC{today}{seq:03d}"
+
+
+def generate_inspection_no(db: Session) -> str:
+    """生成检验编号：JC{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "JC")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"JC{today}{seq:03d}"
+
+
+def generate_return_no(db: Session) -> str:
+    """生成退货单号：TH{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "TH")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"TH{today}{seq:03d}"

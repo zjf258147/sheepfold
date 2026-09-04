@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api import auth, user, dashboard, inventory, product, partner, customer, inbound, outbound, snapshot, audit, settings
+from app.api import auth, user, dashboard, inventory, product, partner, customer, inbound, outbound, snapshot, audit, settings, incoming
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -16,3 +16,4 @@ api_router.include_router(outbound.router)
 api_router.include_router(snapshot.router)
 api_router.include_router(audit.router)
 api_router.include_router(settings.router)
+api_router.include_router(incoming.router)

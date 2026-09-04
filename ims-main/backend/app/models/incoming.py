@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
 from app.models.enums import IncomingStatus
@@ -34,6 +34,10 @@ class IncomingReceipt(Base, TimestampMixin):
     change_reason: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="变更原因")
     remark: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
 
+    supplier = relationship("Partner", foreign_keys=[supplier_id], lazy="joined")
+    sku = relationship("ProductSku", foreign_keys=[sku_id], lazy="joined")
+    inspector = relationship("User", foreign_keys=[inspector_id], lazy="joined")
+
 
 class IncomingInspection(Base, TimestampMixin):
     """来料检验报告（主线A）。"""
@@ -58,6 +62,8 @@ class IncomingInspection(Base, TimestampMixin):
     change_reason: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="变更原因")
     remark: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
 
+    inspector = relationship("User", foreign_keys=[inspector_id], lazy="joined")
+
 
 class IncomingReturn(Base, TimestampMixin):
     """原材料退货单（主线A）。"""
@@ -80,3 +86,5 @@ class IncomingReturn(Base, TimestampMixin):
     )
     change_reason: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="变更原因")
     remark: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
+
+    operator = relationship("User", foreign_keys=[operator_id], lazy="joined")

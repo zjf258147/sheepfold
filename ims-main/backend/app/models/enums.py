@@ -119,8 +119,12 @@ class SkuType(str, enum.Enum):
 
 class UserRole(str, enum.Enum):
     """系统用户角色。"""
-    ADMIN = "ADMIN"   # 管理员
-    STAFF = "STAFF"   # 普通员工
+    ADMIN = "ADMIN"                   # 管理员/总经理
+    WAREHOUSE = "WAREHOUSE"           # 仓库管理员
+    QUALITY = "QUALITY"               # 来料检/质量负责人
+    PRODUCTION = "PRODUCTION"         # 生产主管
+    TEST_ENGINEER = "TEST_ENGINEER"   # 测试工程师
+    STAFF = "STAFF"                   # 普通员工
 
 
 # 出库类型 → 审核后单品库存状态

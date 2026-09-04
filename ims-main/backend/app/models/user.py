@@ -24,6 +24,6 @@ class User(Base, TimestampMixin):
     avatar: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="头像 URL")
     status: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False, comment="状态：1=正常，0=禁用")
     role: Mapped[str] = mapped_column(
-        String(20), default=UserRole.STAFF.value, nullable=False, comment="角色：ADMIN/STAFF"
+        String(20), default=UserRole.STAFF.value, nullable=False, comment="角色：ADMIN/WAREHOUSE/QUALITY/PRODUCTION/TEST_ENGINEER/STAFF"
     )
     remark: Mapped[str | None] = mapped_column(String(500), nullable=True, comment="备注")

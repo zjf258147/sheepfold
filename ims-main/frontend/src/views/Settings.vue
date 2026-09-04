@@ -336,8 +336,7 @@ async function handleDeleteUser(row) {
       <el-form-item label="手机"><el-input v-model="userForm.phone" /></el-form-item>
       <el-form-item label="角色">
         <el-select v-model="userForm.role" style="width:100%">
-          <el-option label="普通员工" value="STAFF" />
-          <el-option label="管理员" value="ADMIN" />
+          <el-option v-for="[k, v] in Object.entries(USER_ROLE_MAP)" :key="k" :label="v" :value="k" />
         </el-select>
       </el-form-item>
     </el-form>

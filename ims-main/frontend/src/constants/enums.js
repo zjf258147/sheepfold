@@ -249,6 +249,10 @@ export const SKU_TYPE_MAP = {
 
 export const USER_ROLE_MAP = {
   ADMIN: '管理员',
+  WAREHOUSE: '仓库管理员',
+  QUALITY: '来料检/质量负责人',
+  PRODUCTION: '生产主管',
+  TEST_ENGINEER: '测试工程师',
   STAFF: '普通员工',
 }
 

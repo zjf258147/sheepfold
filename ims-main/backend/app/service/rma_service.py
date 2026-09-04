@@ -51,6 +51,29 @@ def _write_audit(
     ))
 
 
+def _return_to_dict(r: RmaReturn) -> dict:
+    return {
+        "id": r.id,
+        "return_no": r.return_no,
+        "sku_id": r.sku_id,
+        "sku_name": r.sku.name if r.sku else None,
+        "sku_code": r.sku.sku_code if r.sku else None,
+        "sn": r.sn,
+        "quantity": r.quantity,
+        "unit": r.unit,
+        "customer_name": r.customer_name,
+        "return_reason": r.return_reason,
+        "return_date": r.return_date,
+        "status": r.status,
+        "assigned_to": r.assigned_to,
+        "assignee_name": r.assignee.nickname or r.assignee.username if r.assignee else None,
+        "change_reason": r.change_reason,
+        "remark": r.remark,
+        "created_at": r.created_at,
+        "updated_at": r.updated_at,
+    }
+
+
 def get_returns(
     db: Session,
     page: int = 1,
@@ -62,7 +85,7 @@ def get_returns(
     start_date: str | None = None,
     end_date: str | None = None,
 ):
-    from app.models.product_sku import ProductSku
+    from app.models.product import ProductSku
 
     query = db.query(RmaReturn).join(RmaReturn.sku)
     if keyword:
@@ -85,7 +108,7 @@ def get_returns(
 
     total = query.count()
     items = query.order_by(RmaReturn.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
-    return items, total
+    return [_return_to_dict(item) for item in items], total
 
 
 def create_return(

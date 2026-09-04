@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>敦临IMS - 快速启动</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 48px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+    }
+    h1 {
+      color: #fff;
+      font-size: 28px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    .links {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    a.btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: #4472C4;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #3a5fa8; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(68,114,196,0.4); }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    .btn-success {
+      background: #27ae60;
+      color: #fff;
+    }
+    .btn-success:hover { background: #219a52; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(39,174,96,0.4); }
+    .icon { font-size: 22px; }
+    .info {
+      margin-top: 32px;
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      line-height: 1.8;
+      text-align: left;
+    }
+    .info strong { color: rgba(255,255,255,0.9); }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: rgba(68,114,196,0.3);
+      color: #8ab4f8;
+      margin-left: 8px;
+    }
+    .status { margin-top: 24px; font-size: 13px; }
+    .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status .online { background: #27ae60; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🏭 敦临 IMS 管理系统</h1>
+    <p class="subtitle">西安敦临计量检测有限公司 · 生产物料与产品追溯</p>
+
+    <div class="links">
+      <a href="http://localhost:5173" target="_blank" class="btn btn-primary">
+        <span class="icon">🏠</span> 系统首页（登录后使用）
+      </a>
+      <a href="http://localhost:5173/#/incoming" target="_blank" class="btn btn-success">
+        <span class="icon">📦</span> 来料管理（主线A）
+      </a>
+      <a href="http://localhost:8000/docs" target="_blank" class="btn btn-outline">
+        <span class="icon">📋</span> API 文档（Swagger）
+      </a>
+    </div>
+
+    <div class="status">
+      <span class="dot online"></span> 后端：<strong>http://localhost:8000</strong>
+      <span style="margin-left: 20px;"><span class="dot online"></span> 前端：<strong>http://localhost:5173</strong></span>
+    </div>
+
+    <div class="info">
+      <strong>快速开始：</strong><br>
+      1. 点击「系统首页」或「来料管理」进入系统<br>
+      2. 使用 <strong>admin / admin123</strong> 登录<br>
+      3. 在左侧菜单点击「来料管理」查看5条到货记录<br>
+      <br>
+      <strong>当前数据：</strong><span class="badge">5条</span> 来自 2026年8月 物料到货记录台账<br>
+      <strong>记录编号：</strong>RC20260904001 ~ RC20260904005
+    </div>
+  </div>
+</body>
+</html>

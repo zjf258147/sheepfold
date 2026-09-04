@@ -6,7 +6,7 @@ import { useBrandStore } from '@/stores/brand'
 import { changePassword } from '@/api/user'
 import {
   House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton,
-  Expand, Fold, Camera, List, User, Lock, ArrowDown,
+  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools,
 } from '@element-plus/icons-vue'
 
 const MOBILE_BREAKPOINT = 768
@@ -60,6 +60,7 @@ const allMenus = [
   },
   { path: '/inbound', title: '入库', icon: Download },
   { path: '/incoming', title: '来料管理', icon: Box },
+  { path: '/rma', title: '返厂维修', icon: Tools },
   { path: '/outbound', title: '出库', icon: Upload },
   { path: '/products', title: '商品SKU', icon: Goods },
   { path: '/partners', title: '往来单位', icon: OfficeBuilding },

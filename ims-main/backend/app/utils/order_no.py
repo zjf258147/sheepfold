@@ -56,3 +56,38 @@ def generate_return_no(db: Session) -> str:
     seq = _next_seq(db, "TH")
     today = datetime.now().strftime("%Y%m%d")
     return f"TH{today}{seq:03d}"
+
+
+def generate_fc_no(db: Session) -> str:
+    """生成返厂单号：FC{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "FC")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"FC{today}{seq:03d}"
+
+
+def generate_diag_no(db: Session) -> str:
+    """生成诊断编号：DG{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "DG")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"DG{today}{seq:03d}"
+
+
+def generate_repair_no(db: Session) -> str:
+    """生成维修工单号：WX{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "WX")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"WX{today}{seq:03d}"
+
+
+def generate_scrap_no(db: Session) -> str:
+    """生成报废单号：BF{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "BF")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"BF{today}{seq:03d}"
+
+
+def generate_reship_no(db: Session) -> str:
+    """生成再出货单号：RH{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "RH")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"RH{today}{seq:03d}"

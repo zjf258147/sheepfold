@@ -146,6 +146,24 @@ class IncomingStatus(str, enum.Enum):
     WAREHOUSED = "WAREHOUSED"                   # 已入库（仓管确认）
 
 
+class RmaStatus(str, enum.Enum):
+    """返厂维修状态（主线B）。"""
+    PENDING_DIAGNOSIS = "PENDING_DIAGNOSIS"   # 待诊断
+    DIAGNOSED = "DIAGNOSED"                   # 已诊断
+    ASSIGNED = "ASSIGNED"                     # 已分配
+    REPAIRING = "REPAIRING"                   # 维修中
+    REPAIRED = "REPAIRED"                     # 已修复
+    RESHIPPED = "RESHIPPED"                   # 已再出货
+    SCRAPPED = "SCRAPPED"                     # 已报废
+
+
+class ScrapStatus(str, enum.Enum):
+    """报废审批状态（主线B）。"""
+    PENDING = "PENDING"       # 待审批
+    APPROVED = "APPROVED"     # 已通过
+    REJECTED = "REJECTED"     # 已驳回
+
+
 # 出库类型 → 审核后单品库存状态
 OUTBOUND_TO_STOCK_STATUS = {
     OutboundType.SOLD: StockStatus.SOLD,

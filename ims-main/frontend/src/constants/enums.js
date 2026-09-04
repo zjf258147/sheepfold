@@ -269,6 +269,43 @@ export const INSPECTION_RESULT_MAP = {
   REJECTED: '不合格',
 }
 
+export const RMA_STATUS_MAP = {
+  PENDING_DIAGNOSIS: '待诊断',
+  DIAGNOSED: '已诊断',
+  ASSIGNED: '已分配',
+  REPAIRING: '维修中',
+  REPAIRED: '已修复',
+  RESHIPPED: '已再出货',
+  SCRAPPED: '已报废',
+}
+
+export const RMA_STATUS_TAG = {
+  PENDING_DIAGNOSIS: 'warning',
+  DIAGNOSED: 'info',
+  ASSIGNED: '',
+  REPAIRING: 'warning',
+  REPAIRED: 'success',
+  RESHIPPED: '',
+  SCRAPPED: 'danger',
+}
+
+export const DIAGNOSIS_RESULT_MAP = {
+  REPAIRABLE: '可维修',
+  SCRAP: '建议报废',
+}
+
+export const SCRAP_STATUS_MAP = {
+  PENDING: '待审批',
+  APPROVED: '已通过',
+  REJECTED: '已驳回',
+}
+
+export const SCRAP_STATUS_TAG = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+}
+
 export const USER_ROLE_MAP = {
   ADMIN: '管理员',
   WAREHOUSE: '仓库管理员',

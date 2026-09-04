@@ -26,6 +26,7 @@ const routes = [
       { path: 'inbound', name: 'Inbound', component: () => import('@/views/Inbound.vue'), meta: { title: '入库' } },
       { path: 'inbound/:id', name: 'InboundDetail', component: () => import('@/views/InboundDetail.vue'), meta: { title: '入库单详情' } },
       { path: 'incoming', name: 'IncomingReceipt', component: () => import('@/views/IncomingReceipt.vue'), meta: { title: '来料管理' } },
+      { path: 'rma', name: 'RmaReturn', component: () => import('@/views/RmaReturn.vue'), meta: { title: '返厂维修' } },
       { path: 'outbound', name: 'Outbound', component: () => import('@/views/Outbound.vue'), meta: { title: '出库' } },
       { path: 'outbound/:id', name: 'OutboundDetail', component: () => import('@/views/OutboundDetail.vue'), meta: { title: '出库单详情' } },
       {

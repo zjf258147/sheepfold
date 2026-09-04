@@ -94,6 +94,9 @@ docker exec ims-db mysqldump -u root -p ims > backup_$(date +%Y%m%d_%H%M%S).sql
 git log --oneline -5
 ```
 
+> 📋 **开发使用说明**：`doc/开发使用说明.md`（启动方式、访问地址、常见问题）  
+> 🐛 **环境问题排查**：`.trae/rules/开发环境问题记录.md`（9个问题及解决方案）
+
 ---
 
 ## 2. Trae 开发宪法规则

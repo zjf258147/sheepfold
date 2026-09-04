@@ -18,6 +18,7 @@ class AuditLogResponse(BaseModel):
     before_data: str | None
     after_data: str | None
     ip_address: str | None
+    change_reason: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -35,3 +36,4 @@ class AuditLogCreate(BaseModel):
     before_data: dict | list | str | None = None
     after_data: dict | list | str | None = None
     ip_address: str | None = None
+    change_reason: str | None = None

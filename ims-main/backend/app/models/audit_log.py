@@ -25,4 +25,5 @@ class AuditLog(Base):
     before_data: Mapped[str | None] = mapped_column(Text, nullable=True, comment="变更前数据 JSON")
     after_data: Mapped[str | None] = mapped_column(Text, nullable=True, comment="变更后数据 JSON")
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True, comment="客户端 IP")
+    change_reason: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="变更原因")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True, comment="操作时间")

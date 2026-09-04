@@ -306,6 +306,7 @@ async function handleDeleteUser(row) {
           </el-table-column>
           <el-table-column prop="summary" label="操作摘要" min-width="240" show-overflow-tooltip />
           <el-table-column prop="resource_name" label="关联资源" width="160" show-overflow-tooltip />
+          <el-table-column prop="change_reason" label="变更原因" width="140" show-overflow-tooltip />
           <el-table-column prop="ip_address" label="IP" width="130" />
           <el-table-column label="详情" width="70" fixed="right">
             <template #default="{ row }">
@@ -357,6 +358,7 @@ async function handleDeleteUser(row) {
         <el-descriptions-item label="资源标识">{{ detailRow.resource_id || '—' }}</el-descriptions-item>
         <el-descriptions-item label="资源名称" :span="2">{{ detailRow.resource_name || '—' }}</el-descriptions-item>
         <el-descriptions-item label="IP 地址">{{ detailRow.ip_address || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="变更原因">{{ detailRow.change_reason || '—' }}</el-descriptions-item>
         <el-descriptions-item label="操作摘要" :span="2">{{ detailRow.summary }}</el-descriptions-item>
       </el-descriptions>
       <div v-if="detailRow.before_data" style="margin-bottom:12px">

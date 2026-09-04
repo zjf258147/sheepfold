@@ -133,6 +133,7 @@ def record(
         before_data=_serialize_data(data.before_data),
         after_data=_serialize_data(data.after_data),
         ip_address=data.ip_address,
+        change_reason=data.change_reason,
         created_at=datetime.now(),
     )
     db.add(log)

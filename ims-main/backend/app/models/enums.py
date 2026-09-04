@@ -137,6 +137,14 @@ class RawMaterialSnStatus(str, enum.Enum):
     SCRAPPED = "SCRAPPED"       # 已报废
 
 
+class IncomingStatus(str, enum.Enum):
+    """到货/检验状态（主线A）。"""
+    PENDING_INSPECTION = "PENDING_INSPECTION"   # 待检验
+    INSPECTED = "INSPECTED"                     # 已检验
+    ACCEPTED = "ACCEPTED"                       # 合格入库
+    REJECTED = "REJECTED"                       # 不合格退货
+
+
 # 出库类型 → 审核后单品库存状态
 OUTBOUND_TO_STOCK_STATUS = {
     OutboundType.SOLD: StockStatus.SOLD,

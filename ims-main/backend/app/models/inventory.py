@@ -28,6 +28,11 @@ class InventoryItem(Base, TimestampMixin):
         String(30), default=OperationStatus.COMPLETED.value, nullable=False, comment="操作状态"
     )
     last_order_no: Mapped[str | None] = mapped_column(String(30), nullable=True, comment="最近关联单号")
+    replaced_by_sn: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="如果已替换，指向新 SN")
+    replaced_from_sn: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="如果是维修后新 SN，指向旧 SN")
+    current_location: Mapped[str] = mapped_column(
+        String(50), default="库房", nullable=False, comment="库房/已发出/维修中/已报废"
+    )
     unit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True, comment="采购单价")
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False, comment="数量，固定为1")
 

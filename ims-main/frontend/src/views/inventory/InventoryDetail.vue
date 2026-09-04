@@ -261,6 +261,15 @@ async function handleCompleteOfflineSale(row) {
     <el-table-column label="库存属性" min-width="100" align="center">
       <template #default="{ row }"><el-tag size="small">{{ stockConditionLabel(row.stock_status, row.stock_condition).stock_condition_name }}</el-tag></template>
     </el-table-column>
+    <el-table-column label="库位" min-width="90" align="center">
+      <template #default="{ row }">{{ row.current_location || '库房' }}</template>
+    </el-table-column>
+    <el-table-column prop="replaced_by_sn" label="替换为新SN" min-width="140" show-overflow-tooltip>
+      <template #default="{ row }">{{ row.replaced_by_sn || '—' }}</template>
+    </el-table-column>
+    <el-table-column prop="replaced_from_sn" label="原SN" min-width="140" show-overflow-tooltip>
+      <template #default="{ row }">{{ row.replaced_from_sn || '—' }}</template>
+    </el-table-column>
     <el-table-column label="关联单号" min-width="140" show-overflow-tooltip>
       <template #default="{ row }">
         <el-button v-if="row.last_order_no" type="primary" link @click="openOrderDrawer(row.last_order_no)">

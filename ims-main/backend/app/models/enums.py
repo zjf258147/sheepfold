@@ -15,6 +15,7 @@ class StockStatus(str, enum.Enum):
     DEPT_PROCUREMENT = "DEPT_PROCUREMENT"  # 部门采购出库
     PRESOLD = "PRESOLD"               # 准售出
     SOLD_OFFLINE = "SOLD_OFFLINE"     # 售出-线下（已完成）
+    REPLACED = "REPLACED"             # 已替换（维修换码后的旧SN）
 
 
 class StockCondition(str, enum.Enum):

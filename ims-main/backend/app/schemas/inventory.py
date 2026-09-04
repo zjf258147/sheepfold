@@ -40,6 +40,9 @@ class InventoryItemResponse(BaseModel):
     stock_condition: str
     operation_status: str
     last_order_no: str | None
+    replaced_by_sn: str | None = None
+    replaced_from_sn: str | None = None
+    current_location: str | None = None
     unit_price: Decimal | None = None
     quantity: int
     partner_id: int | None = None

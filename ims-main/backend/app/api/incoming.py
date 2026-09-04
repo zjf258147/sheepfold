@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -8,6 +8,7 @@ from app.schemas.common import PageResult, R
 from app.schemas.incoming import (
     IncomingInspectionCreate,
     IncomingInspectionResponse,
+    IncomingReceiptConfirm,
     IncomingReceiptCreate,
     IncomingReceiptResponse,
     IncomingReceiptUpdate,
@@ -15,6 +16,7 @@ from app.schemas.incoming import (
     IncomingReturnResponse,
 )
 from app.service import incoming_service
+from app.utils.request_ip import get_client_ip
 
 router = APIRouter(prefix="/incoming", tags=["来料管理"])
 
@@ -54,10 +56,22 @@ def get_receipt(
 @router.post("/receipts", status_code=201)
 def create_receipt(
     data: IncomingReceiptCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return incoming_service.create_receipt(db, data)
+    return incoming_service.create_receipt(db, data, current_user, get_client_ip(request))
+
+
+@router.post("/receipts/{receipt_id}/confirm")
+def confirm_receipt(
+    receipt_id: int,
+    data: IncomingReceiptConfirm,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return incoming_service.confirm_receipt(db, receipt_id, data.change_reason, current_user, get_client_ip(request))
 
 
 @router.put("/receipts/{receipt_id}")
@@ -82,18 +96,20 @@ def list_inspections(
 @router.post("/inspections", status_code=201)
 def create_inspection(
     data: IncomingInspectionCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return incoming_service.create_inspection(db, data)
+    return incoming_service.create_inspection(db, data, current_user, get_client_ip(request))
 
 
 @router.post("/returns", status_code=201)
 def create_return(
     data: IncomingReturnCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if data.operator_id is None:
         data.operator_id = current_user.id
-    return incoming_service.create_return(db, data)
+    return incoming_service.create_return(db, data, current_user, get_client_ip(request))

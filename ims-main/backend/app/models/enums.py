@@ -143,6 +143,7 @@ class IncomingStatus(str, enum.Enum):
     INSPECTED = "INSPECTED"                     # 已检验
     ACCEPTED = "ACCEPTED"                       # 合格入库
     REJECTED = "REJECTED"                       # 不合格退货
+    WAREHOUSED = "WAREHOUSED"                   # 已入库（仓管确认）
 
 
 # 出库类型 → 审核后单品库存状态

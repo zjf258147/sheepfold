@@ -252,6 +252,7 @@ export const INCOMING_STATUS_MAP = {
   INSPECTED: '已检验',
   ACCEPTED: '合格入库',
   REJECTED: '不合格退货',
+  WAREHOUSED: '已入库',
 }
 
 export const INCOMING_STATUS_TAG = {
@@ -259,6 +260,7 @@ export const INCOMING_STATUS_TAG = {
   INSPECTED: 'info',
   ACCEPTED: 'success',
   REJECTED: 'danger',
+  WAREHOUSED: '',
 }
 
 export const INSPECTION_RESULT_MAP = {

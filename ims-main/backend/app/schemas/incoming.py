@@ -40,6 +40,9 @@ class IncomingReceiptResponse(BaseModel):
     inspector_id: int | None = None
     inspector_name: str | None = None
     inspection_date: date | None = None
+    confirmed_at: datetime | None = None
+    confirmed_by: int | None = None
+    confirmer_name: str | None = None
     change_reason: str | None = None
     remark: str | None = None
     created_at: datetime | None = None
@@ -103,3 +106,7 @@ class IncomingReturnResponse(BaseModel):
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class IncomingReceiptConfirm(BaseModel):
+    change_reason: str = Field(..., min_length=1, max_length=255, description="入库确认原因（必填）")

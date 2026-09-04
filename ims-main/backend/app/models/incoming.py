@@ -31,12 +31,17 @@ class IncomingReceipt(Base, TimestampMixin):
         Integer, ForeignKey("sys_user.id"), nullable=True, comment="检验人 ID"
     )
     inspection_date: Mapped[date | None] = mapped_column(Date, nullable=True, comment="检验日期")
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, comment="入库确认时间")
+    confirmed_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("sys_user.id"), nullable=True, comment="入库确认人 ID"
+    )
     change_reason: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="变更原因")
     remark: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
 
     supplier = relationship("Partner", foreign_keys=[supplier_id], lazy="joined")
     sku = relationship("ProductSku", foreign_keys=[sku_id], lazy="joined")
     inspector = relationship("User", foreign_keys=[inspector_id], lazy="joined")
+    confirmer = relationship("User", foreign_keys=[confirmed_by], lazy="joined")
 
 
 class IncomingInspection(Base, TimestampMixin):

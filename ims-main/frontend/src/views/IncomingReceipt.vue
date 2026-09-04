@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn } from '@/api/incoming'
+import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn, confirmIncomingReceipt } from '@/api/incoming'
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
 import { INCOMING_STATUS_MAP, INCOMING_STATUS_TAG, INSPECTION_RESULT_MAP } from '@/constants/enums'
@@ -60,6 +60,10 @@ const returnForm = ref({
   change_reason: '',
 })
 const returnLoading = ref(false)
+
+const confirmDialog = ref(false)
+const confirmForm = ref({ receipt_id: null, change_reason: '' })
+const confirmLoading = ref(false)
 
 const currentReceipt = ref(null)
 
@@ -201,6 +205,30 @@ async function submitReturn() {
   }
 }
 
+function openConfirm(row) {
+  currentReceipt.value = row
+  confirmForm.value = { receipt_id: row.id, change_reason: '' }
+  confirmDialog.value = true
+}
+
+async function submitConfirm() {
+  if (!confirmForm.value.change_reason) {
+    ElMessage.warning('请填写入库确认原因')
+    return
+  }
+  confirmLoading.value = true
+  try {
+    await confirmIncomingReceipt(confirmForm.value.receipt_id, { change_reason: confirmForm.value.change_reason })
+    ElMessage.success('入库确认完成')
+    confirmDialog.value = false
+    search()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || '确认失败')
+  } finally {
+    confirmLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadOptions()
   loadData()
@@ -271,10 +299,11 @@ onMounted(() => {
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip />
       <el-table-column label="创建时间" width="160" :formatter="dateTimeColumnFormatter" prop="created_at" />
-      <el-table-column label="操作" width="160" fixed="right" align="center">
+      <el-table-column label="操作" width="200" fixed="right" align="center">
         <template #default="{ row }">
           <el-button v-if="row.status === 'PENDING_INSPECTION' || row.status === 'INSPECTED'" type="primary" link size="small" @click="openInspection(row)">检验</el-button>
           <el-button v-if="row.status === 'INSPECTED'" type="danger" link size="small" @click="openReturn(row)">退货</el-button>
+          <el-button v-if="row.status === 'ACCEPTED'" type="success" link size="small" @click="openConfirm(row)">确认入库</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -364,6 +393,21 @@ onMounted(() => {
     <template #footer>
       <el-button @click="returnDialog = false">取消</el-button>
       <el-button type="primary" :loading="returnLoading" :disabled="!returnForm.change_reason" @click="submitReturn">提交</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="confirmDialog" title="确认入库" width="500px">
+    <el-form label-width="100px">
+      <el-form-item label="到货单号">{{ currentReceipt?.receipt_no }}</el-form-item>
+      <el-form-item label="物料名称">{{ currentReceipt?.sku_name }}</el-form-item>
+      <el-form-item label="数量">{{ currentReceipt?.quantity }} {{ currentReceipt?.unit }}</el-form-item>
+      <el-form-item label="入库原因" required>
+        <el-input v-model="confirmForm.change_reason" type="textarea" :rows="2" placeholder="请填写入库确认原因（必填）" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="confirmDialog = false">取消</el-button>
+      <el-button type="primary" :loading="confirmLoading" :disabled="!confirmForm.change_reason" @click="submitConfirm">确认入库</el-button>
     </template>
   </el-dialog>
 </template>

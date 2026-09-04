@@ -28,6 +28,10 @@ export function createIncomingReturn(data) {
   return request.post('/api/v1/incoming/returns', data)
 }
 
+export function confirmIncomingReceipt(id, data) {
+  return request.post(`/api/v1/incoming/receipts/${id}/confirm`, data)
+}
+
 export function exportIncomingReceipts(params) {
   return request.get('/api/v1/incoming/receipts/export', { params, responseType: 'blob' })
 }

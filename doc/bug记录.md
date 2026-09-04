@@ -91,6 +91,91 @@ Alembic 迁移脚本创建 `incoming_receipt`/`incoming_inspection`/`incoming_re
 
 ---
 
+## Bug #004：audit_log 写入报错（created_at 无默认值）
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-004 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🔴 高（审计日志写入失败） |
+| **模块** | 主线A·审计日志 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+到货登记/检验/退货操作时，后台报 500 错误：`Column 'created_at' cannot be null`。`sys_audit_log` 表写入失败。
+
+### 根因
+`AuditLog` 模型继承 `Base`（非 `TimestampMixin`），`created_at` 字段无 `server_default`。来料模块新增审计日志写入时，未显式设置 `created_at` 值，导致插入 NULL。
+
+### 修复
+1. `AuditLog` 模型 `created_at` 添加 `server_default=func.now()`
+2. `_write_audit` 函数中显式设置 `created_at=datetime.now()`
+3. 数据库 `ALTER TABLE` 补充默认值
+
+### 涉及文件
+- `backend/app/models/audit_log.py` (L29)
+- `backend/app/service/incoming_service.py` (L75)
+
+### 教训
+**所有模型的时间戳字段必须有 server_default，审计日志写入时显式设置 created_at 兜底。**
+
+---
+
+## Bug #005：来料操作未写入审计日志
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-005 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🟡 中（审计追溯缺失） |
+| **模块** | 主线A·审计日志 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+执行到货登记、来料检验、退货操作后，`sys_audit_log` 表中无对应记录。仅有登录日志，无法追溯谁在何时做了什么操作。
+
+### 根因
+`incoming_service` 中 `create_receipt`/`create_inspection`/`create_return` 均未调用审计日志写入逻辑。
+
+### 修复
+新增 `_write_audit` 通用函数，在四个操作（到货登记、检验、退货、确认入库）中均写入审计日志，包含操作人、模块、资源类型、单号、摘要、变更原因、IP 地址。
+
+### 涉及文件
+- `backend/app/service/incoming_service.py` (L47-L75, L96-L105, L225-L235, L268-L278, L307-L317)
+- `backend/app/api/incoming.py` (所有 create 端点增加 `request: Request` 参数)
+
+### 教训
+**新增模块必须同步接入审计日志，不可遗漏。**
+
+---
+
+## Bug #006：来料关键字搜索仅匹配单号/批次号
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-006 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🟢 低（功能不完善） |
+| **模块** | 主线A·来料管理 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+在搜索框输入物料名称"空开"，搜索结果为 0。用户无法通过物料名称或编码查找来料记录。
+
+### 根因
+`get_receipts` 关键字过滤仅匹配 `receipt_no`（到货单号）和 `batch_no`（批次号），未 JOIN `product_sku` 表匹配物料名称和编码。
+
+### 修复
+关键字搜索增加 `ProductSku.name.like()` 和 `ProductSku.sku_code.like()` 条件，同时将 JOIN 逻辑提前到关键字过滤阶段。
+
+### 涉及文件
+- `backend/app/service/incoming_service.py` (L142-L148)
+
+### 教训
+**列表页关键字搜索应覆盖所有用户可能输入的字段：单号、名称、编码。**
+
+---
+
 ## 模板（新 Bug 复制此格式）
 
 | 字段 | 内容 |

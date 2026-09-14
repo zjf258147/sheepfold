@@ -64,16 +64,28 @@ def scan_items(db: Session, stocktake_id: int, items: list[ScanItemRequest], use
         raise ValueError("盘点任务非进行中状态")
 
     now = datetime.now()
-    for item in items:
-        line = (
-            db.query(StocktakeLine)
-            .filter(
-                StocktakeLine.stocktake_id == stocktake_id,
-                StocktakeLine.item_sn == item.item_sn,
-            )
-            .first()
+    sns = [item.item_sn for item in items]
+
+    existing_lines = (
+        db.query(StocktakeLine)
+        .filter(
+            StocktakeLine.stocktake_id == stocktake_id,
+            StocktakeLine.item_sn.in_(sns),
         )
-        inventory_item = db.query(InventoryItem).filter(InventoryItem.item_sn == item.item_sn).first()
+        .all()
+    )
+    line_map = {l.item_sn: l for l in existing_lines}
+
+    inventory_items = (
+        db.query(InventoryItem)
+        .filter(InventoryItem.item_sn.in_(sns))
+        .all()
+    )
+    inventory_map = {i.item_sn: i for i in inventory_items}
+
+    for item in items:
+        line = line_map.get(item.item_sn)
+        inventory_item = inventory_map.get(item.item_sn)
         sku_id = inventory_item.sku_id if inventory_item else None
         system_qty = 1 if inventory_item else 0
 

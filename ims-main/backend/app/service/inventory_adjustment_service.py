@@ -72,14 +72,27 @@ def create_adjustment(db: Session, data: InventoryAdjustmentCreate, user_id: int
 
 
 def confirm_adjustments(db: Session, adjustment_ids: list[int], user_id: int) -> list[InventoryAdjustment]:
-    confirmed: list[InventoryAdjustment] = []
-    now = datetime.now()
-    for adj_id in adjustment_ids:
-        adj = db.query(InventoryAdjustment).filter(InventoryAdjustment.id == adj_id).first()
-        if not adj:
-            raise ValueError(f"调整记录不存在: {adj_id}")
+    adjustments = (
+        db.query(InventoryAdjustment)
+        .filter(InventoryAdjustment.id.in_(adjustment_ids))
+        .all()
+    )
+    adj_map = {adj.id: adj for adj in adjustments}
+    if len(adj_map) != len(adjustment_ids):
+        missing = set(adjustment_ids) - set(adj_map.keys())
+        raise ValueError(f"调整记录不存在: {missing}")
 
-        inventory_item = db.query(InventoryItem).filter(InventoryItem.item_sn == adj.item_sn).first()
+    item_sns = list({adj.item_sn for adj in adjustments})
+    inventory_items = (
+        db.query(InventoryItem)
+        .filter(InventoryItem.item_sn.in_(item_sns))
+        .all()
+    )
+    inventory_map = {i.item_sn: i for i in inventory_items}
+
+    now = datetime.now()
+    for adj in adjustments:
+        inventory_item = inventory_map.get(adj.item_sn)
 
         if adj.adjustment_type == AdjustmentType.SURPLUS.value:
             if inventory_item:
@@ -103,6 +116,5 @@ def confirm_adjustments(db: Session, adjustment_ids: list[int], user_id: int) ->
             created_at=now,
         )
         db.add(history)
-        confirmed.append(adj)
     db.flush()
-    return confirmed
+    return adjustments

@@ -1,9 +1,8 @@
 from datetime import date
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.device_ledger import DeviceLedger
-from app.models.station import Station
 from app.models.enums import DeviceLedgerStatus
 from app.schemas.device_ledger import DeviceLedgerCreate, DeviceLedgerUpdate, WarrantyCheckResponse
 
@@ -16,7 +15,7 @@ def get_device_ledger_list(
     station_id: int | None = None,
     status: str | None = None,
 ) -> tuple[int, list[DeviceLedger]]:
-    query = db.query(DeviceLedger)
+    query = db.query(DeviceLedger).options(joinedload(DeviceLedger.station))
     if keyword and keyword.strip():
         query = query.filter(DeviceLedger.item_sn.like(f"%{keyword.strip()}%"))
     if station_id:
@@ -34,7 +33,12 @@ def get_device_ledger_list(
 
 
 def get_device_by_id(db: Session, ledger_id: int) -> DeviceLedger | None:
-    return db.query(DeviceLedger).filter(DeviceLedger.id == ledger_id).first()
+    return (
+        db.query(DeviceLedger)
+        .options(joinedload(DeviceLedger.station))
+        .filter(DeviceLedger.id == ledger_id)
+        .first()
+    )
 
 
 def get_device_by_sn_station(db: Session, item_sn: str, station_id: int) -> DeviceLedger | None:
@@ -68,11 +72,12 @@ def create_device_ledger(db: Session, data: DeviceLedgerCreate) -> DeviceLedger:
     )
     db.add(ledger)
     db.flush()
+    db.refresh(ledger)
     return ledger
 
 
 def update_device_ledger(db: Session, ledger_id: int, data: DeviceLedgerUpdate) -> DeviceLedger:
-    ledger = db.query(DeviceLedger).filter(DeviceLedger.id == ledger_id).first()
+    ledger = db.query(DeviceLedger).options(joinedload(DeviceLedger.station)).filter(DeviceLedger.id == ledger_id).first()
     if not ledger:
         raise ValueError("设备台账记录不存在")
     update_data = data.model_dump(exclude_unset=True)
@@ -83,7 +88,7 @@ def update_device_ledger(db: Session, ledger_id: int, data: DeviceLedgerUpdate) 
 
 
 def remove_device(db: Session, ledger_id: int, removed_date: date) -> DeviceLedger:
-    ledger = db.query(DeviceLedger).filter(DeviceLedger.id == ledger_id).first()
+    ledger = db.query(DeviceLedger).options(joinedload(DeviceLedger.station)).filter(DeviceLedger.id == ledger_id).first()
     if not ledger:
         raise ValueError("设备台账记录不存在")
     ledger.removed_date = removed_date

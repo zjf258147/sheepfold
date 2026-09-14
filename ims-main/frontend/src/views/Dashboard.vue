@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { OfficeBuilding } from '@element-plus/icons-vue'
-import { getPartnerSummary, getPendingAudit, getStockSummary } from '@/api/dashboard'
+import { OfficeBuilding, Monitor, Location, Warning, Tickets, Box } from '@element-plus/icons-vue'
+import { getPartnerSummary, getPendingAudit, getPhase2Stats, getStockSummary } from '@/api/dashboard'
 import {
   partnerTotalOutbound,
   inStockDetailTooltipLines,
@@ -13,6 +13,7 @@ import {
 
 const router = useRouter()
 const pending = ref({ inbound_pending: 0, outbound_pending: 0 })
+const phase2 = ref({ station_total: 0, station_active: 0, device_total: 0, device_running: 0, device_fault: 0, device_recycled: 0, stocktake_in_progress: 0, stocktake_completed: 0, pending_adjustments: 0, warranty_expiring_soon: 0 })
 const summary = ref([])
 const partnerSummary = ref([])
 const loading = ref(false)
@@ -22,8 +23,9 @@ onMounted(loadData)
 async function loadData() {
   loading.value = true
   try {
-    const [p, s, ps] = await Promise.all([getPendingAudit(), getStockSummary(), getPartnerSummary()])
+    const [p, s, ps, p2] = await Promise.all([getPendingAudit(), getStockSummary(), getPartnerSummary(), getPhase2Stats()])
     pending.value = p.data
+    phase2.value = p2.data
     summary.value = s.data.items
     partnerSummary.value = [...ps.data.items].sort(
       (a, b) => partnerTotalOutbound(b) - partnerTotalOutbound(a),
@@ -47,6 +49,51 @@ async function loadData() {
         <el-card shadow="hover" class="audit-card inbound" @click="router.push('/inbound')">
           <div class="card-num">{{ pending.inbound_pending }}</div>
           <div class="card-label">待审核入库单</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16" class="cards" style="margin-top:16px">
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card station" @click="router.push('/station')">
+          <div class="p2-icon"><el-icon :size="28"><Location /></el-icon></div>
+          <div class="p2-num">{{ phase2.station_active }}<small>/{{ phase2.station_total }}</small></div>
+          <div class="p2-label">活跃场站</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card device" @click="router.push('/device-ledger')">
+          <div class="p2-icon"><el-icon :size="28"><Monitor /></el-icon></div>
+          <div class="p2-num">{{ phase2.device_running }}<small>/{{ phase2.device_total }}</small></div>
+          <div class="p2-label">运行中设备</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card fault">
+          <div class="p2-icon"><el-icon :size="28"><Warning /></el-icon></div>
+          <div class="p2-num">{{ phase2.device_fault }}</div>
+          <div class="p2-label">故障设备</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card stocktake" @click="router.push('/stocktake')">
+          <div class="p2-icon"><el-icon :size="28"><Tickets /></el-icon></div>
+          <div class="p2-num">{{ phase2.stocktake_in_progress }}<small>/{{ phase2.stocktake_in_progress + phase2.stocktake_completed }}</small></div>
+          <div class="p2-label">进行中盘点</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card adjustment" @click="router.push('/adjustment')">
+          <div class="p2-icon"><el-icon :size="28"><Box /></el-icon></div>
+          <div class="p2-num">{{ phase2.pending_adjustments }}</div>
+          <div class="p2-label">库存调整</div>
+        </el-card>
+      </el-col>
+      <el-col :span="4">
+        <el-card shadow="hover" class="phase2-card warranty" @click="router.push('/device-ledger')">
+          <div class="p2-icon"><el-icon :size="28"><Warning /></el-icon></div>
+          <div class="p2-num">{{ phase2.warranty_expiring_soon }}</div>
+          <div class="p2-label">质保将到期</div>
         </el-card>
       </el-col>
     </el-row>
@@ -145,4 +192,23 @@ async function loadData() {
   color: #303133;
   font-weight: 600;
 }
+
+.phase2-card { cursor: pointer; text-align: center; padding: 12px 4px; }
+.phase2-card:hover { transform: translateY(-2px); }
+.p2-icon { margin-bottom: 6px; }
+.p2-num { font-size: 22px; font-weight: 700; }
+.p2-num small { font-size: 13px; font-weight: 400; color: #909399; }
+.p2-label { font-size: 12px; color: #909399; margin-top: 2px; }
+.station .p2-icon { color: #409eff; }
+.station .p2-num { color: #409eff; }
+.device .p2-icon { color: #67c23a; }
+.device .p2-num { color: #67c23a; }
+.fault .p2-icon { color: #f56c6c; }
+.fault .p2-num { color: #f56c6c; }
+.stocktake .p2-icon { color: #e6a23c; }
+.stocktake .p2-num { color: #e6a23c; }
+.adjustment .p2-icon { color: #7b67ee; }
+.adjustment .p2-num { color: #7b67ee; }
+.warranty .p2-icon { color: #f56c6c; }
+.warranty .p2-num { color: #f56c6c; }
 </style>

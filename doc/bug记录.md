@@ -199,4 +199,277 @@ Alembic 迁移脚本创建 `incoming_receipt`/`incoming_inspection`/`incoming_re
 - `path/to/file`
 
 ### 教训
-（避免再犯）
+**列表页关键字搜索应覆盖所有用户可能输入的字段：单号、名称、编码。**
+
+---
+
+## Bug #007：返厂维修Alembic迁移缺少新表和字段
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-007 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🔴 高（数据库缺表/缺字段） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+`rma_quality_check`、`rma_warehouse_in` 两张表不存在，`rma_return` 表缺少 `spec`/`assign_type`/`diagnosis_result` 等13个字段，`rma_diagnosis` 缺少 `repair_plan`/`inspection_report_no`，`rma_repair` 缺少 `start_time`/`end_time`。
+
+### 根因
+模型定义（`rma.py`）与 Alembic 迁移脚本（`bdbe653a2582`）不同步。模型新增了字段和表，但迁移脚本未同步更新。
+
+### 修复
+创建新迁移 `c1d2e3f4g5h6_add_rma_missing_fields.py`，补充：
+- 新增 `rma_quality_check` 表（质量检验记录）
+- 新增 `rma_warehouse_in` 表（入库审核记录）
+- `rma_return` 新增13个字段
+- `rma_diagnosis` 新增2个字段
+- `rma_repair` 新增2个字段
+
+### 涉及文件
+- `backend/alembic/versions/c1d2e3f4g5h6_add_rma_missing_fields.py`
+- `backend/app/models/rma.py`
+- `backend/app/models/__init__.py`
+
+### 教训
+**模型变更后必须同步创建 Alembic 迁移脚本，不可遗漏。**
+
+---
+
+## Bug #008：RMA模型未导入 __init__.py
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-008 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🟡 中（Alembic autogenerate 无法发现） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+`models/__init__.py` 未导入 RMA 相关模型，导致 Alembic `--autogenerate` 无法发现新增表。
+
+### 根因
+新增模型文件后忘记在 `__init__.py` 中注册导入。
+
+### 修复
+在 `models/__init__.py` 中添加 `from app.models.rma import RmaReturn, RmaDiagnosis, RmaRepair, RmaQualityCheck, RmaWarehouseIn, RmaScrap, RmaReship`。
+
+### 涉及文件
+- `backend/app/models/__init__.py`
+
+### 教训
+**新增模型文件后必须在 `__init__.py` 中导入，供 Alembic 发现。**
+
+---
+
+## Bug #009：API缺少质量检验/入库审核端点
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-009 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🔴 高（功能不可用） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+前端无法调用质量检验和入库审核接口，404 错误。
+
+### 根因
+`api/rma.py` 缺少 `POST /quality-checks`、`POST /warehouse-ins`、`GET /returns/{id}/quality-checks`、`GET /returns/{id}/warehouse-ins` 四个端点。
+
+### 修复
+在 `api/rma.py` 中新增四个端点，并在 `schemas/rma.py` 中导入对应的 Schema。
+
+### 涉及文件
+- `backend/app/api/rma.py`
+- `backend/app/schemas/rma.py`
+
+### 教训
+**Service 层函数写完后，API 路由层必须同步暴露端点。**
+
+---
+
+## Bug #010：前端缺少质量检验/入库审核弹窗
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-010 |
+| **发现日期** | 2026-09-04 |
+| **严重程度** | 🔴 高（用户无法操作） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+返厂维修页面缺少"质量检验"和"入库审核"两个操作弹窗，分配弹窗缺少"分配类型"和"分配原因"字段，维修弹窗缺少"开始时间"/"结束时间"，操作按钮状态流转不正确。
+
+### 根因
+前端页面开发时未包含质量检验和入库审核环节，分配/维修弹窗字段不完整。
+
+### 修复
+1. 新增质量检验弹窗（检验人、检验日期、检验结果、检验描述、变更原因）
+2. 新增入库审核弹窗（新SN、维修次数、维修原因、变更原因）
+3. 分配弹窗新增"分配类型"（生产/测试）和"分配原因"字段
+4. 维修弹窗新增"开始时间"/"结束时间"字段
+5. 修正操作按钮状态流转：`REPAIRED→质量检验`、`QUALITY_CHECK→入库审核`、`WAREHOUSED→再出货`
+6. 前端枚举新增 `QUALITY_CHECK`/`WAREHOUSED`/`DIRECT_RESHIP`/`ASSIGN_TYPE_MAP`/`QUALITY_CHECK_RESULT_MAP`
+
+### 涉及文件
+- `frontend/src/views/RmaReturn.vue`
+- `frontend/src/api/rma.js`
+- `frontend/src/constants/enums.js`
+
+### 教训
+**前端页面必须与后端流程完全对齐，每个状态节点都要有对应的操作按钮和弹窗。**
+
+---
+
+## Bug #011：返厂维修时间选择器宽度不一致
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-011 |
+| **发现日期** | 2026-09-07 |
+| **严重程度** | 🟢 低（UI 样式问题） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+维修工单弹窗中「开始时间」和「结束时间」日期选择器宽度小于其他表单项控件，视觉上不协调。
+
+### 根因
+`el-date-picker` 组件未设置 `style="width:100%"`，默认宽度与其他 `el-input` 不一致。
+
+### 修复
+在维修工单弹窗的开始时间和结束时间 `el-date-picker` 中添加 `style="width:100%"`。
+
+### 涉及文件
+- `frontend/src/views/RmaReturn.vue`
+
+### 教训
+**所有表单控件应统一宽度，对 `el-date-picker`、`el-select` 等非 `el-input` 组件也需显式设置 `width:100%`。**
+
+---
+
+## Bug #012：seed_demo.py 枚举值名称错误
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-012 |
+| **发现日期** | 2026-09-07 |
+| **严重程度** | 🟡 中（数据填充失败） |
+| **模块** | 开发工具·数据种子 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+运行 `seed_demo.py` 填充演示数据时报错：
+```
+AttributeError: type object 'MaterialAvailability' has no attribute 'AVAILABLE'
+```
+
+### 根因
+`enums.py` 中 `MaterialAvailability` 的枚举值定义为 `COMPLETE`（齐套）/ `SHORTAGE`（缺料）/ `FULFILLED`（已齐套），`seed_demo.py` 中错误写为 `AVAILABLE`。
+
+### 修复
+将 `seed_demo.py` 中两处 `MaterialAvailability.AVAILABLE.value` 改为 `MaterialAvailability.COMPLETE.value`。
+
+### 涉及文件
+- `backend/seed_demo.py` (L580, L591)
+
+### 教训
+**写种子数据前必须核对枚举定义，不能凭记忆猜测枚举值名称。**
+
+---
+
+## Bug #013：RawMaterialInventory created_at/updated_at 无默认值
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-013 |
+| **发现日期** | 2026-09-07 |
+| **严重程度** | 🔴 高（插入失败） |
+| **模块** | 主线D·原材料管理 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+插入 `raw_material_inventory` 时报错：
+```
+OperationalError: (1364 "Field 'created_at' doesn't have a default value")
+```
+
+### 根因
+模型虽然继承 `TimestampMixin`（声明 `created_at/updated_at` + `server_default=func.now()`），但实际数据库表结构迁移时没有加上 `DEFAULT CURRENT_TIMESTAMP`，导致无法自动获取默认值。
+
+### 修复
+在 `seed_demo.py` 插入 `RawMaterialInventory` 时，显式传入 `created_at` 和 `updated_at` 值。
+
+### 涉及文件
+- `backend/seed_demo.py` (L672-L675)
+
+### 教训
+**模型定义与数据库实际结构可能不一致，种子脚本插入时显式设置时间戳可避免此类问题。**
+
+---
+
+## Bug #014：dt 名称覆盖导致 UnboundLocalError
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-014 |
+| **发现日期** | 2026-09-07 |
+| **严重程度** | 🟡 中（数据填充失败） |
+| **模块** | 开发工具·数据种子 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+运行 `seed_demo.py` 报错：
+```
+UnboundLocalError: cannot access local variable 'dt' where it is not associated with a value
+```
+
+### 根因
+1. 全局导入 `from datetime import datetime as dt`
+2. 在 `seed` 函数内部又定义 `dt = today - timedelta(days=d)`
+3. Python 将整个函数中的 `dt` 视为局部变量，导致在前面使用 `dt.combine()` 时报错
+
+### 修复
+将局部变量 `dt` 重命名为 `summary_date`，避免覆盖全局导入名称。
+
+### 涉及文件
+- `backend/seed_demo.py` (L1079-L1085)
+
+### 教训
+**全局导入的短名称（如 dt、pd、np）不要在函数内部作为局部变量名重用，否则 Python 会将整个函数中的该名称标记为局部变量，导致 UnboundLocalError。**
+
+---
+
+## Bug #015：日期相减可能产生负数 day
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-015 |
+| **发现日期** | 2026-09-07 |
+| **严重程度** | 🟢 低（可能异常） |
+| **模块** | 开发工具·数据种子 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+构造 `created_at` 时用 `today.day - random.randint(5, 20)`，如果 `today.day` < 20 会得到负数日期。
+
+### 根因
+直接对 `day` 做减法不处理跨月，可能生成非法日期（如 `2026-09-00` 或 `2026-09--5`）。
+
+### 修复
+改用 `dt.combine(today - timedelta(days=random.randint(5, 20)), dt.min.time())`，利用 `timedelta` 自动处理跨月。
+
+### 涉及文件
+- `backend/seed_demo.py` (L672-L675, L692)
+
+### 教训
+**生成过去日期优先使用 `timedelta` 从 `today` 往前推，不要直接对 `day` 做减法，否则遇到月初会得到非法日期。**
+
+---
+
+## 模板（新 Bug 复制此格式）

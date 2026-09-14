@@ -1,0 +1,12 @@
+{
+  "appId": "com.dunlin.ims",
+  "appName": "DL-IMS",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

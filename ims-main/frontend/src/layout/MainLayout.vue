@@ -6,8 +6,9 @@ import { useBrandStore } from '@/stores/brand'
 import { changePassword } from '@/api/user'
 import {
   House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton,
-  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection,
+  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock,
 } from '@element-plus/icons-vue'
+import { usePolling } from '@/composables/usePolling'
 
 const MOBILE_BREAKPOINT = 768
 
@@ -15,6 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const brand = useBrandStore()
+const { pollData, isOnline, totalBadge, start: startPolling, stop: stopPolling, fetchStatus } = usePolling()
 
 const isMobile = ref(false)
 const menuCollapsed = ref(false)
@@ -125,10 +127,12 @@ onMounted(() => {
   menuCollapsed.value = isMobile.value
   auth.fetchUser()
   window.addEventListener('resize', checkMobile)
+  startPolling()
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
+  stopPolling()
 })
 
 watch(() => route.path, () => {
@@ -232,7 +236,57 @@ async function submitPasswordChange() {
           </el-button>
           <span class="page-title">{{ route.meta.title }}</span>
         </div>
-        <el-dropdown class="header-right" trigger="click" @command="(cmd) => cmd === 'password' ? openPasswordDialog() : handleLogout()">
+        <div class="header-actions">
+          <el-popover
+            placement="bottom"
+            :width="260"
+            trigger="click"
+            :teleported="false"
+          >
+            <template #reference>
+              <el-badge :value="totalBadge" :hidden="totalBadge === 0" :max="99">
+                <el-button text class="notify-btn" :class="{ 'notify-btn--offline': !isOnline }">
+                  <el-icon :size="20"><Bell /></el-icon>
+                </el-button>
+              </el-badge>
+            </template>
+            <div class="notify-popover">
+              <div v-if="!isOnline" class="notify-offline">
+                <el-icon><WarningFilled /></el-icon>
+                <span>网络异常，数据可能不是最新</span>
+              </div>
+              <div class="notify-list">
+                <div class="notify-item" v-if="pollData.inbound_pending">
+                  <el-icon color="#E6A23C"><Download /></el-icon>
+                  <span>{{ pollData.inbound_pending }} 条入库待审核</span>
+                </div>
+                <div class="notify-item" v-if="pollData.outbound_pending">
+                  <el-icon color="#67C23A"><Upload /></el-icon>
+                  <span>{{ pollData.outbound_pending }} 条出库待审核</span>
+                </div>
+                <div class="notify-item" v-if="pollData.device_fault">
+                  <el-icon color="#F56C6C"><WarningFilled /></el-icon>
+                  <span>{{ pollData.device_fault }} 台设备故障</span>
+                </div>
+                <div class="notify-item" v-if="pollData.stocktake_in_progress">
+                  <el-icon color="#409EFF"><List /></el-icon>
+                  <span>{{ pollData.stocktake_in_progress }} 个盘点进行中</span>
+                </div>
+                <div class="notify-item" v-if="pollData.pending_adjustments">
+                  <el-icon color="#E6A23C"><Tools /></el-icon>
+                  <span>{{ pollData.pending_adjustments }} 条调整待确认</span>
+                </div>
+                <div class="notify-item" v-if="pollData.warranty_expiring_soon">
+                  <el-icon color="#909399"><Clock /></el-icon>
+                  <span>{{ pollData.warranty_expiring_soon }} 台设备质保将到期</span>
+                </div>
+                <div v-if="totalBadge === 0 && isOnline" class="notify-empty">
+                  暂无待办事项
+                </div>
+              </div>
+            </div>
+          </el-popover>
+          <el-dropdown class="header-right" trigger="click" @command="(cmd) => cmd === 'password' ? openPasswordDialog() : handleLogout()">
           <div class="user-trigger">
             <el-icon class="user-icon"><User /></el-icon>
             <span class="username">{{ auth.user?.nickname || auth.user?.username }}</span>
@@ -251,6 +305,7 @@ async function submitPasswordChange() {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+      </div>
       </el-header>
       <el-main class="main">
         <router-view />
@@ -402,6 +457,63 @@ async function submitPasswordChange() {
 
 .header-right {
   flex-shrink: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.notify-btn {
+  padding: 4px !important;
+  color: #606266;
+}
+
+.notify-btn--offline {
+  color: #f56c6c;
+}
+
+.notify-popover .notify-offline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #fef0f0;
+  color: #f56c6c;
+  font-size: 13px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.notify-popover .notify-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notify-popover .notify-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  font-size: 14px;
+  color: #303133;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notify-popover .notify-item:hover {
+  background: #f5f7fa;
+}
+
+.notify-popover .notify-empty {
+  text-align: center;
+  padding: 16px;
+  color: #909399;
+  font-size: 14px;
 }
 
 .user-trigger {

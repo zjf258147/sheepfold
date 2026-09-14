@@ -7,6 +7,16 @@ class PendingAuditResponse(BaseModel):
     outbound_pending: int
 
 
+class PollStatusResponse(BaseModel):
+    """轮询轻量状态，单次查询<50ms。"""
+    inbound_pending: int = 0
+    outbound_pending: int = 0
+    device_fault: int = 0
+    stocktake_in_progress: int = 0
+    pending_adjustments: int = 0
+    warranty_expiring_soon: int = 0
+
+
 class DashboardStockSummary(BaseModel):
     items: list[StockSummaryItem]
 
@@ -30,3 +40,17 @@ class PartnerStockSummaryItem(BaseModel):
 
 class DashboardPartnerSummary(BaseModel):
     items: list[PartnerStockSummaryItem]
+
+
+class Phase2StatsResponse(BaseModel):
+    """二期看板统计。"""
+    station_total: int = 0
+    station_active: int = 0
+    device_total: int = 0
+    device_running: int = 0
+    device_fault: int = 0
+    device_recycled: int = 0
+    stocktake_in_progress: int = 0
+    stocktake_completed: int = 0
+    pending_adjustments: int = 0
+    warranty_expiring_soon: int = 0

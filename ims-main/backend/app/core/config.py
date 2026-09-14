@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     UPLOAD_URL_PREFIX: str = "/uploads"
     MAX_LOGO_SIZE: int = 2 * 1024 * 1024  # 2MB
 
+    # Redis 缓存（可选，不配置则使用内存缓存）
+    REDIS_ENABLED: bool = False
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: str = ""
+    REDIS_DB: int = 0
+
     # 跨域白名单，.env 中用逗号分隔，此处自动解析为列表
     CORS_ORIGINS: str = "http://localhost:5173"
 

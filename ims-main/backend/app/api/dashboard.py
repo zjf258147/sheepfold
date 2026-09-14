@@ -10,6 +10,8 @@ from app.schemas.dashboard import (
     DashboardStockSummary,
     PartnerStockSummaryItem,
     PendingAuditResponse,
+    Phase2StatsResponse,
+    PollStatusResponse,
 )
 from app.schemas.inventory import StockSummaryItem
 from app.service import dashboard_service
@@ -37,3 +39,15 @@ def partner_summary(
 ):
     items = dashboard_service.get_partner_summary(db, sku_ids=sku_ids)
     return R.ok(data=DashboardPartnerSummary(items=[PartnerStockSummaryItem(**i) for i in items]))
+
+
+@router.get("/phase2-stats", response_model=R[Phase2StatsResponse], summary="二期看板统计")
+def phase2_stats(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    data = dashboard_service.get_phase2_stats(db)
+    return R.ok(data=Phase2StatsResponse(**data))
+
+
+@router.get("/poll-status", response_model=R[PollStatusResponse], summary="轮询轻量状态")
+def poll_status(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    data = dashboard_service.get_poll_status(db)
+    return R.ok(data=PollStatusResponse(**data))

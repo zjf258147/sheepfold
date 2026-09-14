@@ -33,9 +33,13 @@ IMS 是一套开箱即用、完全开源的库存管理系统，适用于需要�
 |------|---------|
 | 实时库存 | 按 SN 明细查询在库/出库状态、关联单号、采购单价；支持 SKU/分类/状态多维筛选；一键导出 Excel |
 | 库存统计 | 按 SKU 汇总在库数量、各出库类型数量；按单位汇总出库分布 |
-| 历史快照 | 每日/月度库存流水，按 SKU 维度查看期初、当日入库、当日出库、期末数据 |
-| 入库管理 | 支持采购入库、其他入库（退货/归还）；SN 人工录入或系统自动生成；审核流转 |
-| 出库管理 | 支持售出（线上/线下）、借出、赠送、损毁、维修等多种出库类型；按 SN 逐件勾选；关联客户 |
+| 历史快照 | 每日/月度库存流水，按 SKU 维度查看期初、当日入库、当日出库、期末数据；支持日流水、周期汇总、明细三种导出 |
+| 入库管理 | 支持采购入库、其他入库（退货/归还）；SN 人工录入或系统自动生成；审核流转；一键导出 Excel |
+| 出库管理 | 支持售出（线上/线下）、借出、赠送、损毁、维修等多种出库类型；按 SN 逐件勾选；关联客户；一键导出 Excel |
+| 来料管理 | 供应商到货登记、来料检验（抽样/不良）、退货处理、入库确认；一键导出 Excel |
+| 返厂维修 | 退货登记 → 诊断 → 分配 → 维修 → 质量检验 → 入库审核 → 再出货/报废；全流程追踪；一键导出 Excel |
+| BOM 管理 | 物料清单（BOM）维护，支持多级 BOM 结构；一键导出 Excel |
+| 生产任务 | 基于 BOM 创建生产任务，关联物料与工序；一键导出 Excel |
 | 商品 SKU | SKU 信息管理（条码、计量单位、SN 生成模式）；商品分类管理 |
 | 往来单位 | 供应商/客户/合作方统一管理，支持分组 |
 | 系统设置 | 员工账号管理（角色/状态）；品牌配置（名称/副标题/Logo 上传）；操作审计日志 |
@@ -222,6 +226,47 @@ npm run dev            # 启动开发服务器（http://localhost:5173）
 ├── docker-compose.yml
 └── .env.example
 ```
+
+---
+
+## 常见问题
+
+**Q: `http://localhost:8000` 打不开，但 `http://localhost:8000/docs` 可以？**
+
+A: 这是正常现象。后端是纯 API 服务，没有定义根路由 `/`。可用的地址：
+- Swagger 文档：`http://localhost:8000/docs`
+- ReDoc 文档：`http://localhost:8000/redoc`
+- 健康检查：`http://localhost:8000/health`
+- API 接口：`http://localhost:8000/api/v1/...`
+
+---
+
+## 更新日志
+
+### 2026-09-08
+
+**新增功能：**
+- 来料管理模块新增 Excel 导出功能（`/api/v1/incoming/receipts/export`）
+- 返修记录模块新增 Excel 导出功能（`/api/v1/rma/export`）
+- BOM 列表新增 Excel 导出功能（`/api/v1/bom/export`）
+- 生产任务新增 Excel 导出功能（`/api/v1/production-task/export`）
+- 入库单新增 Excel 导出功能（`/api/v1/inbound/orders/export`）
+- 出库单新增 Excel 导出功能（`/api/v1/outbound/orders/export`）
+- 快照明细新增 Excel 导出功能（`/api/v1/snapshots/items/export`）
+- 快照日流水新增 Excel 导出功能（`/api/v1/snapshots/daily-ledger/export`）
+- 快照周期汇总新增 Excel 导出功能（`/api/v1/snapshots/ledger-summary/export`）
+- 库存明细新增 Excel 导出功能（`/api/v1/inventory/items/export`）
+
+**Bug 修复：**
+- 修复 BOM 导出 404 错误：`/export` 路由与 `/{bom_id}` 动态路由冲突，已调整路由顺序
+- 修复入库单导出 404 错误：`/export` 路由与 `/{order_id}` 动态路由冲突，已调整路由顺序
+- 修复出库单导出 500 错误：`OutboundOrder` 模型无 `stock_condition` 属性，已移除多余列
+- 修复返修记录导出 500 错误：`get_returns()` 返回 dict 列表但导出代码使用属性访问，已改为字典访问
+- 修复返修记录导出 500 错误：`get_returns()` 返回 `(items, total)` 但解包顺序错误
+- 修复出库单导出传参错误：`export_outbound_xlsx()` 向 `get_orders()` 传递了不存在的 `stock_condition` 参数
+- 修复快照明细导出参数名错误：`date` 改为 `snapshot_date`
+- 修复返厂维修页面"退货登记"按钮位置：从独立 header 移至搜索栏，与入库/出库页面风格统一
+- 修复用户"左留启"登录名：`zllq` → `zlq`
 
 ---
 

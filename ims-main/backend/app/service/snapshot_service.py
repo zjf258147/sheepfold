@@ -73,6 +73,7 @@ def create_snapshot(
             stock_status=item.stock_status,
             stock_condition=item.stock_condition,
             operation_status=item.operation_status,
+            warehouse_type=item.warehouse_type,
             last_order_no=item.last_order_no,
             unit_price=item.unit_price,
             quantity=item.quantity,

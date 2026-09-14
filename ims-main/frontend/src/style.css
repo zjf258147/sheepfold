@@ -11,6 +11,35 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #app { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
 
+@media print {
+  html, body, #app {
+    background: #fff !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  #app {
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .el-overlay,
+  .el-overlay-dialog,
+  .el-overlay-mask,
+  .el-dialog__wrapper {
+    display: none !important;
+    background: transparent !important;
+  }
+}
+
 .el-table .cell{
   padding: 0 16px;
 }

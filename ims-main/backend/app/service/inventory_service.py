@@ -10,7 +10,12 @@ from app.models.outbound import OutboundOrder, OutboundOrderItem
 from app.models.partner import Partner, PartnerGroup
 from app.models.product import ProductSku
 from app.schemas.inventory import empty_in_stock_details
+from app.utils.excel_export import build_simple_xlsx
+from app.utils.excel_import import build_template_xlsx, parse_import_xlsx
 from app.utils.item_export import build_items_xlsx
+
+import base64
+import json
 
 # 多行 SN 模糊搜索允许的最大关键词数量
 MAX_KEYWORD_TOKENS = 100
@@ -277,6 +282,65 @@ def get_items(
         .all()
     )
     return total, _items_rows_to_dicts(db, rows)
+
+
+def get_items_cursor(
+    db: Session,
+    cursor: str | None = None,
+    page_size: int = 50,
+    item_sn: str | None = None,
+    sku_id: int | None = None,
+    stock_status: str | None = None,
+    stock_condition: str | None = None,
+    operation_status: str | None = None,
+    last_order_no: str | None = None,
+    category_id: int | None = None,
+    keyword: str | None = None,
+) -> tuple[list[dict], str | None, bool]:
+    """游标分页查询库存单品（适用于大数据量滚动加载）。"""
+    query = _build_items_query(
+        db,
+        item_sn=item_sn,
+        sku_id=sku_id,
+        stock_status=stock_status,
+        stock_condition=stock_condition,
+        operation_status=operation_status,
+        last_order_no=last_order_no,
+        category_id=category_id,
+        keyword=keyword,
+    )
+
+    cursor_id = None
+    if cursor:
+        try:
+            decoded = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
+            cursor_id = decoded.get("id")
+        except Exception:
+            pass
+
+    if cursor_id:
+        query = query.filter(InventoryItem.id < cursor_id)
+
+    rows = (
+        query.order_by(InventoryItem.id.desc())
+        .limit(page_size + 1)
+        .all()
+    )
+
+    has_more = len(rows) > page_size
+    if has_more:
+        rows = rows[:page_size]
+
+    items = _items_rows_to_dicts(db, rows)
+
+    next_cursor = None
+    if has_more and rows:
+        last_id = rows[-1][0].id
+        next_cursor = base64.urlsafe_b64encode(
+            json.dumps({"id": last_id}).encode()
+        ).decode()
+
+    return items, next_cursor, has_more
 
 
 def get_all_items(
@@ -583,3 +647,65 @@ def complete_offline_sale(db: Session, item: InventoryItem, user_id: int) -> Inv
     db.commit()
     db.refresh(item)
     return item
+
+
+INVENTORY_IMPORT_HEADERS = ["Item SN", "物料编码", "物料名称", "库存状态", "库存属性", "库房位置", "采购单价"]
+INVENTORY_IMPORT_COL_WIDTHS = [20, 16, 20, 14, 14, 14, 12]
+
+
+def export_inventory_template() -> bytes:
+    return build_template_xlsx(
+        INVENTORY_IMPORT_HEADERS,
+        example_row=["SN000001", "SKU001", "示例物料", "在库", "新品", "库房", "100.00"],
+        sheet_title="库存导入模板",
+        col_widths=INVENTORY_IMPORT_COL_WIDTHS,
+    )
+
+
+def import_inventory_xlsx(db: Session, content: bytes) -> dict:
+    rows = parse_import_xlsx(content)
+    success, errors = 0, []
+    status_map = {"在库": "IN_STOCK", "已出库": "SOLD_ONLINE", "维修中": "REPAIRING", "已报废": "SCRAPPED", "IN_STOCK": "IN_STOCK"}
+    condition_map = {"新品": "NEW", "二手": "USED", "返修": "REFURBISHED", "NEW": "NEW", "USED": "USED", "REFURBISHED": "REFURBISHED"}
+    for i, row in enumerate(rows, 1):
+        try:
+            if len(row) < 3:
+                errors.append(f"第{i}行：列数不足")
+                continue
+            sn, sku_code, sku_name, stock_status, stock_condition, location, unit_price = row[0], row[1], row[2], row[3] if len(row) > 3 else "", row[4] if len(row) > 4 else "", row[5] if len(row) > 5 else "", row[6] if len(row) > 6 else ""
+            if not sn.strip():
+                errors.append(f"第{i}行：SN为空")
+                continue
+            existing = db.query(InventoryItem).filter(InventoryItem.item_sn == sn.strip()).first()
+            if existing:
+                errors.append(f"第{i}行：SN {sn.strip()} 已存在")
+                continue
+            sku = db.query(ProductSku).filter(ProductSku.sku_code == sku_code.strip()).first()
+            if not sku and sku_code.strip():
+                errors.append(f"第{i}行：物料编码 {sku_code.strip()} 不存在")
+                continue
+            if not sku:
+                sku = db.query(ProductSku).filter(ProductSku.name == sku_name.strip()).first()
+            if not sku:
+                errors.append(f"第{i}行：物料 {sku_name.strip()} 不存在")
+                continue
+            st = status_map.get(stock_status.strip(), "IN_STOCK") if stock_status.strip() else "IN_STOCK"
+            sc = condition_map.get(stock_condition.strip(), "NEW") if stock_condition.strip() else "NEW"
+            loc = location.strip() if location.strip() else "库房"
+            try:
+                price = Decimal(unit_price) if unit_price and unit_price.strip() else None
+            except Exception:
+                price = None
+            item = InventoryItem(
+                item_sn=sn.strip(), sku_id=sku.id,
+                stock_status=st, stock_condition=sc,
+                operation_status="COMPLETED", current_location=loc,
+                unit_price=price, quantity=1,
+            )
+            db.add(item)
+            db.flush()
+            success += 1
+        except Exception as e:
+            errors.append(f"第{i}行：{str(e)}")
+    db.commit()
+    return {"success": success, "errors": errors}

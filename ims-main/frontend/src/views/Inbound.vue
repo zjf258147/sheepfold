@@ -1,11 +1,11 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { Delete, View, Promotion, Select, Close, Edit } from '@element-plus/icons-vue'
+import { Delete, View, Promotion, Select, Close, Edit, Download } from '@element-plus/icons-vue'
 import InboundDetail from '@/views/InboundDetail.vue'
 import {
   listInboundOrders, createInboundOrder, updateInboundOrder, getInboundOrder, submitInboundOrder,
   approveInboundOrder, cancelInboundOrder, deleteInboundOrder,
-  getReturnableItems,
+  getReturnableItems, exportInboundOrders,
 } from '@/api/inbound'
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
@@ -17,6 +17,7 @@ const drawerVisible = ref(false)
 const drawerOrderNo = ref('')
 
 const loading = ref(false)
+const exportLoading = ref(false)
 const orders = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -80,6 +81,20 @@ const returnItemsTotal = ref(0)
 const MAX_SN_KEYWORDS = 100
 const returnItemQuery = ref({ category_id: null, sku_id: null, keyword: '' })
 const categoryList = ref([])
+
+const lineScanSn = ref('')
+const appendLineSn = (line, val) => {
+  const current = line.item_sns || ''
+  line.item_sns = current ? current + '\n' + val : val
+  lineScanSn.value = ''
+}
+
+const returnScanSn = ref('')
+const appendReturnSn = (val) => {
+  const current = returnItemQuery.value.keyword || ''
+  returnItemQuery.value.keyword = current ? current + '\n' + val : val
+  returnScanSn.value = ''
+}
 
 function countKeywordTokens(keyword) {
   if (!keyword?.trim()) return 0
@@ -159,6 +174,23 @@ async function loadData() {
 function searchOrders() {
   page.value = 1
   loadData()
+}
+
+async function handleExport() {
+  exportLoading.value = true
+  try {
+    const blob = await exportInboundOrders(query.value)
+    const d = new Date()
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `IMS-入库单-${dateStr}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } finally { exportLoading.value = false }
 }
 
 function resetQuery() {
@@ -579,6 +611,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
         <el-button type="primary" @click="searchOrders">查询</el-button>
         <el-button @click="resetQuery">重置</el-button>
         <el-button type="primary" plain @click="openCreate">新增入库</el-button>
+        <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       </el-form-item>
     </el-form>
 
@@ -724,6 +757,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
             <el-input-number v-model="line.unit_price" :min="0" :max="9999999.99" :precision="2" :step="1" :controls="false" placeholder="99.00" />
           </div>
           <div style="flex:1; position:relative">
+            <BarcodeScanner v-model="lineScanSn" placeholder="扫码添加SN" @scan="val => appendLineSn(line, val)" style="margin-bottom:4px" />
             <el-input
               v-model="line.item_sns"
               type="textarea"
@@ -750,6 +784,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
         </p>
         <el-form :inline="true" class="return-item-search" @submit.prevent="searchReturnableItems">
           <el-form-item label="SN号" class="sn-search-item">
+            <BarcodeScanner v-model="returnScanSn" placeholder="扫码添加SN" @scan="appendReturnSn" style="margin-bottom:4px" />
             <el-input
               v-model="returnItemQuery.keyword"
               type="textarea"

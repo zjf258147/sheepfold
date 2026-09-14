@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from datetime import datetime
+from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -210,10 +214,51 @@ def delete_partner(
             module="partner",
             resource_type="partner",
             resource_id=str(partner_id),
-            resource_name=name,
-            summary=audit_service.build_summary(current_user, "DELETE", f"往来单位「{name}」"),
+            resource_name=partner.name,
+            summary=audit_service.build_summary(current_user, "DELETE", f"往来单位「{partner.name}」", ""),
             before_data=before,
             ip_address=get_client_ip(request),
         ),
     )
     return R.ok(msg="删除成功")
+
+
+@router.get("/partners/export", summary="导出往来单位 Excel")
+def export_partners(
+    keyword: str | None = None,
+    group_id: int | None = None,
+    partner_type: int | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    content = partner_service.export_partner_xlsx(db, keyword=keyword, group_id=group_id, partner_type=partner_type)
+    filename = quote("往来单位列表.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.get("/partners/template", summary="下载往来单位导入模板")
+def download_partner_template(_: User = Depends(get_current_user)):
+    content = partner_service.export_partner_template()
+    filename = quote("往来单位导入模板.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.post("/partners/import", summary="导入往来单位 Excel")
+async def import_partners(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
+    content = await file.read()
+    result = partner_service.import_partner_xlsx(db, content)
+    return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")

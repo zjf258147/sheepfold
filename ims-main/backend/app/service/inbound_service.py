@@ -26,6 +26,8 @@ from app.service.inventory_service import _keyword_filter, record_history
 from app.service.partner_service import validate_partner
 from app.utils.order_no import generate_inbound_no
 from app.utils.sn_generator import generate_sn, sn_timestamp, validate_sn_unique
+from app.utils.excel_export import build_simple_xlsx
+from app.utils.excel_import import build_template_xlsx, parse_import_xlsx
 
 
 def _calc_total_qty(lines: list) -> int:
@@ -468,6 +470,7 @@ def approve_order(db: Session, order: InboundOrder, user_id: int) -> InboundOrde
                 stock_status=StockStatus.IN_STOCK.value,
                 stock_condition=order.stock_condition,
                 operation_status=OperationStatus.COMPLETED.value,
+                warehouse_type="RAW_MATERIAL",
                 last_order_no=order.order_no,
                 unit_price=line.unit_price,
             )
@@ -521,3 +524,98 @@ def delete_order(db: Session, order: InboundOrder) -> None:
         raise ValueError("已提交待审核的单据不可删除，请先取消")
     db.delete(order)
     db.commit()
+
+
+def export_inbound_xlsx(
+    db: Session,
+    operation_status: str | None = None,
+    inbound_mode: str | None = None,
+    order_no: str | None = None,
+    partner_id: int | None = None,
+    stock_condition: str | None = None,
+    sku_id: int | None = None,
+    start_time: datetime | None = None,
+    end_time: datetime | None = None,
+) -> bytes:
+    """导出入库单列表为 Excel。"""
+    total, items = get_orders(
+        db, page=1, page_size=99999,
+        operation_status=operation_status, inbound_mode=inbound_mode,
+        order_no=order_no, partner_id=partner_id,
+        stock_condition=stock_condition, sku_id=sku_id,
+        start_time=start_time, end_time=end_time,
+    )
+    headers = ["入库单号", "入库模式", "库存属性", "往来单位", "总数量", "操作状态", "备注", "创建时间"]
+    rows = []
+    for o in items:
+        partner_name = o.partner.name if o.partner else ""
+        rows.append([
+            o.order_no, o.inbound_mode, o.stock_condition,
+            partner_name, o.total_qty, o.operation_status,
+            o.remark or "", str(o.created_at)[:19] if o.created_at else "",
+        ])
+    return build_simple_xlsx(headers, rows, sheet_title="入库单列表", col_widths=[20, 14, 14, 24, 10, 12, 20, 20])
+
+
+INBOUND_IMPORT_HEADERS = ["入库模式", "库存属性", "往来单位", "物料编码", "数量", "采购单价", "备注"]
+INBOUND_IMPORT_COL_WIDTHS = [14, 14, 24, 16, 10, 12, 20]
+
+
+def export_inbound_template() -> bytes:
+    return build_template_xlsx(
+        INBOUND_IMPORT_HEADERS,
+        example_row=["采购入库", "新品", "示例供应商", "SKU001", "10", "100.00", "备注"],
+        sheet_title="入库导入模板",
+        col_widths=INBOUND_IMPORT_COL_WIDTHS,
+    )
+
+
+def import_inbound_xlsx(db: Session, content: bytes, user_id: int) -> dict:
+    import uuid
+    rows = parse_import_xlsx(content)
+    success, errors = 0, []
+    mode_map = {"采购入库": "PROCUREMENT", "非采购入库": "NON_PROCUREMENT", "PROCUREMENT": "PROCUREMENT", "NON_PROCUREMENT": "NON_PROCUREMENT"}
+    condition_map = {"新品": "NEW", "维修": "REPAIR", "二手": "USED", "返修": "REFURBISHED", "赠品": "GIFT", "借用": "LOANED", "NEW": "NEW", "USED": "USED", "REFURBISHED": "REFURBISHED"}
+    for i, row in enumerate(rows, 1):
+        try:
+            if len(row) < 4:
+                errors.append(f"第{i}行：列数不足")
+                continue
+            inbound_mode, stock_condition, partner_name, sku_code, qty, unit_price, remark = row[0], row[1], row[2], row[3], row[4] if len(row) > 4 else "", row[5] if len(row) > 5 else "", row[6] if len(row) > 6 else ""
+            mode = mode_map.get(inbound_mode.strip(), "PROCUREMENT") if inbound_mode.strip() else "PROCUREMENT"
+            condition = condition_map.get(stock_condition.strip(), "NEW") if stock_condition.strip() else "NEW"
+            partner = db.query(Partner).filter(Partner.name == partner_name.strip()).first() if partner_name.strip() else None
+            if not partner:
+                errors.append(f"第{i}行：往来单位 {partner_name.strip()} 不存在")
+                continue
+            sku = db.query(ProductSku).filter(ProductSku.sku_code == sku_code.strip()).first() if sku_code.strip() else None
+            if not sku:
+                errors.append(f"第{i}行：物料编码 {sku_code.strip()} 不存在")
+                continue
+            try:
+                qty_val = int(qty) if qty and str(qty).strip() else 1
+            except ValueError:
+                qty_val = 1
+            try:
+                price_val = Decimal(unit_price) if unit_price and unit_price.strip() else None
+            except Exception:
+                price_val = None
+            order_no = generate_inbound_no(db)
+            order = InboundOrder(
+                order_no=order_no, inbound_mode=mode, stock_condition=condition,
+                partner_id=partner.id, remark=remark.strip() or None,
+                operation_status="INITIATED", total_qty=qty_val, submitted_by=user_id,
+            )
+            db.add(order)
+            db.flush()
+            line = InboundOrderLine(
+                inbound_order_id=order.id, sku_id=sku.id,
+                quantity=qty_val, unit_price=price_val,
+            )
+            db.add(line)
+            db.flush()
+            success += 1
+        except Exception as e:
+            errors.append(f"第{i}行：{str(e)}")
+    db.commit()
+    return {"success": success, "errors": errors}

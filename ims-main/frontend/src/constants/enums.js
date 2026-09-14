@@ -275,8 +275,11 @@ export const RMA_STATUS_MAP = {
   ASSIGNED: '已分配',
   REPAIRING: '维修中',
   REPAIRED: '已修复',
+  QUALITY_CHECK: '质量检验',
+  WAREHOUSED: '已入库',
   RESHIPPED: '已再出货',
   SCRAPPED: '已报废',
+  PENDING_SCRAP: '待报废审批',
 }
 
 export const RMA_STATUS_TAG = {
@@ -285,13 +288,26 @@ export const RMA_STATUS_TAG = {
   ASSIGNED: '',
   REPAIRING: 'warning',
   REPAIRED: 'success',
+  QUALITY_CHECK: '',
+  WAREHOUSED: 'success',
   RESHIPPED: '',
   SCRAPPED: 'danger',
+  PENDING_SCRAP: 'warning',
 }
 
 export const DIAGNOSIS_RESULT_MAP = {
   REPAIRABLE: '可维修',
-  SCRAP: '建议报废',
+}
+
+export const ASSIGN_TYPE_MAP = {
+  PRODUCTION: '生产（外观问题）',
+  TEST: '测试（功能问题）',
+  SCRAP: '判定报废',
+}
+
+export const QUALITY_CHECK_RESULT_MAP = {
+  PASS: '通过',
+  FAIL: '不通过',
 }
 
 export const SCRAP_STATUS_MAP = {
@@ -304,6 +320,11 @@ export const SCRAP_STATUS_TAG = {
   PENDING: 'warning',
   APPROVED: 'success',
   REJECTED: 'danger',
+}
+
+export const WAREHOUSE_TYPE_MAP = {
+  ZERO_COST_FINISHED: '零成本仓（成品）',
+  ZERO_COST_SEMI: '零成本仓（半成品）',
 }
 
 export const USER_ROLE_MAP = {

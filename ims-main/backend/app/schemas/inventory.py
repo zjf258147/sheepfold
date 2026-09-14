@@ -39,6 +39,7 @@ class InventoryItemResponse(BaseModel):
     stock_status: str
     stock_condition: str
     operation_status: str
+    warehouse_type: str | None = None
     last_order_no: str | None
     replaced_by_sn: str | None = None
     replaced_from_sn: str | None = None

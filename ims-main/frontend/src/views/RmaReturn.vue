@@ -1,13 +1,16 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { listRmaReturns, createRmaReturn, createRmaDiagnosis, createRmaRepair, createRmaScrap, approveRmaScrap, assignRmaReturn, createRmaReship } from '@/api/rma'
+import { listRmaReturns, createRmaReturn, createRmaDiagnosis, createRmaRepair, createRmaScrap, assignRmaReturn, createRmaReship, createRmaQualityCheck, createRmaWarehouseIn, exportRmaReturns } from '@/api/rma'
 import { listSkus, listCategories } from '@/api/product'
-import { listPartners } from '@/api/partner'
-import { RMA_STATUS_MAP, RMA_STATUS_TAG, DIAGNOSIS_RESULT_MAP, SCRAP_STATUS_MAP } from '@/constants/enums'
-import { dateTimeColumnFormatter } from '@/utils/datetime'
+import { RMA_STATUS_MAP, RMA_STATUS_TAG, DIAGNOSIS_RESULT_MAP, ASSIGN_TYPE_MAP, QUALITY_CHECK_RESULT_MAP, WAREHOUSE_TYPE_MAP } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
+import { getRmaRepairPrintData } from '@/api/print'
+import PrintPreview from '@/print/components/PrintPreview.vue'
+import RmaRepairPrint from '@/print/components/RmaRepairPrint.vue'
 
 const loading = ref(false)
+const exportLoading = ref(false)
 const returns = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -19,6 +22,27 @@ const query = ref({
   status: '',
   dateRange: [],
 })
+
+const printVisible = ref(false)
+const printData = ref(null)
+const printLoading = ref(false)
+
+async function handlePrintRepair(row) {
+  if (!row.repair_id) {
+    ElMessage.warning('该记录没有维修工单')
+    return
+  }
+  printLoading.value = true
+  try {
+    const res = await getRmaRepairPrintData(row.repair_id)
+    printData.value = res.data
+    printVisible.value = true
+  } catch {
+    ElMessage.error('获取维修工单打印数据失败')
+  } finally {
+    printLoading.value = false
+  }
+}
 
 const categories = ref([])
 const skus = ref([])
@@ -48,7 +72,7 @@ const diagnosisForm = ref({
 const diagnosisLoading = ref(false)
 
 const assignDialog = ref(false)
-const assignForm = ref({ assigned_to: null, change_reason: '' })
+const assignForm = ref({ assigned_to: null, assign_type: 'PRODUCTION', assign_reason: '', scrap_reason: '', change_reason: '' })
 const assignLoading = ref(false)
 
 const repairDialog = ref(false)
@@ -60,10 +84,34 @@ const repairForm = ref({
   repair_description: '',
   materials_used: '',
   fault_code: '',
+  start_time: '',
+  end_time: '',
   repair_date: '',
   change_reason: '',
 })
 const repairLoading = ref(false)
+
+const qualityCheckDialog = ref(false)
+const qualityCheckForm = ref({
+  return_id: null,
+  checked_by: null,
+  check_date: '',
+  check_result: 'PASS',
+  check_description: '',
+  change_reason: '',
+})
+const qualityCheckLoading = ref(false)
+
+const warehouseInDialog = ref(false)
+const warehouseInForm = ref({
+  return_id: null,
+  new_sn: '',
+  repair_count: 1,
+  repair_reason: '',
+  warehouse_type: 'ZERO_COST_FINISHED',
+  change_reason: '',
+})
+const warehouseInLoading = ref(false)
 
 const scrapDialog = ref(false)
 const scrapForm = ref({ return_id: null, scrap_reason: '', change_reason: '' })
@@ -122,6 +170,31 @@ async function onCategoryChange(catId) {
 function search() {
   page.value = 1
   loadData()
+}
+
+async function handleExport() {
+  exportLoading.value = true
+  try {
+    const params = {
+      keyword: query.value.keyword,
+      status: query.value.status,
+    }
+    if (query.value.dateRange && query.value.dateRange.length === 2) {
+      params.start_date = query.value.dateRange[0]
+      params.end_date = query.value.dateRange[1]
+    }
+    const blob = await exportRmaReturns(params)
+    const d = new Date()
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `IMS-返修记录-${dateStr}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } finally { exportLoading.value = false }
 }
 
 function reset() {
@@ -195,19 +268,26 @@ async function submitDiagnosis() {
 
 function openAssign(row) {
   currentReturn.value = row
-  assignForm.value = { assigned_to: null, change_reason: '' }
+  assignForm.value = { assigned_to: null, assign_type: 'PRODUCTION', assign_reason: '', scrap_reason: '', change_reason: '' }
   assignDialog.value = true
 }
 
 async function submitAssign() {
-  if (!assignForm.value.assigned_to || !assignForm.value.change_reason) {
-    ElMessage.warning('请选择分配人和填写变更原因')
-    return
+  if (assignForm.value.assign_type === 'SCRAP') {
+    if (!assignForm.value.assign_reason || !assignForm.value.change_reason) {
+      ElMessage.warning('请填写报废原因和变更原因')
+      return
+    }
+  } else {
+    if (!assignForm.value.assigned_to || !assignForm.value.assign_reason || !assignForm.value.change_reason) {
+      ElMessage.warning('请选择分配人、填写分配原因和变更原因')
+      return
+    }
   }
   assignLoading.value = true
   try {
     await assignRmaReturn(currentReturn.value.id, assignForm.value)
-    ElMessage.success('分配成功')
+    ElMessage.success(assignForm.value.assign_type === 'SCRAP' ? '报废申请已提交，等待仓库审核' : '分配成功')
     assignDialog.value = false
     search()
   } catch (e) {
@@ -227,6 +307,8 @@ function openRepair(row) {
     repair_description: '',
     materials_used: '',
     fault_code: '',
+    start_time: '',
+    end_time: '',
     repair_date: '',
     change_reason: '',
   }
@@ -248,6 +330,68 @@ async function submitRepair() {
     ElMessage.error(e.response?.data?.detail || '操作失败')
   } finally {
     repairLoading.value = false
+  }
+}
+
+function openQualityCheck(row) {
+  currentReturn.value = row
+  qualityCheckForm.value = {
+    return_id: row.id,
+    checked_by: null,
+    check_date: '',
+    check_result: 'PASS',
+    check_description: '',
+    change_reason: '',
+  }
+  qualityCheckDialog.value = true
+}
+
+async function submitQualityCheck() {
+  if (!qualityCheckForm.value.check_date || !qualityCheckForm.value.change_reason) {
+    ElMessage.warning('请填写检验日期和变更原因')
+    return
+  }
+  qualityCheckLoading.value = true
+  try {
+    await createRmaQualityCheck(qualityCheckForm.value)
+    ElMessage.success('质量检验完成')
+    qualityCheckDialog.value = false
+    search()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || '操作失败')
+  } finally {
+    qualityCheckLoading.value = false
+  }
+}
+
+function openWarehouseIn(row) {
+  currentReturn.value = row
+  warehouseInForm.value = {
+    return_id: row.id,
+    new_sn: row.new_sn || '',
+    repair_count: 1,
+    repair_reason: row.repair_reason || '',
+    warehouse_type: 'ZERO_COST_FINISHED',
+    change_reason: '',
+  }
+  warehouseInDialog.value = true
+}
+
+async function submitWarehouseIn() {
+  if (!warehouseInForm.value.new_sn || !warehouseInForm.value.change_reason) {
+    ElMessage.warning('请填写新SN和变更原因')
+    return
+  }
+  warehouseInLoading.value = true
+  try {
+    await createRmaWarehouseIn(warehouseInForm.value)
+    ElMessage.success('入库审核完成')
+    warehouseInDialog.value = false
+    search()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || '操作失败')
+  } finally {
+    warehouseInLoading.value = false
   }
 }
 
@@ -279,7 +423,7 @@ function openReship(row) {
   currentReturn.value = row
   reshipForm.value = {
     return_id: row.id,
-    new_sn: row.sn,
+    new_sn: row.new_sn || row.sn,
     software_version: '',
     ship_date: '',
     recipient: '',
@@ -314,11 +458,6 @@ onMounted(() => {
 
 <template>
   <div class="rma-page">
-    <div class="page-header">
-      <h2>返厂维修管理</h2>
-      <el-button type="primary" @click="openCreate">退货登记</el-button>
-    </div>
-
     <div class="search-bar">
       <el-input v-model="query.keyword" placeholder="搜索单号/SN/物料名" clearable style="width:220px" @clear="search" @keyup.enter="search" />
       <el-select v-model="query.category_id" placeholder="物料分类" clearable style="width:160px" @change="onCategoryChange">
@@ -333,28 +472,38 @@ onMounted(() => {
       <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width:260px" />
       <el-button type="primary" @click="search">搜索</el-button>
       <el-button @click="reset">重置</el-button>
+      <el-button type="primary" plain @click="openCreate">退货登记</el-button>
+      <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
     </div>
 
     <el-table :data="returns" v-loading="loading" stripe border style="width:100%">
       <el-table-column prop="return_no" label="返厂单号" width="150" />
       <el-table-column prop="sn" label="设备SN" width="150" />
-      <el-table-column prop="sku_name" label="物料名称" width="180" show-overflow-tooltip />
+      <el-table-column prop="sku_code" label="物料编码" width="120" show-overflow-tooltip />
+      <el-table-column prop="sku_name" label="物料名称" width="150" show-overflow-tooltip />
+      <el-table-column prop="spec" label="规格" width="100" />
       <el-table-column prop="customer_name" label="客户" width="120" />
-      <el-table-column prop="return_reason" label="退货原因" width="160" show-overflow-tooltip />
-      <el-table-column label="状态" width="110" align="center">
+      <el-table-column prop="return_reason" label="退货原因" width="140" show-overflow-tooltip />
+      <el-table-column label="状态" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="RMA_STATUS_TAG[row.status] || 'info'">{{ RMA_STATUS_MAP[row.status] || row.status }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="assignee_name" label="负责人" width="100" />
+      <el-table-column prop="assignee_name" label="负责人" width="90" />
+      <el-table-column prop="new_sn" label="新SN" width="130" show-overflow-tooltip />
+      <el-table-column prop="repair_time_hours" label="修复耗时(h)" width="100" align="center" />
+      <el-table-column prop="turnaround_days" label="周转(天)" width="90" align="center" />
       <el-table-column prop="return_date" label="退货日期" width="110" />
-      <el-table-column label="操作" width="400" fixed="right" align="center">
+      <el-table-column label="操作" width="260" fixed="right" align="center">
         <template #default="{ row }">
+          <el-button v-if="row.repair_id" type="warning" link size="small" @click="handlePrintRepair(row)" :loading="printLoading">维修单</el-button>
           <el-button v-if="row.status === 'PENDING_DIAGNOSIS'" type="primary" link size="small" @click="openDiagnosis(row)">诊断</el-button>
-          <el-button v-if="row.status === 'DIAGNOSED' || row.status === 'REPAIRED'" type="warning" link size="small" @click="openAssign(row)">分配</el-button>
+          <el-button v-if="row.status === 'DIAGNOSED'" type="warning" link size="small" @click="openAssign(row)">分配</el-button>
           <el-button v-if="row.status === 'ASSIGNED' || row.status === 'REPAIRING'" type="primary" link size="small" @click="openRepair(row)">维修</el-button>
+          <el-button v-if="row.status === 'REPAIRED'" type="success" link size="small" @click="openQualityCheck(row)">质量检验</el-button>
+          <el-button v-if="row.status === 'QUALITY_CHECK'" type="primary" link size="small" @click="openWarehouseIn(row)">入库审核</el-button>
+          <el-button v-if="row.status === 'WAREHOUSED'" type="success" link size="small" @click="openReship(row)">再出货</el-button>
           <el-button v-if="row.status === 'REPAIRED'" type="danger" link size="small" @click="openScrap(row)">报废</el-button>
-          <el-button v-if="row.status === 'REPAIRED'" type="success" link size="small" @click="openReship(row)">再出货</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -377,12 +526,12 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="设备SN" required>
-          <el-input v-model="createForm.sn" placeholder="请输入设备SN" />
+          <BarcodeScanner v-model="createForm.sn" placeholder="扫码或输入设备SN" />
         </el-form-item>
         <el-form-item label="数量"><el-input-number v-model="createForm.quantity" :min="1" /></el-form-item>
         <el-form-item label="客户名称"><el-input v-model="createForm.customer_name" placeholder="选填" /></el-form-item>
         <el-form-item label="退货原因" required>
-          <el-input v-model="createForm.return_reason" placeholder="请填写退货原因" />
+          <el-input v-model="createForm.return_reason" placeholder="请填写退货原因（必填）" />
         </el-form-item>
         <el-form-item label="退货日期" required>
           <el-date-picker v-model="createForm.return_date" type="date" placeholder="选择日期" style="width:100%" />
@@ -391,13 +540,14 @@ onMounted(() => {
       </el-form>
       <template #footer>
         <el-button @click="createDialog = false">取消</el-button>
-        <el-button type="primary" :loading="createLoading" @click="submitCreate">提交</el-button>
+        <el-button type="primary" :loading="createLoading" :disabled="!createForm.return_reason" @click="submitCreate">提交</el-button>
       </template>
     </el-dialog>
 
     <el-dialog v-model="diagnosisDialog" title="诊断报告" width="550px">
       <el-form label-width="100px">
         <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
+        <el-form-item label="设备SN">{{ currentReturn?.sn }}</el-form-item>
         <el-form-item label="诊断日期" required>
           <el-date-picker v-model="diagnosisForm.diagnosis_date" type="date" placeholder="选择日期" style="width:100%" />
         </el-form-item>
@@ -422,11 +572,20 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="assignDialog" title="分配任务" width="450px">
+    <el-dialog v-model="assignDialog" :title="assignForm.assign_type === 'SCRAP' ? '判定报废' : '分配任务'" width="500px">
       <el-form label-width="100px">
         <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
-        <el-form-item label="分配给" required>
+        <el-form-item label="设备SN">{{ currentReturn?.sn }}</el-form-item>
+        <el-form-item label="分配类型" required>
+          <el-select v-model="assignForm.assign_type" style="width:100%">
+            <el-option v-for="(label, key) in ASSIGN_TYPE_MAP" :key="key" :label="label" :value="key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="assignForm.assign_type !== 'SCRAP'" label="分配给" required>
           <el-input-number v-model="assignForm.assigned_to" :min="1" placeholder="用户ID" style="width:100%" />
+        </el-form-item>
+        <el-form-item :label="assignForm.assign_type === 'SCRAP' ? '报废原因' : '分配原因'" required>
+          <el-input v-model="assignForm.assign_reason" :placeholder="assignForm.assign_type === 'SCRAP' ? '请填写报废原因（必填）' : '请填写分配原因（必填）'" />
         </el-form-item>
         <el-form-item label="变更原因" required>
           <el-input v-model="assignForm.change_reason" placeholder="必填" />
@@ -434,7 +593,7 @@ onMounted(() => {
       </el-form>
       <template #footer>
         <el-button @click="assignDialog = false">取消</el-button>
-        <el-button type="primary" :loading="assignLoading" :disabled="!assignForm.change_reason" @click="submitAssign">确认分配</el-button>
+        <el-button type="primary" :loading="assignLoading" :disabled="!assignForm.change_reason || !assignForm.assign_reason" @click="submitAssign">{{ assignForm.assign_type === 'SCRAP' ? '判定报废' : '确认分配' }}</el-button>
       </template>
     </el-dialog>
 
@@ -442,15 +601,17 @@ onMounted(() => {
       <el-form label-width="100px">
         <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
         <el-form-item label="原SN"><el-input v-model="repairForm.old_sn" disabled /></el-form-item>
-        <el-form-item label="新SN"><el-input v-model="repairForm.new_sn" placeholder="换码时填写，留空则不变" /></el-form-item>
+        <el-form-item label="新SN"><BarcodeScanner v-model="repairForm.new_sn" placeholder="换码时扫码，留空则不变" /></el-form-item>
         <el-form-item label="维修人" required>
           <el-input-number v-model="repairForm.repair_by" :min="1" placeholder="维修人ID" style="width:100%" />
         </el-form-item>
         <el-form-item label="故障码"><el-input v-model="repairForm.fault_code" placeholder="选填" /></el-form-item>
+        <el-form-item label="开始时间"><el-date-picker v-model="repairForm.start_time" type="datetime" placeholder="选择开始时间" style="width:100%" /></el-form-item>
+        <el-form-item label="结束时间"><el-date-picker v-model="repairForm.end_time" type="datetime" placeholder="选择结束时间" style="width:100%" /></el-form-item>
         <el-form-item label="维修描述" required>
           <el-input v-model="repairForm.repair_description" type="textarea" :rows="3" placeholder="描述维修过程" />
         </el-form-item>
-        <el-form-item label="维修用料"><el-input v-model="repairForm.materials_used" type="textarea" :rows="2" placeholder="填写用料清单" /></el-form-item>
+        <el-form-item label="维修用料"><el-input v-model="repairForm.materials_used" type="textarea" :rows="2" placeholder="填写用料清单（仓库管理员可选消耗物料）" /></el-form-item>
         <el-form-item label="完成日期"><el-date-picker v-model="repairForm.repair_date" type="date" placeholder="选填" style="width:100%" /></el-form-item>
         <el-form-item label="变更原因" required>
           <el-input v-model="repairForm.change_reason" placeholder="必填" />
@@ -459,6 +620,57 @@ onMounted(() => {
       <template #footer>
         <el-button @click="repairDialog = false">取消</el-button>
         <el-button type="primary" :loading="repairLoading" :disabled="!repairForm.change_reason" @click="submitRepair">提交维修</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="qualityCheckDialog" title="质量检验" width="500px">
+      <el-form label-width="100px">
+        <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
+        <el-form-item label="设备SN">{{ currentReturn?.new_sn || currentReturn?.sn }}</el-form-item>
+        <el-form-item label="检验人" required>
+          <el-input-number v-model="qualityCheckForm.checked_by" :min="1" placeholder="检验人ID" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="检验日期" required>
+          <el-date-picker v-model="qualityCheckForm.check_date" type="date" placeholder="选择日期" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="检验结果" required>
+          <el-select v-model="qualityCheckForm.check_result" style="width:100%">
+            <el-option v-for="(label, key) in QUALITY_CHECK_RESULT_MAP" :key="key" :label="label" :value="key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="检验描述"><el-input v-model="qualityCheckForm.check_description" type="textarea" :rows="2" placeholder="选填" /></el-form-item>
+        <el-form-item label="变更原因" required>
+          <el-input v-model="qualityCheckForm.change_reason" placeholder="必填" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="qualityCheckDialog = false">取消</el-button>
+        <el-button type="primary" :loading="qualityCheckLoading" :disabled="!qualityCheckForm.change_reason" @click="submitQualityCheck">提交检验</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="warehouseInDialog" title="入库审核（零成本仓）" width="500px">
+      <el-form label-width="100px">
+        <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
+        <el-form-item label="新SN" required>
+          <BarcodeScanner v-model="warehouseInForm.new_sn" placeholder="扫码或输入新SN" />
+        </el-form-item>
+        <el-form-item label="入库仓库" required>
+          <el-select v-model="warehouseInForm.warehouse_type" style="width:100%">
+            <el-option v-for="(label, key) in WAREHOUSE_TYPE_MAP" :key="key" :label="label" :value="key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="维修次数">
+          <el-input-number v-model="warehouseInForm.repair_count" :min="1" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="维修原因"><el-input v-model="warehouseInForm.repair_reason" type="textarea" :rows="2" placeholder="累计维修原因" /></el-form-item>
+        <el-form-item label="变更原因" required>
+          <el-input v-model="warehouseInForm.change_reason" placeholder="必填" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="warehouseInDialog = false">取消</el-button>
+        <el-button type="primary" :loading="warehouseInLoading" :disabled="!warehouseInForm.change_reason || !warehouseInForm.new_sn" @click="submitWarehouseIn">确认入库</el-button>
       </template>
     </el-dialog>
 
@@ -482,7 +694,7 @@ onMounted(() => {
       <el-form label-width="100px">
         <el-form-item label="返厂单号">{{ currentReturn?.return_no }}</el-form-item>
         <el-form-item label="出货SN" required>
-          <el-input v-model="reshipForm.new_sn" placeholder="请输入出货SN" />
+          <BarcodeScanner v-model="reshipForm.new_sn" placeholder="扫码或输入出货SN" />
         </el-form-item>
         <el-form-item label="软件版本号"><el-input v-model="reshipForm.software_version" placeholder="选填" /></el-form-item>
         <el-form-item label="出货日期" required>
@@ -496,9 +708,14 @@ onMounted(() => {
       <template #footer>
         <el-button @click="reshipDialog = false">取消</el-button>
         <el-button type="primary" :loading="reshipLoading" :disabled="!reshipForm.change_reason" @click="submitReship">确认再出货</el-button>
-      </template>
-    </el-dialog>
+    </template>
+  </el-dialog>
+
   </div>
+
+  <PrintPreview v-model:visible="printVisible" title="维修工单">
+    <RmaRepairPrint v-if="printData" :data="printData" />
+  </PrintPreview>
 </template>
 
 <style scoped>

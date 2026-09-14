@@ -40,6 +40,8 @@ class IncomingReceiptResponse(BaseModel):
     inspector_id: int | None = None
     inspector_name: str | None = None
     inspection_date: date | None = None
+    inspection_id: int | None = None
+    return_id: int | None = None
     confirmed_at: datetime | None = None
     confirmed_by: int | None = None
     confirmer_name: str | None = None

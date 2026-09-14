@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import InboundDetail from '@/views/InboundDetail.vue'
 import OutboundDetail from '@/views/OutboundDetail.vue'
-import { listItems, getItemHistory, exportItems, completeOfflineSale } from '@/api/inventory'
+import { listItems, listItemsCursor, getItemHistory, exportItems, completeOfflineSale } from '@/api/inventory'
 import { listSkus, listCategories } from '@/api/product'
 import { STOCK_STATUS_MAP, OPERATION_STATUS_MAP, statusTagType, stockConditionLabel, eventTypeLabel, selectableStockConditionEntries } from '@/constants/enums'
 import { dateTimeColumnFormatter } from '@/utils/datetime'
@@ -34,6 +34,12 @@ const categoryList = ref([])
 const historyVisible = ref(false)
 const historyList = ref([])
 const historySn = ref('')
+
+const useInfiniteScroll = ref(false)
+const infiniteLoading = ref(false)
+const hasMore = ref(false)
+const nextCursor = ref(null)
+const infiniteTotal = ref(null)
 
 const filteredSkuList = computed(() => {
   if (!query.value.category_id) return skuList.value
@@ -120,6 +126,42 @@ async function loadData() {
   }
 }
 
+async function loadDataInfinite(reset = false) {
+  if (infiniteLoading.value) return
+  infiniteLoading.value = true
+  try {
+    if (reset) {
+      items.value = []
+      nextCursor.value = null
+      hasMore.value = false
+    }
+    const params = { ...buildFilterParams(), page_size: 50 }
+    if (nextCursor.value) params.cursor = nextCursor.value
+    const res = await listItemsCursor(params)
+    const newItems = res.data.items || []
+    if (reset) {
+      items.value = newItems
+    } else {
+      items.value = [...items.value, ...newItems]
+    }
+    nextCursor.value = res.data.next_cursor || null
+    hasMore.value = res.data.has_more || false
+    infiniteTotal.value = items.value.length
+  } finally {
+    infiniteLoading.value = false
+  }
+}
+
+function toggleMode() {
+  useInfiniteScroll.value = !useInfiniteScroll.value
+  page.value = 1
+  if (useInfiniteScroll.value) {
+    loadDataInfinite(true)
+  } else {
+    loadData()
+  }
+}
+
 async function handleExport() {
   exportLoading.value = true
   try {
@@ -147,7 +189,11 @@ function onCategoryChange() {
 
 function handleSearch() {
   page.value = 1
-  loadData()
+  if (useInfiniteScroll.value) {
+    loadDataInfinite(true)
+  } else {
+    loadData()
+  }
 }
 
 function resetQuery() {
@@ -166,6 +212,11 @@ function resetQuery() {
 function handlePageChange(p) {
   page.value = p
   loadData()
+}
+
+function loadMore() {
+  if (!hasMore.value || infiniteLoading.value) return
+  loadDataInfinite(false)
 }
 
 function openOrderDrawer(orderNo) {
@@ -203,7 +254,7 @@ async function handleCompleteOfflineSale(row) {
 <template>
   <el-form :inline="true" class="list-search" @submit.prevent="handleSearch">
     <el-form-item label="SN号">
-      <el-input v-model="query.keyword" clearable placeholder="商品SN号" />
+      <BarcodeScanner v-model="query.keyword" placeholder="扫码或输入商品SN号" />
     </el-form-item>
     <el-form-item label="商品分类">
       <el-select
@@ -244,10 +295,14 @@ async function handleCompleteOfflineSale(row) {
       <el-button type="primary" @click="handleSearch">查询</el-button>
       <el-button @click="resetQuery">重置</el-button>
       <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出库存</el-button>
+      <el-button :type="useInfiniteScroll ? 'warning' : 'default'" plain @click="toggleMode">
+        {{ useInfiniteScroll ? '无限滚动中' : '切换无限滚动' }}
+      </el-button>
     </el-form-item>
   </el-form>
 
-  <el-table :data="items" v-loading="loading" stripe>
+  <div v-if="useInfiniteScroll" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore || infiniteLoading" :infinite-scroll-distance="200">
+    <el-table :data="items" v-loading="infiniteLoading && items.length === 0" stripe>
     <el-table-column prop="item_sn" label="商品SN号" min-width="160" show-overflow-tooltip />
     <el-table-column prop="sku_name" label="商品名称" min-width="140" show-overflow-tooltip />
     <el-table-column label="采购单价" min-width="100" align="right">
@@ -316,16 +371,93 @@ async function handleCompleteOfflineSale(row) {
     </el-table-column>
   </el-table>
 
-  <el-pagination
-    v-if="total > 0"
-    class="list-pagination"
-    background
-    layout="total, prev, pager, next"
-    :total="total"
-    :page-size="pageSize"
-    :current-page="page"
-    @current-change="handlePageChange"
-  />
+    <div v-if="infiniteLoading" style="text-align:center;padding:12px;color:#909399">加载中...</div>
+    <div v-else-if="!hasMore && items.length > 0" style="text-align:center;padding:12px;color:#909399">
+      已加载全部 {{ items.length }} 条
+    </div>
+  </div>
+
+  <template v-else>
+    <el-table :data="items" v-loading="loading" stripe>
+      <el-table-column prop="item_sn" label="商品SN号" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="sku_name" label="商品名称" min-width="140" show-overflow-tooltip />
+      <el-table-column label="采购单价" min-width="100" align="right">
+        <template #default="{ row }">{{ row.unit_price != null ? `¥${Number(row.unit_price).toFixed(2)}` : '-' }}</template>
+      </el-table-column>
+      <el-table-column label="库存状态" min-width="100" align="center">
+        <template #default="{ row }">
+          <el-tag :type="statusTagType(stockConditionLabel(row.stock_status, row.stock_condition).class_type)" size="small">{{ stockConditionLabel(row.stock_status, row.stock_condition).stock_status_name }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="库存属性" min-width="100" align="center">
+        <template #default="{ row }"><el-tag size="small">{{ stockConditionLabel(row.stock_status, row.stock_condition).stock_condition_name }}</el-tag></template>
+      </el-table-column>
+      <el-table-column label="库位" min-width="90" align="center">
+        <template #default="{ row }">{{ row.current_location || '库房' }}</template>
+      </el-table-column>
+      <el-table-column prop="replaced_by_sn" label="替换为新SN" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.replaced_by_sn || '—' }}</template>
+      </el-table-column>
+      <el-table-column prop="replaced_from_sn" label="原SN" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.replaced_from_sn || '—' }}</template>
+      </el-table-column>
+      <el-table-column label="关联单号" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">
+          <el-button v-if="row.last_order_no" type="primary" link @click="openOrderDrawer(row.last_order_no)">
+            {{ row.last_order_no }}
+          </el-button>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="关联单位" min-width="110" show-overflow-tooltip>
+        <template #default="{ row }">
+          <span v-if="row.stock_status !== 'IN_STOCK'" class="partner-name-cell">
+            {{ row.partner_name || '—' }}
+            <el-tooltip v-if="row.partner_group_name" :content="row.partner_group_name" placement="top">
+              <el-icon class="partner-group-icon"><OfficeBuilding /></el-icon>
+            </el-tooltip>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="关联客户" min-width="110" show-overflow-tooltip>
+        <template #default="{ row }">
+          <span v-if="row.stock_status !== 'IN_STOCK' && row.last_order_no?.startsWith('JOUT-')">
+            {{ row.customer_name || '—' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作状态" min-width="100" align="center">
+        <template #default="{ row }">
+          <el-tag :type="statusTagType(row.operation_status)" size="small">{{ OPERATION_STATUS_MAP[row.operation_status] || row.operation_status }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" min-width="120" fixed="right" align="center">
+        <template #default="{ row }">
+          <el-button
+            v-if="row.stock_status === 'PRESOLD'"
+            type="success"
+            link
+            size="small"
+            @click="handleCompleteOfflineSale(row)"
+          >确认成交</el-button>
+          <el-tooltip content="变动轨迹" placement="top">
+            <el-button type="primary" link :icon="Clock" @click="showHistory(row)" />
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-pagination
+      v-if="total > 0"
+      class="list-pagination"
+      background
+      layout="total, prev, pager, next"
+      :total="total"
+      :page-size="pageSize"
+      :current-page="page"
+      @current-change="handlePageChange"
+    />
+  </template>
 
   <el-drawer
     v-model="drawerVisible"

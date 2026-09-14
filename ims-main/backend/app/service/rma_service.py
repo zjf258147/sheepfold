@@ -1,19 +1,24 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
-from app.models.rma import RmaDiagnosis, RmaRepair, RmaReship, RmaReturn, RmaScrap
+from app.models.rma import RmaDiagnosis, RmaQualityCheck, RmaRepair, RmaReship, RmaReturn, RmaScrap, RmaWarehouseIn
+from app.models.inventory import InventoryItem
+from app.models.enums import StockStatus, StockCondition, OperationStatus
+from app.service.inventory_service import record_history
 from app.models.user import User
 from app.schemas.rma import (
     RmaAssignCreate,
     RmaDiagnosisCreate,
+    RmaQualityCheckCreate,
     RmaRepairCreate,
     RmaReshipCreate,
     RmaReturnCreate,
     RmaScrapApprove,
     RmaScrapCreate,
     RmaTransferRequest,
+    RmaWarehouseInCreate,
 )
 from app.utils.order_no import (
     generate_diag_no,
@@ -22,33 +27,9 @@ from app.utils.order_no import (
     generate_reship_no,
     generate_scrap_no,
 )
-
-
-def _write_audit(
-    db: Session,
-    user: User,
-    action: str,
-    module: str,
-    resource_type: str,
-    resource_id: str,
-    resource_name: str,
-    summary: str,
-    change_reason: str | None = None,
-    ip_address: str | None = None,
-):
-    db.add(AuditLog(
-        operator_id=user.id,
-        operator_name=f"{user.nickname or user.username}（{user.username}）",
-        action=action,
-        module=module,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        resource_name=resource_name,
-        summary=summary,
-        change_reason=change_reason,
-        ip_address=ip_address,
-        created_at=datetime.now(),
-    ))
+from app.utils.audit import write_audit_log
+from app.utils.excel_export import build_simple_xlsx
+from app.utils.excel_import import build_template_xlsx, parse_import_xlsx
 
 
 def _return_to_dict(r: RmaReturn) -> dict:
@@ -131,7 +112,7 @@ def create_return(
     )
     db.add(receipt)
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="CREATE", module="rma",
         resource_type="rma_return", resource_id=return_no,
         resource_name=f"返厂单 {return_no}", summary=f"创建返厂退货单，SN={data.sn}，原因={data.return_reason}",
@@ -158,7 +139,7 @@ def assign_return(
     r.status = "ASSIGNED"
     r.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="ASSIGN", module="rma",
         resource_type="rma_return", resource_id=r.return_no,
         resource_name=f"返厂单 {r.return_no}",
@@ -183,7 +164,7 @@ def transfer_return(
     r.assigned_to = data.target_assignee
     r.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="TRANSFER", module="rma",
         resource_type="rma_return", resource_id=r.return_no,
         resource_name=f"返厂单 {r.return_no}",
@@ -220,9 +201,10 @@ def create_diagnosis(
     )
     db.add(diagnosis)
     r.status = "DIAGNOSED"
+    r.diagnosis_result = data.diagnosis_result
     r.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="CREATE", module="rma",
         resource_type="rma_diagnosis", resource_id=diagnosis_no,
         resource_name=f"诊断报告 {diagnosis_no}",
@@ -275,10 +257,11 @@ def create_repair(
 
     if data.new_sn:
         r.sn = data.new_sn
+        r.new_sn = data.new_sn
     r.status = "REPAIRED"
     r.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="CREATE", module="rma",
         resource_type="rma_repair", resource_id=repair_no,
         resource_name=f"维修工单 {repair_no}",
@@ -317,7 +300,7 @@ def create_scrap(
     )
     db.add(scrap)
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="CREATE", module="rma",
         resource_type="rma_scrap", resource_id=scrap_no,
         resource_name=f"报废单 {scrap_no}",
@@ -361,7 +344,7 @@ def approve_scrap(
 
     scrap.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="APPROVE", module="rma",
         resource_type="rma_scrap", resource_id=scrap.scrap_no,
         resource_name=f"报废单 {scrap.scrap_no}",
@@ -385,8 +368,8 @@ def create_reship(
     r = db.query(RmaReturn).filter(RmaReturn.id == data.return_id).first()
     if not r:
         raise ValueError(f"返厂单不存在：{data.return_id}")
-    if r.status != "REPAIRED":
-        raise ValueError("只有已修复的返厂单才能再出货")
+    if r.status not in ("REPAIRED", "QUALITY_CHECK", "WAREHOUSED"):
+        raise ValueError("只有已修复、已质检或已入库的返厂单才能再出货")
 
     reship_no = generate_reship_no(db)
     reship = RmaReship(
@@ -404,7 +387,7 @@ def create_reship(
     r.status = "RESHIPPED"
     r.change_reason = data.change_reason
     db.flush()
-    _write_audit(
+    write_audit_log(
         db, user, action="CREATE", module="rma",
         resource_type="rma_reship", resource_id=reship_no,
         resource_name=f"再出货单 {reship_no}",
@@ -418,3 +401,191 @@ def create_reship(
 
 def get_reships(db: Session, return_id: int):
     return db.query(RmaReship).filter(RmaReship.return_id == return_id).order_by(RmaReship.id.desc()).all()
+
+
+def get_quality_checks(db: Session, return_id: int):
+    return db.query(RmaQualityCheck).filter(RmaQualityCheck.return_id == return_id).order_by(RmaQualityCheck.id.desc()).all()
+
+
+def create_quality_check(
+    db: Session,
+    data: RmaQualityCheckCreate,
+    user: User,
+    ip_address: str | None = None,
+) -> RmaQualityCheck:
+    r = db.query(RmaReturn).filter(RmaReturn.id == data.return_id).first()
+    if not r:
+        raise ValueError("退货单不存在")
+    qc = RmaQualityCheck(
+        return_id=data.return_id,
+        checked_by=data.checked_by,
+        check_date=data.check_date,
+        check_result=data.check_result,
+        check_description=data.check_description,
+        change_reason=data.change_reason,
+        remark=data.remark,
+    )
+    db.add(qc)
+    r.status = "QUALITY_CHECK"
+    r.change_reason = data.change_reason
+    db.flush()
+    write_audit_log(
+        db, user, action="CREATE", module="rma",
+        resource_type="rma_quality_check", resource_id=str(qc.id),
+        resource_name=f"质量检验 {qc.id}",
+        summary=f"创建质量检验，返厂单={r.return_no}，结果={data.check_result}",
+        change_reason=data.change_reason, ip_address=ip_address,
+    )
+    db.commit()
+    db.refresh(qc)
+    return qc
+
+
+def get_warehouse_ins(db: Session, return_id: int):
+    return db.query(RmaWarehouseIn).filter(RmaWarehouseIn.return_id == return_id).order_by(RmaWarehouseIn.id.desc()).all()
+
+
+def create_warehouse_in(
+    db: Session,
+    data: RmaWarehouseInCreate,
+    user: User,
+    ip_address: str | None = None,
+) -> RmaWarehouseIn:
+    r = db.query(RmaReturn).filter(RmaReturn.id == data.return_id).first()
+    if not r:
+        raise ValueError("退货单不存在")
+    wi = RmaWarehouseIn(
+        return_id=data.return_id,
+        new_sn=data.new_sn,
+        warehouse_by=user.id,
+        warehouse_date=date.today(),
+        repair_count=data.repair_count,
+        repair_reason=data.repair_reason,
+        warehouse_type=data.warehouse_type,
+        change_reason=data.change_reason,
+        remark=data.remark,
+    )
+    db.add(wi)
+    r.status = "WAREHOUSED"
+    r.change_reason = data.change_reason
+    db.flush()
+
+    # 获取最近一次维修记录中的旧SN
+    old_sn = None
+    latest_repair = db.query(RmaRepair).filter(
+        RmaRepair.return_id == data.return_id
+    ).order_by(RmaRepair.id.desc()).first()
+    if latest_repair:
+        old_sn = latest_repair.old_sn
+
+    # 创建新 SN 的库存记录
+    inv = InventoryItem(
+        item_sn=data.new_sn,
+        sku_id=r.sku_id,
+        stock_status=StockStatus.IN_STOCK.value,
+        stock_condition=StockCondition.RETURNED_FROM_REPAIR.value,
+        operation_status=OperationStatus.COMPLETED.value,
+        warehouse_type=data.warehouse_type,
+        replaced_from_sn=old_sn,
+        current_location="库房",
+    )
+    db.add(inv)
+    db.flush()
+    record_history(db, inv, "INBOUND", r.return_no, user.id,
+                   to_stock=StockStatus.IN_STOCK.value, to_op=OperationStatus.COMPLETED.value)
+
+    # 将旧 SN 的库存记录标记为已替换
+    if old_sn:
+        old_inv = db.query(InventoryItem).filter(InventoryItem.item_sn == old_sn).first()
+        if old_inv:
+            old_inv.stock_status = StockStatus.REPLACED.value
+            old_inv.replaced_by_sn = data.new_sn
+            record_history(db, old_inv, "STATUS_CHANGE", r.return_no, user.id,
+                           from_stock=old_inv.stock_status, to_stock=StockStatus.REPLACED.value,
+                           remark=f"维修换码，替换为 {data.new_sn}")
+
+    write_audit_log(
+        db, user, action="CREATE", module="rma",
+        resource_type="rma_warehouse_in", resource_id=str(wi.id),
+        resource_name=f"入库审核 {wi.id}",
+        summary=f"创建入库审核，返厂单={r.return_no}，SN={data.new_sn}",
+        change_reason=data.change_reason, ip_address=ip_address,
+    )
+    db.commit()
+    db.refresh(wi)
+    return wi
+
+
+def export_rma_xlsx(
+    db: Session,
+    status: str | None = None,
+    keyword: str | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+) -> bytes:
+    from app.models.rma import RmaReturn
+    from sqlalchemy import or_
+    query = db.query(RmaReturn)
+    if status:
+        query = query.filter(RmaReturn.status == status)
+    if keyword:
+        query = query.filter(
+            or_(RmaReturn.return_no.contains(keyword), RmaReturn.sn.contains(keyword))
+        )
+    if start_date:
+        query = query.filter(RmaReturn.return_date >= start_date)
+    if end_date:
+        query = query.filter(RmaReturn.return_date <= end_date)
+    returns = query.order_by(RmaReturn.id.desc()).all()
+    headers = ["退货单号", "SN", "产品SKU", "客户", "退货原因", "退货日期", "状态", "创建时间"]
+    rows = []
+    for r in returns:
+        rows.append([
+            r.return_no, r.sn, str(r.sku_id), r.customer_name or "",
+            r.return_reason or "", str(r.return_date), r.status or "",
+            str(r.created_at)[:19] if r.created_at else "",
+        ])
+    return build_simple_xlsx(headers, rows, sheet_title="返修记录")
+
+
+def export_rma_template() -> bytes:
+    headers = ["SN", "产品SKU_ID", "客户名称", "退货原因", "退货日期", "备注"]
+    return build_template_xlsx(headers, sheet_title="返修退货导入模板")
+
+
+def import_rma_xlsx(db: Session, content: bytes, username: str) -> dict:
+    rows = parse_import_xlsx(content)
+    success = 0
+    errors = []
+    for i, row in enumerate(rows, start=1):
+        try:
+            sn = str(row[0]).strip() if row[0] else ""
+            sku_id = int(row[1]) if row[1] else None
+            customer_name = str(row[2]).strip() if len(row) > 2 and row[2] else ""
+            return_reason = str(row[3]).strip() if len(row) > 3 and row[3] else ""
+            return_date_str = str(row[4]).strip() if len(row) > 4 and row[4] else ""
+            remark = str(row[5]).strip() if len(row) > 5 and row[5] else ""
+            if not sn:
+                errors.append(f"第{i}行: SN不能为空")
+                continue
+            return_no = generate_fc_no(db)
+            return_date = date.today()
+            if return_date_str:
+                return_date = date.fromisoformat(return_date_str)
+            ret = RmaReturn(
+                return_no=return_no,
+                sku_id=sku_id or 0,
+                sn=sn,
+                customer_name=customer_name,
+                return_reason=return_reason,
+                return_date=return_date,
+                status="RECEIVED",
+                remark=remark,
+            )
+            db.add(ret)
+            success += 1
+        except Exception as e:
+            errors.append(f"第{i}行: {str(e)}")
+    if success > 0:
+        db.commit()
+    return {"success": success, "errors": errors}

@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, Query, Request
+from datetime import datetime
+from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, Query, Request, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -42,6 +46,56 @@ def list_receipts(
         total=total, page=page, page_size=page_size,
         items=[IncomingReceiptResponse.model_validate(item) for item in items],
     ))
+
+
+@router.get("/receipts/export", summary="导出来料记录 Excel")
+def export_receipts(
+    keyword: str | None = None,
+    category_id: int | None = None,
+    sku_id: int | None = None,
+    supplier_id: int | None = None,
+    status: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    content = incoming_service.export_incoming_xlsx(
+        db, keyword=keyword, category_id=category_id,
+        sku_id=sku_id, supplier_id=supplier_id,
+        status=status, start_date=start_date, end_date=end_date,
+    )
+    filename = quote("来料管理.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.get("/receipts/template", summary="下载来料导入模板")
+def download_incoming_template(_: User = Depends(get_current_user)):
+    content = incoming_service.export_incoming_template()
+    filename = quote("来料导入模板.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.post("/receipts/import", summary="导入来料 Excel")
+async def import_incoming(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
+    content = await file.read()
+    result = incoming_service.import_incoming_xlsx(db, content)
+    return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")
 
 
 @router.get("/receipts/{receipt_id}")

@@ -123,7 +123,7 @@ class UserRole(str, enum.Enum):
     ADMIN = "ADMIN"                   # 管理员/总经理
     WAREHOUSE = "WAREHOUSE"           # 仓库管理员
     QUALITY = "QUALITY"               # 来料检/质量负责人
-    PRODUCTION = "PRODUCTION"         # 生产主管
+    PRODUCTION = "PRODUCTION"         # 生产
     TEST_ENGINEER = "TEST_ENGINEER"   # 测试工程师
     STAFF = "STAFF"                   # 普通员工
 
@@ -153,8 +153,11 @@ class RmaStatus(str, enum.Enum):
     ASSIGNED = "ASSIGNED"                     # 已分配
     REPAIRING = "REPAIRING"                   # 维修中
     REPAIRED = "REPAIRED"                     # 已修复
+    QUALITY_CHECK = "QUALITY_CHECK"           # 质量检验
+    WAREHOUSED = "WAREHOUSED"                 # 已入库
     RESHIPPED = "RESHIPPED"                   # 已再出货
     SCRAPPED = "SCRAPPED"                     # 已报废
+    PENDING_SCRAP = "PENDING_SCRAP"           # 待报废审批
 
 
 class ScrapStatus(str, enum.Enum):
@@ -162,6 +165,93 @@ class ScrapStatus(str, enum.Enum):
     PENDING = "PENDING"       # 待审批
     APPROVED = "APPROVED"     # 已通过
     REJECTED = "REJECTED"     # 已驳回
+
+
+class DiagnosisResult(str, enum.Enum):
+    """诊断结果（主线B）。"""
+    REPAIRABLE = "REPAIRABLE"           # 可维修
+
+
+class AssignType(str, enum.Enum):
+    """分配类型（主线B）。"""
+    PRODUCTION = "PRODUCTION"   # 生产（外观问题）
+    TEST = "TEST"               # 测试（功能问题）
+    SCRAP = "SCRAP"             # 判定报废
+
+
+class QualityCheckResult(str, enum.Enum):
+    """质量检验结果（主线B）。"""
+    PASS = "PASS"   # 通过
+    FAIL = "FAIL"   # 不通过
+
+
+class BomStatus(str, enum.Enum):
+    """BOM状态（主线D）。"""
+    DRAFT = "DRAFT"           # 草稿
+    PUBLISHED = "PUBLISHED"   # 已发布
+    DISCONTINUED = "DISCONTINUED"  # 已停产
+
+
+class TaskStatus(str, enum.Enum):
+    """生产任务状态（主线D）。"""
+    PENDING = "PENDING"       # 待生产
+    IN_PROGRESS = "IN_PROGRESS"  # 生产中
+    COMPLETED = "COMPLETED"   # 已完成
+
+
+class MaterialAvailability(str, enum.Enum):
+    """物料齐套状态（主线D）。"""
+    COMPLETE = "COMPLETE"     # 齐套
+    SHORTAGE = "SHORTAGE"     # 缺料
+    FULFILLED = "FULFILLED"   # 已齐套
+
+
+class WarehouseType(str, enum.Enum):
+    """仓库类型（库存归类）。"""
+    RAW_MATERIAL = "RAW_MATERIAL"           # 原材料仓
+    SEMI_FINISHED = "SEMI_FINISHED"         # 半成品仓
+    FINISHED = "FINISHED"                   # 成品仓
+    ZERO_COST_FINISHED = "ZERO_COST_FINISHED"   # 零成本仓-成品
+    ZERO_COST_SEMI = "ZERO_COST_SEMI"       # 零成本仓-半成品
+    RND = "RND"                             # 研发物料仓
+
+
+class ProductType(str, enum.Enum):
+    """产出类型（生产任务）。"""
+    FINISHED_PRODUCT = "FINISHED_PRODUCT"   # 成品
+    SEMI_FINISHED = "SEMI_FINISHED"         # 半成品
+
+
+class StationStatus(str, enum.Enum):
+    """场站状态。"""
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+
+
+class StocktakeMode(str, enum.Enum):
+    """盘点模式。"""
+    CYCLE = "CYCLE"
+    FULL = "FULL"
+
+
+class StocktakeStatus(str, enum.Enum):
+    """盘点状态。"""
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+
+class AdjustmentType(str, enum.Enum):
+    """库存调整类型。"""
+    SURPLUS = "SURPLUS"
+    SHORTAGE = "SHORTAGE"
+
+
+class DeviceLedgerStatus(str, enum.Enum):
+    """设备台账状态。"""
+    RUNNING = "RUNNING"
+    FAULT = "FAULT"
+    RECOVERED = "RECOVERED"
 
 
 # 出库类型 → 审核后单品库存状态

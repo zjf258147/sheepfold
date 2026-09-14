@@ -36,3 +36,7 @@ export function deleteOutboundOrder(id) {
 export function generateOutboundNo() {
   return request.get('/api/v1/outbound/orders/generate-no')
 }
+
+export function exportOutboundOrders(params) {
+  return request.get('/api/v1/outbound/orders/export', { params, responseType: 'blob' })
+}

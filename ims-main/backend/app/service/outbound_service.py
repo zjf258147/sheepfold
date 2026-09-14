@@ -12,6 +12,8 @@ from app.service.inventory_service import record_history
 from app.service import customer_service
 from app.service.partner_service import validate_partner
 from app.utils.order_no import generate_outbound_no
+from app.utils.excel_export import build_simple_xlsx
+from app.utils.excel_import import build_template_xlsx, parse_import_xlsx
 
 
 def get_orders(
@@ -357,3 +359,83 @@ def delete_order(db: Session, order: OutboundOrder) -> None:
     _release_outbound_items(db, order)
     db.delete(order)
     db.commit()
+
+
+def export_outbound_xlsx(
+    db: Session,
+    operation_status: str | None = None,
+    outbound_type: str | None = None,
+    order_no: str | None = None,
+    partner_id: int | None = None,
+    stock_condition: str | None = None,
+    sku_id: int | None = None,
+    start_time: datetime | None = None,
+    end_time: datetime | None = None,
+) -> bytes:
+    """导出出库单列表为 Excel。"""
+    total, items = get_orders(
+        db, page=1, page_size=99999,
+        operation_status=operation_status, outbound_type=outbound_type,
+        order_no=order_no, partner_id=partner_id,
+        sku_id=sku_id,
+        start_time=start_time, end_time=end_time,
+    )
+    headers = ["出库单号", "出库类型", "往来单位", "总数量", "操作状态", "备注", "创建时间"]
+    rows = []
+    for o in items:
+        partner_name = o.partner.name if o.partner else ""
+        rows.append([
+            o.order_no, o.outbound_type,
+            partner_name, o.total_qty, o.operation_status,
+            o.remark or "", str(o.created_at)[:19] if o.created_at else "",
+        ])
+    return build_simple_xlsx(headers, rows, sheet_title="出库单列表", col_widths=[20, 14, 24, 10, 12, 20, 20])
+
+
+OUTBOUND_IMPORT_HEADERS = ["出库类型", "往来单位", "客户名称", "物料编码", "备注"]
+OUTBOUND_IMPORT_COL_WIDTHS = [14, 24, 20, 16, 20]
+
+
+def export_outbound_template() -> bytes:
+    return build_template_xlsx(
+        OUTBOUND_IMPORT_HEADERS,
+        example_row=["售出-线上", "示例客户", "客户名称", "SKU001", "备注"],
+        sheet_title="出库导入模板",
+        col_widths=OUTBOUND_IMPORT_COL_WIDTHS,
+    )
+
+
+def import_outbound_xlsx(db: Session, content: bytes, user_id: int) -> dict:
+    import uuid
+    rows = parse_import_xlsx(content)
+    success, errors = 0, []
+    type_map = {"售出-线上": "SOLD_ONLINE", "售出-线下": "SOLD_OFFLINE", "借出": "LOANED", "赠送": "GIFT", "损毁": "DAMAGED", "维修": "REPAIR", "SOLD_ONLINE": "SOLD_ONLINE", "LOANED": "LOANED", "GIFT": "GIFT"}
+    for i, row in enumerate(rows, 1):
+        try:
+            if len(row) < 3:
+                errors.append(f"第{i}行：列数不足")
+                continue
+            outbound_type, partner_name, customer_name, sku_code, remark = row[0], row[1], row[2], row[3] if len(row) > 3 else "", row[4] if len(row) > 4 else ""
+            otype = type_map.get(outbound_type.strip(), "SOLD_ONLINE") if outbound_type.strip() else "SOLD_ONLINE"
+            partner = db.query(Partner).filter(Partner.name == partner_name.strip()).first() if partner_name.strip() else None
+            if not partner:
+                errors.append(f"第{i}行：往来单位 {partner_name.strip()} 不存在")
+                continue
+            sku = db.query(ProductSku).filter(ProductSku.sku_code == sku_code.strip()).first() if sku_code.strip() else None
+            if not sku:
+                errors.append(f"第{i}行：物料编码 {sku_code.strip()} 不存在")
+                continue
+            order_no = generate_outbound_no(db)
+            order = OutboundOrder(
+                order_no=order_no, outbound_type=otype,
+                partner_id=partner.id, customer_name=customer_name.strip() or None,
+                remark=remark.strip() or None, operation_status="INITIATED",
+                total_qty=0, submitted_by=user_id,
+            )
+            db.add(order)
+            db.flush()
+            success += 1
+        except Exception as e:
+            errors.append(f"第{i}行：{str(e)}")
+    db.commit()
+    return {"success": success, "errors": errors}

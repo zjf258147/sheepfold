@@ -30,6 +30,9 @@ class InventoryItem(Base, TimestampMixin):
     last_order_no: Mapped[str | None] = mapped_column(String(30), nullable=True, comment="最近关联单号")
     replaced_by_sn: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="如果已替换，指向新 SN")
     replaced_from_sn: Mapped[str | None] = mapped_column(String(50), nullable=True, comment="如果是维修后新 SN，指向旧 SN")
+    warehouse_type: Mapped[str] = mapped_column(
+        String(30), default="RAW_MATERIAL", nullable=False, index=True, comment="仓库类型"
+    )
     current_location: Mapped[str] = mapped_column(
         String(50), default="库房", nullable=False, comment="库房/已发出/维修中/已报废"
     )
@@ -46,7 +49,7 @@ class InventoryItemHistory(Base):
     item_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("inventory_item.id"), nullable=False, index=True, comment="单品ID"
     )
-    event_type: Mapped[str] = mapped_column(String(30), nullable=False, comment="INBOUND/OUTBOUND/STATUS_CHANGE")
+    event_type: Mapped[str] = mapped_column(String(30), nullable=False, comment="INBOUND/OUTBOUND/STATUS_CHANGE/STOCKTAKE_ADJUST")
     order_no: Mapped[str | None] = mapped_column(String(30), nullable=True, comment="关联单号")
     from_stock_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
     to_stock_status: Mapped[str | None] = mapped_column(String(30), nullable=True)
@@ -77,6 +80,7 @@ class InventoryItemSnapshot(Base):
     stock_status: Mapped[str] = mapped_column(String(30), nullable=False)
     stock_condition: Mapped[str] = mapped_column(String(30), nullable=False)
     operation_status: Mapped[str] = mapped_column(String(30), nullable=False)
+    warehouse_type: Mapped[str | None] = mapped_column(String(30), nullable=True, comment="仓库类型")
     last_order_no: Mapped[str | None] = mapped_column(String(30), nullable=True)
     unit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True, comment="采购单价")
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

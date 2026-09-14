@@ -35,3 +35,12 @@ class PageResult(BaseModel, Generic[T]):
     page: int
     page_size: int
     items: list[T]
+
+
+class CursorPageResult(BaseModel, Generic[T]):
+    """游标分页查询结果（适用于大数据量场景）。"""
+
+    items: list[T]
+    next_cursor: str | None = None
+    has_more: bool = False
+    total: int | None = None

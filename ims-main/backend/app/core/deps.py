@@ -7,7 +7,6 @@ from app.db.database import get_db
 from app.models.enums import UserRole
 from app.models.user import User
 
-# 使用 Bearer Token 方案（Authorization: Bearer <token>）
 bearer_scheme = HTTPBearer(auto_error=True)
 
 
@@ -15,14 +14,6 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    """
-    从请求头 Authorization: Bearer <token> 中提取并验证 JWT，
-    返回对应的数据库用户对象。
-
-    :raises HTTPException 401: Token 无效或已过期
-    :raises HTTPException 401: 用户不存在
-    :raises HTTPException 403: 用户已被禁用
-    """
     token = credentials.credentials
     payload = decode_access_token(token)
 
@@ -58,6 +49,22 @@ def get_current_user(
     return user
 
 
+def require_roles(*roles: str):
+    """仅允许指定角色访问。ADMIN 拥有全部权限。"""
+
+    async def checker(user: User = Depends(get_current_user)) -> User:
+        if user.role == UserRole.ADMIN.value:
+            return user
+        if user.role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="权限不足，请联系管理员",
+            )
+        return user
+
+    return checker
+
+
 def get_current_admin(user: User = Depends(get_current_user)) -> User:
     """仅管理员可访问。"""
     if user.role != UserRole.ADMIN.value:
@@ -66,3 +73,13 @@ def get_current_admin(user: User = Depends(get_current_user)) -> User:
             detail="需要管理员权限",
         )
     return user
+
+
+# 预定义角色权限组
+AllowWarehouseOrAbove = require_roles(UserRole.ADMIN.value, UserRole.WAREHOUSE.value)
+AllowQualityOrAbove = require_roles(UserRole.ADMIN.value, UserRole.QUALITY.value)
+AllowProductionOrAbove = require_roles(UserRole.ADMIN.value, UserRole.PRODUCTION.value)
+AllowAllRoles = require_roles(
+    UserRole.ADMIN.value, UserRole.WAREHOUSE.value, UserRole.QUALITY.value,
+    UserRole.PRODUCTION.value, UserRole.TEST_ENGINEER.value, UserRole.STAFF.value,
+)

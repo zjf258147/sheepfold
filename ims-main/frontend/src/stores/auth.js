@@ -6,7 +6,17 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || '')
   const user = ref(null)
 
-  const isAdmin = computed(() => user.value?.role === 'ADMIN')
+  const role = computed(() => user.value?.role || '')
+  const isAdmin = computed(() => role.value === 'ADMIN')
+  const isWarehouse = computed(() => role.value === 'WAREHOUSE')
+  const isQuality = computed(() => role.value === 'QUALITY')
+  const isProduction = computed(() => role.value === 'PRODUCTION')
+  const isTestEngineer = computed(() => role.value === 'TEST_ENGINEER')
+  const isStaff = computed(() => role.value === 'STAFF')
+
+  function hasRole(...roles) {
+    return isAdmin.value || roles.includes(role.value)
+  }
 
   async function login(username, password) {
     const res = await loginApi({ username, password })
@@ -27,5 +37,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { token, user, isAdmin, login, fetchUser, logout }
+  return { token, user, role, isAdmin, isWarehouse, isQuality, isProduction, isTestEngineer, isStaff, hasRole, login, fetchUser, logout }
 })

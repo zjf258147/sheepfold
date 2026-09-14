@@ -1,10 +1,11 @@
 <script setup>
 import { nextTick, onMounted, ref, computed } from 'vue'
-import { Delete, View, Promotion, Select, Close, Edit, QuestionFilled, OfficeBuilding } from '@element-plus/icons-vue'
+import { Delete, View, Promotion, Select, Close, Edit, QuestionFilled, OfficeBuilding, Download } from '@element-plus/icons-vue'
 import OutboundDetail from '@/views/OutboundDetail.vue'
 import {
   listOutboundOrders, createOutboundOrder, updateOutboundOrder, getOutboundOrder,
   submitOutboundOrder, approveOutboundOrder, cancelOutboundOrder, deleteOutboundOrder,
+  exportOutboundOrders,
 } from '@/api/outbound'
 import { listAvailableItems } from '@/api/inventory'
 import { listPartners } from '@/api/partner'
@@ -20,6 +21,7 @@ const drawerVisible = ref(false)
 const drawerOrderNo = ref('')
 
 const loading = ref(false)
+const exportLoading = ref(false)
 const orders = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -43,6 +45,13 @@ const itemsPage = ref(1)
 const itemsPageSize = ref(20)
 const MAX_SN_KEYWORDS = 100
 const itemQuery = ref({ category_id: null, sku_id: null, stock_condition: '', keyword: '' })
+
+const outScanSn = ref('')
+const appendOutSn = (val) => {
+  const current = itemQuery.value.keyword || ''
+  itemQuery.value.keyword = current ? current + '\n' + val : val
+  outScanSn.value = ''
+}
 
 function countKeywordTokens(keyword) {
   if (!keyword?.trim()) return 0
@@ -119,6 +128,23 @@ async function loadData() {
 function searchOrders() {
   page.value = 1
   loadData()
+}
+
+async function handleExport() {
+  exportLoading.value = true
+  try {
+    const blob = await exportOutboundOrders(query.value)
+    const d = new Date()
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `IMS-出库单-${dateStr}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } finally { exportLoading.value = false }
 }
 
 function resetQuery() {
@@ -302,7 +328,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
         <el-input v-model="query.order_no" clearable placeholder="单号模糊搜索" style="width:160px" />
       </el-form-item>
       <el-form-item label="商品 SN">
-        <el-input v-model="query.item_sn" clearable placeholder="SN 模糊搜索" style="width:160px" />
+        <BarcodeScanner v-model="query.item_sn" placeholder="SN 模糊搜索" style="width:160px" />
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="query.operation_status" clearable placeholder="全部" style="width:130px">
@@ -339,6 +365,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
         <el-button type="primary" @click="searchOrders">查询</el-button>
         <el-button @click="resetQuery">重置</el-button>
         <el-button type="primary" plain @click="openCreate">新增出库</el-button>
+        <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       </el-form-item>
     </el-form>
 
@@ -464,6 +491,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
           clearable
           placeholder="请输入检索的SN号"
         />
+        <BarcodeScanner v-model="outScanSn" placeholder="扫码添加" @scan="appendOutSn" style="margin-top:4px;width:100%" />
       </el-form-item>
       <el-form-item label="商品分类">
         <el-select

@@ -23,12 +23,15 @@ const routes = [
           { path: 'partner', name: 'InventoryPartner', component: () => import('@/views/inventory/InventoryPartnerSummary.vue'), meta: { title: '按关联单位出库统计' } },
         ],
       },
-      { path: 'inbound', name: 'Inbound', component: () => import('@/views/Inbound.vue'), meta: { title: '入库' } },
-      { path: 'inbound/:id', name: 'InboundDetail', component: () => import('@/views/InboundDetail.vue'), meta: { title: '入库单详情' } },
-      { path: 'incoming', name: 'IncomingReceipt', component: () => import('@/views/IncomingReceipt.vue'), meta: { title: '来料管理' } },
-      { path: 'rma', name: 'RmaReturn', component: () => import('@/views/RmaReturn.vue'), meta: { title: '返厂维修' } },
-      { path: 'outbound', name: 'Outbound', component: () => import('@/views/Outbound.vue'), meta: { title: '出库' } },
-      { path: 'outbound/:id', name: 'OutboundDetail', component: () => import('@/views/OutboundDetail.vue'), meta: { title: '出库单详情' } },
+      { path: 'inbound', name: 'Inbound', component: () => import('@/views/Inbound.vue'), meta: { title: '入库', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'inbound/:id', name: 'InboundDetail', component: () => import('@/views/InboundDetail.vue'), meta: { title: '入库单详情', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'incoming', name: 'IncomingReceipt', component: () => import('@/views/IncomingReceipt.vue'), meta: { title: '来料管理', roles: ['ADMIN', 'WAREHOUSE', 'QUALITY'] } },
+      { path: 'rma', name: 'RmaReturn', component: () => import('@/views/RmaReturn.vue'), meta: { title: '返厂维修', roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'TEST_ENGINEER', 'PRODUCTION'] } },
+      { path: 'shipment', name: 'Shipment', component: () => import('@/views/Shipment.vue'), meta: { title: '出货管理', roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'PRODUCTION'] } },
+      { path: 'bom', name: 'BOM', component: () => import('@/views/BOM.vue'), meta: { title: 'BOM管理', roles: ['ADMIN', 'WAREHOUSE', 'PRODUCTION'] } },
+      { path: 'production-task', name: 'ProductionTask', component: () => import('@/views/ProductionTask.vue'), meta: { title: '生产任务', roles: ['ADMIN', 'WAREHOUSE', 'PRODUCTION'] } },
+      { path: 'outbound', name: 'Outbound', component: () => import('@/views/Outbound.vue'), meta: { title: '出库', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'outbound/:id', name: 'OutboundDetail', component: () => import('@/views/OutboundDetail.vue'), meta: { title: '出库单详情', roles: ['ADMIN', 'WAREHOUSE'] } },
       {
         path: 'snapshot',
         component: () => import('@/views/Snapshot.vue'),
@@ -41,6 +44,12 @@ const routes = [
       },
       { path: 'products', name: 'Products', component: () => import('@/views/Products.vue'), meta: { title: '商品SKU' } },
       { path: 'partners', name: 'Partners', component: () => import('@/views/Partners.vue'), meta: { title: '往来单位' } },
+      { path: 'station', name: 'Station', component: () => import('@/views/Station.vue'), meta: { title: '场站管理', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'device-ledger', name: 'DeviceLedger', component: () => import('@/views/DeviceLedger.vue'), meta: { title: '设备台账', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'stocktake', name: 'Stocktake', component: () => import('@/views/Stocktake.vue'), meta: { title: '盘点管理', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'adjustment', name: 'InventoryAdjustment', component: () => import('@/views/InventoryAdjustment.vue'), meta: { title: '库存调整', roles: ['ADMIN', 'WAREHOUSE'] } },
+      { path: 'customers', name: 'Customers', component: () => import('@/views/Customer.vue'), meta: { title: '客户管理' } },
+      { path: 'workflow', name: 'Workflow', component: () => import('@/views/WorkflowDiagram.vue'), meta: { title: '业务流程' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings.vue'), meta: { title: '系统设置', admin: true } },
     ],
   },
@@ -59,10 +68,11 @@ router.beforeEach(async (to) => {
   if (to.path === '/login' && token) {
     return '/dashboard'
   }
-  if (to.meta.admin) {
+  if (to.meta.admin || to.meta.roles) {
     const auth = useAuthStore()
     if (!auth.user) await auth.fetchUser()
-    if (!auth.isAdmin) return '/dashboard'
+    if (to.meta.admin && !auth.isAdmin) return '/dashboard'
+    if (to.meta.roles && !to.meta.roles.includes(auth.role) && !auth.isAdmin) return '/dashboard'
   }
 })
 

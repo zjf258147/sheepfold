@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from datetime import datetime
+from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
@@ -148,6 +152,46 @@ def create_sku(
         ),
     )
     return R.ok(data=SkuResponse.model_validate(sku))
+
+
+@router.get("/skus/export", summary="导出SKU列表 Excel")
+def export_skus(
+    keyword: str | None = None,
+    category_id: int | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    content = product_service.export_sku_xlsx(db, keyword=keyword, category_id=category_id)
+    filename = quote("SKU列表.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.get("/skus/template", summary="下载SKU导入模板")
+def download_sku_template(_: User = Depends(get_current_user)):
+    content = product_service.export_sku_template()
+    filename = quote("SKU导入模板.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.post("/skus/import", summary="导入SKU Excel")
+async def import_skus(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
+    content = await file.read()
+    result = product_service.import_sku_xlsx(db, content)
+    return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")
 
 
 @router.get("/skus/{sku_id}", response_model=R[SkuResponse], summary="SKU详情")

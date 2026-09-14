@@ -1,7 +1,7 @@
 from datetime import datetime
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -9,7 +9,7 @@ from app.core.deps import get_current_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.audit import AuditLogCreate
-from app.schemas.common import R, PageResult
+from app.schemas.common import R, PageResult, CursorPageResult
 from app.schemas.inventory import InventoryItemResponse, InventoryHistoryResponse
 from app.service import audit_service, inventory_service
 from app.utils.request_ip import get_client_ip
@@ -47,6 +47,41 @@ def list_items(
     )
     return R.ok(data=PageResult(total=total, page=page, page_size=page_size,
                                 items=[InventoryItemResponse(**i) for i in items]))
+
+
+@router.get("/cursor", response_model=R[CursorPageResult[InventoryItemResponse]], summary="库存单品列表（游标分页）")
+def list_items_cursor(
+    cursor: str | None = None,
+    page_size: int = 50,
+    item_sn: str | None = None,
+    sku_id: int | None = None,
+    stock_status: str | None = None,
+    stock_condition: str | None = None,
+    operation_status: str | None = None,
+    last_order_no: str | None = None,
+    category_id: int | None = None,
+    keyword: str | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    items, next_cursor, has_more = inventory_service.get_items_cursor(
+        db,
+        cursor=cursor,
+        page_size=page_size,
+        item_sn=item_sn,
+        sku_id=sku_id,
+        stock_status=stock_status,
+        stock_condition=stock_condition,
+        operation_status=operation_status,
+        last_order_no=last_order_no,
+        category_id=category_id,
+        keyword=keyword,
+    )
+    return R.ok(data=CursorPageResult(
+        items=[InventoryItemResponse(**i) for i in items],
+        next_cursor=next_cursor,
+        has_more=has_more,
+    ))
 
 
 @router.get("/available", response_model=R[PageResult[InventoryItemResponse]], summary="可出库单品")
@@ -135,6 +170,30 @@ def export_items(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers=headers,
     )
+
+
+@router.get("/template", summary="下载库存导入模板")
+def download_inventory_template(_: User = Depends(get_current_user)):
+    content = inventory_service.export_inventory_template()
+    filename = quote("库存导入模板.xlsx")
+    return StreamingResponse(
+        iter([content]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.post("/import", summary="导入库存 Excel")
+async def import_inventory(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
+    content = await file.read()
+    result = inventory_service.import_inventory_xlsx(db, content)
+    return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")
 
 
 @router.get("/{item_sn}", response_model=R[InventoryItemResponse], summary="单品详情")

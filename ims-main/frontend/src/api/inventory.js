@@ -4,6 +4,10 @@ export function listItems(params) {
   return request.get('/api/v1/inventory/items', { params })
 }
 
+export function listItemsCursor(params) {
+  return request.get('/api/v1/inventory/items/cursor', { params })
+}
+
 export function exportItems(params) {
   return request.get('/api/v1/inventory/items/export', { params, responseType: 'blob' })
 }

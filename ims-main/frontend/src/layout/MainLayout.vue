@@ -6,7 +6,7 @@ import { useBrandStore } from '@/stores/brand'
 import { changePassword } from '@/api/user'
 import {
   House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton,
-  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools,
+  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection,
 } from '@element-plus/icons-vue'
 
 const MOBILE_BREAKPOINT = 768
@@ -58,18 +58,39 @@ const allMenus = [
       { path: '/snapshot', title: '历史快照', icon: Camera },
     ],
   },
-  { path: '/inbound', title: '入库', icon: Download },
-  { path: '/incoming', title: '来料管理', icon: Box },
-  { path: '/rma', title: '返厂维修', icon: Tools },
-  { path: '/outbound', title: '出库', icon: Upload },
+  { path: '/inbound', title: '入库', icon: Download, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/incoming', title: '来料管理', icon: Box, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY'] },
+  { path: '/rma', title: '返厂维修', icon: Tools, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'TEST_ENGINEER', 'PRODUCTION'] },
+  { path: '/shipment', title: '出货管理', icon: Goods, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'PRODUCTION'] },
+  {
+    title: 'BOM',
+    icon: Box,
+    roles: ['ADMIN', 'WAREHOUSE', 'PRODUCTION'],
+    children: [
+      { path: '/bom', title: 'BOM管理', icon: List },
+      { path: '/production-task', title: '生产任务', icon: Setting },
+    ],
+  },
+  { path: '/outbound', title: '出库', icon: Upload, roles: ['ADMIN', 'WAREHOUSE'] },
   { path: '/products', title: '商品SKU', icon: Goods },
+  { path: '/station', title: '场站管理', icon: OfficeBuilding, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/device-ledger', title: '设备台账', icon: Connection, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/stocktake', title: '盘点管理', icon: List, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/adjustment', title: '库存调整', icon: Tools, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/customers', title: '客户管理', icon: User },
   { path: '/partners', title: '往来单位', icon: OfficeBuilding },
+  { path: '/workflow', title: '业务流程', icon: Connection },
   { path: '/settings', title: '系统设置', icon: Setting, adminOnly: true },
 ]
 
-const menus = computed(() =>
-  auth.isAdmin ? allMenus : allMenus.filter((m) => !m.adminOnly)
-)
+const menus = computed(() => {
+  const role = auth.role || ''
+  return allMenus.filter((m) => {
+    if (m.adminOnly && !auth.isAdmin) return false
+    if (m.roles && !m.roles.includes(role) && !auth.isAdmin) return false
+    return true
+  })
+})
 
 const activeMenu = computed(() => {
   if (route.path.startsWith('/snapshot')) return '/snapshot'

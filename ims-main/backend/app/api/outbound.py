@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from urllib.parse import quote
 
 from app.core.deps import get_current_user
 from app.db.database import get_db
@@ -76,6 +78,57 @@ def create_order(
         ),
     )
     return R.ok(data=outbound_service.order_to_response(db, order))
+
+
+@router.get('/export', summary='导出出库单 Excel')
+def export_outbound(
+    operation_status: str | None = None,
+    outbound_type: str | None = None,
+    order_no: str | None = None,
+    partner_id: int | None = None,
+    stock_condition: str | None = None,
+    sku_id: int | None = None,
+    start_time: datetime | None = None,
+    end_time: datetime | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    content = outbound_service.export_outbound_xlsx(
+        db, operation_status=operation_status, outbound_type=outbound_type,
+        order_no=order_no, partner_id=partner_id,
+        stock_condition=stock_condition, sku_id=sku_id,
+        start_time=start_time, end_time=end_time,
+    )
+    filename = quote('出库单列表.xlsx')
+    return StreamingResponse(
+        iter([content]),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.get('/template', summary='下载出库导入模板')
+def download_outbound_template(_: User = Depends(get_current_user)):
+    content = outbound_service.export_outbound_template()
+    filename = quote('出库导入模板.xlsx')
+    return StreamingResponse(
+        iter([content]),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
+@router.post('/import', summary='导入出库单 Excel')
+async def import_outbound(
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail='请上传 .xlsx 或 .xls 文件')
+    content = await file.read()
+    result = outbound_service.import_outbound_xlsx(db, content, current_user.id)
+    return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")
 
 
 @router.get("/{order_id}", response_model=R[OutboundOrderResponse], summary="出库单详情")

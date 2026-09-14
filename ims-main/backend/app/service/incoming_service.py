@@ -14,6 +14,9 @@ from app.schemas.incoming import (
     IncomingReturnCreate,
 )
 from app.utils.order_no import generate_inspection_no, generate_rc_no, generate_return_no
+from app.utils.audit import write_audit_log
+from app.utils.excel_export import build_simple_xlsx
+from app.utils.excel_import import build_template_xlsx, parse_import_xlsx
 
 
 def _receipt_to_response(receipt: IncomingReceipt) -> dict:
@@ -44,37 +47,6 @@ def _receipt_to_response(receipt: IncomingReceipt) -> dict:
     }
 
 
-def _write_audit(
-    db: Session,
-    user: User,
-    action: str,
-    module: str,
-    resource_type: str,
-    resource_id: str,
-    resource_name: str,
-    summary: str,
-    change_reason: str | None = None,
-    before_data: dict | None = None,
-    after_data: dict | None = None,
-    ip_address: str | None = None,
-):
-    db.add(AuditLog(
-        operator_id=user.id,
-        operator_name=f"{user.nickname or user.username}（{user.username}）",
-        action=action,
-        module=module,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        resource_name=resource_name,
-        summary=summary,
-        change_reason=change_reason,
-        before_data=str(before_data) if before_data else None,
-        after_data=str(after_data) if after_data else None,
-        ip_address=ip_address,
-        created_at=datetime.now(),
-    ))
-
-
 def create_receipt(
     db: Session,
     data: IncomingReceiptCreate,
@@ -94,7 +66,7 @@ def create_receipt(
     db.add(receipt)
     db.flush()
 
-    _write_audit(
+    write_audit_log(
         db, user,
         action="CREATE",
         module="incoming",
@@ -223,7 +195,7 @@ def create_inspection(
     db.add(inspection)
     db.flush()
 
-    _write_audit(
+    write_audit_log(
         db, user,
         action="CREATE",
         module="incoming",
@@ -266,7 +238,7 @@ def create_return(
     db.add(rtn)
     db.flush()
 
-    _write_audit(
+    write_audit_log(
         db, user,
         action="CREATE",
         module="incoming",
@@ -305,7 +277,7 @@ def confirm_receipt(
 
     db.flush()
 
-    _write_audit(
+    write_audit_log(
         db, user,
         action="APPROVE",
         module="incoming",
@@ -330,3 +302,91 @@ def get_inspections(db: Session, receipt_id: int) -> list[IncomingInspection]:
         .order_by(IncomingInspection.id.desc())
         .all()
     )
+
+
+def export_incoming_xlsx(
+    db: Session,
+    keyword: str | None = None,
+    category_id: int | None = None,
+    sku_id: int | None = None,
+    supplier_id: int | None = None,
+    status: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> bytes:
+    from sqlalchemy import or_
+    query = db.query(IncomingReceipt).options(
+        joinedload(IncomingReceipt.supplier),
+        joinedload(IncomingReceipt.sku),
+    )
+    if keyword:
+        query = query.filter(
+            or_(IncomingReceipt.receipt_no.contains(keyword), IncomingReceipt.batch_no.contains(keyword))
+        )
+    if sku_id:
+        query = query.filter(IncomingReceipt.sku_id == sku_id)
+    if supplier_id:
+        query = query.filter(IncomingReceipt.supplier_id == supplier_id)
+    if status:
+        query = query.filter(IncomingReceipt.status == status)
+    if start_date:
+        query = query.filter(IncomingReceipt.delivery_date >= start_date)
+    if end_date:
+        query = query.filter(IncomingReceipt.delivery_date <= end_date)
+    receipts = query.order_by(IncomingReceipt.id.desc()).all()
+    headers = ["到货单号", "供应商", "物料SKU", "批次号", "数量", "单位", "状态", "到货日期", "备注"]
+    rows = []
+    for r in receipts:
+        rows.append([
+            r.receipt_no, r.supplier.name if r.supplier else "",
+            r.sku.name if r.sku else "", r.batch_no or "",
+            r.quantity, r.unit or "", r.status or "",
+            str(r.delivery_date) if r.delivery_date else "",
+            r.remark or "",
+        ])
+    return build_simple_xlsx(headers, rows, sheet_title="来料管理")
+
+
+def export_incoming_template() -> bytes:
+    headers = ["供应商ID", "物料SKU_ID", "批次号", "数量", "单位", "到货日期", "备注"]
+    return build_template_xlsx(headers, sheet_title="来料导入模板")
+
+
+def import_incoming_xlsx(db: Session, content: bytes) -> dict:
+    rows = parse_import_xlsx(content)
+    success = 0
+    errors = []
+    for i, row in enumerate(rows, start=1):
+        try:
+            supplier_id = int(row[0]) if row[0] else None
+            sku_id = int(row[1]) if row[1] else None
+            batch_no = str(row[2]).strip() if len(row) > 2 and row[2] else ""
+            quantity = float(row[3]) if len(row) > 3 and row[3] else 0
+            unit = str(row[4]).strip() if len(row) > 4 and row[4] else ""
+            delivery_date_str = str(row[5]).strip() if len(row) > 5 and row[5] else ""
+            remark = str(row[6]).strip() if len(row) > 6 and row[6] else ""
+            if not sku_id:
+                errors.append(f"第{i}行: 物料SKU_ID不能为空")
+                continue
+            receipt_no = generate_rc_no(db)
+            delivery_date = datetime.now().date()
+            if delivery_date_str:
+                delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d").date()
+            receipt = IncomingReceipt(
+                receipt_no=receipt_no,
+                supplier_id=supplier_id or 0,
+                sku_id=sku_id,
+                batch_no=batch_no,
+                quantity=quantity,
+                unit=unit,
+                delivery_date=delivery_date,
+                status="PENDING",
+                remark=remark,
+            )
+            db.add(receipt)
+            success += 1
+        except Exception as e:
+            errors.append(f"第{i}行: {str(e)}")
+    if success > 0:
+        db.commit()
+    return {"success": success, "errors": errors}

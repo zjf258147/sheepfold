@@ -56,3 +56,7 @@ export function getReturnableItems(outboundOrderId, stockCondition, options = {}
   if (options.category_id) params.category_id = options.category_id
   return request.get('/api/v1/inbound/orders/returnable-items', { params })
 }
+
+export function exportInboundOrders(params) {
+  return request.get('/api/v1/inbound/orders/export', { params, responseType: 'blob' })
+}

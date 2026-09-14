@@ -91,3 +91,38 @@ def generate_reship_no(db: Session) -> str:
     seq = _next_seq(db, "RH")
     today = datetime.now().strftime("%Y%m%d")
     return f"RH{today}{seq:03d}"
+
+
+def generate_stocktake_no(db: Session) -> str:
+    """生成盘点单号：PD{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "PD")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"PD{today}{seq:03d}"
+
+
+def generate_adjustment_no(db: Session) -> str:
+    """生成调整单号：TZ{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "TZ")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"TZ{today}{seq:03d}"
+
+
+def generate_shipment_no(db: Session) -> str:
+    """生成出货单号：SH{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "SH")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"SH{today}{seq:03d}"
+
+
+def generate_bom_no(db: Session) -> str:
+    """生成BOM编号：BOM{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "BOM")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"BOM{today}{seq:03d}"
+
+
+def generate_task_no(db: Session) -> str:
+    """生成生产任务编号：PR{YYYYMMDD}{序号3位}。"""
+    seq = _next_seq(db, "PR")
+    today = datetime.now().strftime("%Y%m%d")
+    return f"PR{today}{seq:03d}"

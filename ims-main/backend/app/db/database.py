@@ -9,13 +9,21 @@ from app.core.config import settings
 # pool_pre_ping=True：每次获取连接前发送 SELECT 1，防止使用已断开的连接
 # pool_recycle=3600：连接池中的连接超过 1 小时后回收，避免 MySQL wait_timeout 问题
 # pool_size=10：连接池大小；max_overflow=20：超出 pool_size 时最多额外创建 20 个连接
+# connect_args：MySQL 会话级配置（查询超时 30s、事务隔离级别 READ-COMMITTED）
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
     pool_recycle=3600,
     pool_size=10,
     max_overflow=20,
-    echo=settings.DEBUG,    # DEBUG 模式下打印 SQL 语句
+    echo=settings.DEBUG,
+    connect_args={
+        "init_command": (
+            "SET SESSION max_execution_time=30000, "
+            "SESSION sql_mode='STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION', "
+            "SESSION transaction_isolation='READ-COMMITTED'"
+        ),
+    },
 )
 
 # 会话工厂

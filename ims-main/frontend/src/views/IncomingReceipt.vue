@@ -1,14 +1,20 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn, confirmIncomingReceipt } from '@/api/incoming'
+import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn, confirmIncomingReceipt, exportIncomingReceipts } from '@/api/incoming'
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
 import { INCOMING_STATUS_MAP, INCOMING_STATUS_TAG, INSPECTION_RESULT_MAP } from '@/constants/enums'
 import { dateTimeColumnFormatter } from '@/utils/datetime'
 import { Download } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getIncomingReceiptPrintData, getIncomingReceiptBatchPrintData, getIncomingInspectionPrintData, getIncomingReturnPrintData } from '@/api/print'
+import PrintPreview from '@/print/components/PrintPreview.vue'
+import IncomingReceiptPrint from '@/print/components/IncomingReceiptPrint.vue'
+import IncomingInspectionPrint from '@/print/components/IncomingInspectionPrint.vue'
+import IncomingReturnPrint from '@/print/components/IncomingReturnPrint.vue'
 
 const loading = ref(false)
+const exportLoading = ref(false)
 const receipts = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -67,6 +73,92 @@ const confirmLoading = ref(false)
 
 const currentReceipt = ref(null)
 
+const printVisible = ref(false)
+const printData = ref(null)
+const printReceipts = ref([])
+const printLoading = ref(false)
+const batchPrintLoading = ref(false)
+const selectedReceipts = ref([])
+
+const inspectionPrintVisible = ref(false)
+const inspectionPrintData = ref(null)
+const inspectionPrintLoading = ref(false)
+
+const returnPrintVisible = ref(false)
+const returnPrintData = ref(null)
+const returnPrintLoading = ref(false)
+
+async function handlePrint(row) {
+  printLoading.value = true
+  try {
+    const res = await getIncomingReceiptPrintData(row.id)
+    printData.value = res.data
+    printReceipts.value = []
+    printVisible.value = true
+  } catch {
+    ElMessage.error('获取打印数据失败')
+  } finally {
+    printLoading.value = false
+  }
+}
+
+async function handleBatchPrint() {
+  if (selectedReceipts.value.length === 0) {
+    ElMessage.warning('请先选择要打印的收货单')
+    return
+  }
+  batchPrintLoading.value = true
+  try {
+    const ids = selectedReceipts.value.map(r => r.id)
+    const results = await getIncomingReceiptBatchPrintData(ids)
+    printReceipts.value = results.map(r => r.data)
+    printData.value = null
+    printVisible.value = true
+  } catch {
+    ElMessage.error('批量获取打印数据失败')
+  } finally {
+    batchPrintLoading.value = false
+  }
+}
+
+async function handleInspectionPrint(row) {
+  if (!row.inspection_id) {
+    ElMessage.warning('该记录没有检验报告')
+    return
+  }
+  inspectionPrintLoading.value = true
+  try {
+    const res = await getIncomingInspectionPrintData(row.inspection_id)
+    inspectionPrintData.value = res.data
+    inspectionPrintVisible.value = true
+  } catch {
+    ElMessage.error('获取检验报告打印数据失败')
+  } finally {
+    inspectionPrintLoading.value = false
+  }
+}
+
+async function handleReturnPrint(row) {
+  if (!row.return_id) {
+    ElMessage.warning('该记录没有退货单')
+    return
+  }
+  returnPrintLoading.value = true
+  try {
+    const res = await getIncomingReturnPrintData(row.return_id)
+    returnPrintData.value = res.data
+    returnPrintVisible.value = true
+  } catch {
+    ElMessage.error('获取退货单打印数据失败')
+  } finally {
+    returnPrintLoading.value = false
+  }
+}
+
+function handleSelectionChange(rows) {
+  selectedReceipts.value = rows
+}
+
 async function loadData() {
   loading.value = true
   try {
@@ -116,6 +208,36 @@ function resetQuery() {
   query.value = { keyword: '', category_id: null, sku_id: null, supplier_id: null, status: '', dateRange: [] }
   skus.value = []
   search()
+}
+
+async function handleExport() {
+  exportLoading.value = true
+  try {
+    const params = {
+      keyword: query.value.keyword || undefined,
+      category_id: query.value.category_id || undefined,
+      sku_id: query.value.sku_id || undefined,
+      supplier_id: query.value.supplier_id || undefined,
+      status: query.value.status || undefined,
+    }
+    if (query.value.dateRange?.length === 2) {
+      params.start_date = query.value.dateRange[0]
+      params.end_date = query.value.dateRange[1]
+    }
+    const blob = await exportIncomingReceipts(params)
+    const d = new Date()
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `IMS-来料管理-${dateStr}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } finally {
+    exportLoading.value = false
+  }
 }
 
 function onPageChange(p) {
@@ -280,13 +402,18 @@ onMounted(() => {
 
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">到货登记</el-button>
+      <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
+      <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedReceipts.length === 0" @click="handleBatchPrint">
+        批量打印 {{ selectedReceipts.length > 0 ? `(${selectedReceipts.length})` : '' }}
+      </el-button>
     </div>
 
-    <el-table :data="receipts" v-loading="loading" stripe>
+    <el-table :data="receipts" v-loading="loading" stripe @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="receipt_no" label="到货单号" width="150" show-overflow-tooltip />
       <el-table-column prop="batch_no" label="批次号" width="140" show-overflow-tooltip />
       <el-table-column prop="supplier_name" label="供应商" width="160" show-overflow-tooltip />
-      <el-table-column prop="sku_name" label="物料名称" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="sku_name" label="物料名称" width="140" show-overflow-tooltip />
       <el-table-column prop="spec" label="规格型号" width="120" show-overflow-tooltip />
       <el-table-column label="数量" width="80" align="center">
         <template #default="{ row }">{{ row.quantity }} {{ row.unit }}</template>
@@ -297,10 +424,13 @@ onMounted(() => {
           <el-tag :type="INCOMING_STATUS_TAG[row.status] || 'info'" size="small">{{ INCOMING_STATUS_MAP[row.status] || row.status }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip />
-      <el-table-column label="创建时间" width="160" :formatter="dateTimeColumnFormatter" prop="created_at" />
-      <el-table-column label="操作" width="200" fixed="right" align="center">
+      <el-table-column prop="remark" label="备注" width="140" show-overflow-tooltip align="center" />
+      <el-table-column label="创建时间" width="160" :formatter="dateTimeColumnFormatter" prop="created_at" align="center" />
+      <el-table-column label="操作" width="360" fixed="right" align="center">
         <template #default="{ row }">
+          <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">收货单</el-button>
+          <el-button v-if="row.inspection_id" type="success" link size="small" @click="handleInspectionPrint(row)" :loading="inspectionPrintLoading">检验报告</el-button>
+          <el-button v-if="row.return_id" type="danger" link size="small" @click="handleReturnPrint(row)" :loading="returnPrintLoading">退货单</el-button>
           <el-button v-if="row.status === 'PENDING_INSPECTION' || row.status === 'INSPECTED'" type="primary" link size="small" @click="openInspection(row)">检验</el-button>
           <el-button v-if="row.status === 'INSPECTED'" type="danger" link size="small" @click="openReturn(row)">退货</el-button>
           <el-button v-if="row.status === 'ACCEPTED'" type="success" link size="small" @click="openConfirm(row)">确认入库</el-button>
@@ -410,6 +540,18 @@ onMounted(() => {
       <el-button type="primary" :loading="confirmLoading" :disabled="!confirmForm.change_reason" @click="submitConfirm">确认入库</el-button>
     </template>
   </el-dialog>
+
+  <PrintPreview v-model:visible="printVisible" title="采购收货单">
+    <IncomingReceiptPrint v-if="printData || printReceipts.length > 0" :data="printData" :receipts="printReceipts" />
+  </PrintPreview>
+
+  <PrintPreview v-model:visible="inspectionPrintVisible" title="来料检验报告">
+    <IncomingInspectionPrint v-if="inspectionPrintData" :data="inspectionPrintData" />
+  </PrintPreview>
+
+  <PrintPreview v-model:visible="returnPrintVisible" title="退货单">
+    <IncomingReturnPrint v-if="returnPrintData" :data="returnPrintData" />
+  </PrintPreview>
 </template>
 
 <style scoped>

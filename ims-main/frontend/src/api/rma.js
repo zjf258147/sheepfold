@@ -48,10 +48,30 @@ export function approveRmaScrap(id, data) {
   return request.post(`/api/v1/rma/scraps/${id}/approve`, data)
 }
 
+export function exportRmaReturns(params) {
+  return request.get('/api/v1/rma/export', { params, responseType: 'blob' })
+}
+
 export function getRmaReships(returnId) {
   return request.get(`/api/v1/rma/returns/${returnId}/reships`)
 }
 
 export function createRmaReship(data) {
   return request.post('/api/v1/rma/reships', data)
+}
+
+export function getRmaQualityChecks(returnId) {
+  return request.get(`/api/v1/rma/returns/${returnId}/quality-checks`)
+}
+
+export function createRmaQualityCheck(data) {
+  return request.post('/api/v1/rma/quality-checks', data)
+}
+
+export function getRmaWarehouseIns(returnId) {
+  return request.get(`/api/v1/rma/returns/${returnId}/warehouse-ins`)
+}
+
+export function createRmaWarehouseIn(data) {
+  return request.post('/api/v1/rma/warehouse-ins', data)
 }

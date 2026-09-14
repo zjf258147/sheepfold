@@ -13,10 +13,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "cap:sync": "npm run build && npx cap sync",
+    "cap:add:android": "npx cap add android",
     "cap:open": "npx cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
+    "@capacitor/camera": "^8.2.4",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.3",
     "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.17.0",
     "element-plus": "^2.14.1",
@@ -29,7 +34,6 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
-    "@capacitor/core": "^8.5.2",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/test-utils": "^2.5.0",

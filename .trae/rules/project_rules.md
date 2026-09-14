@@ -9,16 +9,17 @@
 
 用一套系统完整替代 3 张 Excel（到货台账、出货台账、退货台账），实现 **"来料检测 → BOM生产准备 → 发货 → 异常退货（维修/再出货）→ 最终去向"** 全流程闭环管理。
 
-### 1.2 技术栈（重点，不可更改）
+### 1.2 技术栈（不可更改）
 
 | 层级 | 技术 |
 |------|------|
 | 后端框架 | Python 3.12+ / FastAPI |
 | 前端框架 | Vue 3 + Vite + Element Plus + Pinia |
 | 数据库 | MySQL 5.7 |
+| 缓存 | Redis 7（Docker 部署时启用，本地开发自动降级为内存缓存） |
 | ORM | SQLAlchemy 2.0+ |
 | 数据库迁移 | Alembic |
-| 部署 | Docker Compose（MySQL + Backend + Frontend） |
+| 部署 | Docker Compose（MySQL + Redis + Backend + Frontend） |
 | 后端端口 | 8000 |
 | 前端端口 | 8080 |
 | 包管理(Python) | uv |
@@ -94,12 +95,64 @@ docker exec ims-db mysqldump -u root -p ims > backup_$(date +%Y%m%d_%H%M%S).sql
 git log --oneline -5
 ```
 
-> 📋 **开发使用说明**：`doc/开发使用说明.md`（启动方式、访问地址、常见问题）  
-> 🐛 **环境问题排查**：`doc/开发环境问题记录.md`（9个问题及解决方案）
+> 📋 **开发使用说明**：`doc/开发使用说明.md` | 🐛 **环境问题排查**：`doc/开发环境问题记录.md`
 
 ---
 
 ## 2. Trae 开发宪法规则
+
+### 规则0：对话前状态摘要（每次对话必读，不可协商）
+
+每次对话开始时，AI 必须先执行以下 4 步，再开始任何工作：
+
+```
+1. 读取 PROJECT_STATE.md（项目根目录）
+2. 运行 git log --oneline -3
+3. 运行 git branch --show-current
+4. 运行 git describe --tags --abbrev=0 2>/dev/null || echo "无 Tag"
+```
+
+然后输出以下格式的状态摘要：
+
+```markdown
+## 项目当前状态
+- 版本：v2.6（一期完成，二期开发中）
+- 分支：[当前分支] | Tag：[最近 Tag]
+- 本次目标：[一句话描述本次任务]
+
+## 最近变更
+[git log --oneline -3 的输出]
+
+## 本次改动范围
+- 只改：[文件路径列表]
+- 不改：[排除范围]
+
+## 约束
+- 遵守《文档编写规范》
+- 遵守《project_rules.md》全部规则
+- 每次改动后运行检测清单对应项
+```
+
+用户确认（回复"继续"或描述任务）后，AI 开始工作。
+
+**对话流程：**
+
+```
+用户打开对话
+    ↓
+AI 自动执行：
+    1. 读取 PROJECT_STATE.md
+    2. 运行 git log --oneline -3
+    3. 运行 git branch --show-current + git describe --tags
+    4. 输出状态摘要
+    5. 向用户确认本次任务范围
+    ↓
+用户说"继续"或描述任务
+    ↓
+AI 开始工作
+```
+
+---
 
 ### 规则1：Git 版本控制（不可协商）
 
@@ -109,14 +162,17 @@ git log --oneline -5
 | 提交格式 | `[模块名] 操作说明`，如 `[audit] 新增 change_reason 字段` |
 | 辅助 Skill | 提交时使用 `git-commit` Skill 自动生成符合格式的 commit message 并推送 |
 | 验证标准 | `git log --oneline -5` 能看到 ≥5 条记录，每条符合格式 |
+| 回溯规则 | 连续两次修复失败时：① 停止修复 ② `git log --oneline -10` ③ 找到最后稳定版本 ④ `git checkout` 或 `git revert` ⑤ 在稳定版重新分析 |
+| 主线归档 | 主线验收后打 Tag：`git tag -a v1.0-milestone-A -m "[主线A] 验收通过"` |
+| 密钥安全 | 提交前检查：`.env` 不在暂存区、无硬编码密码/Key、`.env.example` 只含模板值 |
 
 ### 规则2：数据库备份（不可协商）
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 任何数据库结构变更（新增表/字段/修改字段类型/修改枚举）前必须备份。数据迁移必须在测试环境验证通过后才能在生产执行。 |
+| 规则 | 任何数据库结构变更前必须备份。数据迁移必须在测试环境验证通过后才能在生产执行。 |
 | 备份命令 | `docker exec ims-db mysqldump -u root -p ims > backup_$(date +%Y%m%d_%H%M%S).sql` |
-| 验证标准 | 备份文件大小 > 0KB 且能正常 `mysql < backup.sql` 还原 |
+| 验证标准 | 备份文件大小 > 0KB 且能正常还原 |
 
 ### 规则3：单次改动可验证
 
@@ -143,15 +199,14 @@ git log --oneline -5
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 主线A/B/C/D 按顺序开发，前一条主线完全验证通过后，再开始下一条。 |
-| 验证标准 | 主线A全部功能通过验收清单后方可开始主线B，依此类推 |
+| 规则 | 每条主线完成后，必须通过该主线的全部验收清单，方可进入下一条。二期同样适用。 |
 
 ### 规则7：复用现有表，不重复建表
 
 | 条目 | 内容 |
 |------|------|
 | 规则 | 供应商使用现有 `partner` 表（外键 `supplier_id`），物料使用现有 `product_sku` 表（外键 `sku_id`），不新建供应商表或物料表。 |
-| 验证标准 | `incoming_receipt` 和 `rma_return` 表中使用外键关联，而非文本字段 |
+| 验证标准 | 新表中使用外键关联，而非文本字段 |
 
 ### 规则8：通用验收通则（所有功能默认包含）
 
@@ -159,7 +214,7 @@ git log --oneline -5
 
 | 编号 | 通则内容 | 验证方式 |
 |------|----------|----------|
-| T-0001 | 操作后审计日志新增记录 | `SELECT * FROM audit_log WHERE entity_no = '单据号' ORDER BY created_at DESC LIMIT 1;`，能查到记录 |
+| T-0001 | 操作后审计日志新增记录 | `SELECT * FROM audit_log WHERE entity_no = '单据号' ORDER BY created_at DESC LIMIT 1;` |
 | T-0002 | 变更原因不为空 | 审计日志 `change_reason` 字段非空 |
 | T-0003 | 页面响应式 | 手机浏览器打开，界面不破碎、按钮可点 |
 | T-0004 | 权限正确 | 用非授权账号尝试操作，返回"无权限"提示 |
@@ -171,23 +226,24 @@ git log --oneline -5
 | 模型定义 | 所有新增 Model 放在 `backend/app/models/`，继承 `Base` |
 | Schema定义 | 所有新增 Pydantic Schema 放在 `backend/app/schemas/` |
 | API路由 | 所有新增 API 放在 `backend/app/api/`，路径前缀 `/api/v1/` |
-| 编号生成 | 统一在 `utils/order_no.py` 中扩展，新增 RC/FC/SH/BOM/PR 前缀 |
+| 编号生成 | 统一在 `utils/order_no.py` 中扩展 |
 | 枚举定义 | 所有枚举统一放在 `backend/app/models/enums.py` |
 | 服务层 | 复杂业务逻辑放在 `backend/app/service/` |
 | 外键关联 | 新增表涉及供应商/物料的，使用 `supplier_id`/`sku_id` 外键，而非文本 |
-| 模糊搜索 | 复用 `inventory_service._keyword_filter` 函数，支持 LIKE 模糊匹配 SN 和商品名；新模块 Service 中直接导入使用 |
-| 数据完整性 | 从 `product_sku` 填充业务表冗余字段时，若 `unit` 为 NULL，默认赋值为 `'个'`（兜底），避免 NOT NULL 约束报错 |
+| 模糊搜索 | 复用 `inventory_service._keyword_filter` 函数，支持 LIKE 模糊匹配 SN 和商品名 |
+| 数据完整性 | 从 `product_sku` 填充业务表冗余字段时，若 `unit` 为 NULL，默认赋值为 `'个'`（兜底） |
 
 ### 规则10：前端开发规范
 
 | 条目 | 内容 |
 |------|------|
 | 组件复用 | 优先使用 TablePro、SearchForm 等现有组件 |
-| 搜索模式 | 新页面搜索区参考 `InventoryDetail.vue` 模式：keyword 文本输入 + 分类下拉 + SKU 联动下拉 + 状态筛选 + 日期范围，支持模糊搜索和组合筛选 |
+| 搜索模式 | 新页面搜索区参考 `InventoryDetail.vue` 模式：keyword 文本输入 + 分类下拉 + SKU 联动下拉 + 状态筛选 + 日期范围 |
 | 路由规范 | 参考 `router/index.js` 现有命名规范，使用懒加载 |
 | 菜单配置 | 在 `MainLayout.vue` 的 `allMenus` 中配置，使用 `roles` 数组控制权限 |
 | 权限控制 | 所有路由和菜单必须配置 `roles` 或 `adminOnly` |
 | API调用 | 统一使用 `api/` 目录下的封装方法 |
+| UI一致性 | 新增页面颜色/字体/间距/按钮风格与现有页面保持一致，不引入新设计语言 |
 
 ### 规则11：代码审查最低标准
 
@@ -204,7 +260,7 @@ git log --oneline -5
 
 ### 规则12：Skill 检查验证（不可协商）
 
-每次功能开发完成后、提交代码前，必须按以下顺序调用 Skill 进行检查验证。按技术栈分类：
+每次功能开发完成后、提交代码前，必须按以下顺序调用 Skill 进行检查验证。
 
 #### 12.1 代码质量检查（开发完成 → 提交前）
 
@@ -220,6 +276,8 @@ git log --oneline -5
 |------|-----------|------|----------|----------|
 | ④ | `systematic-debugging` | 系统化调试（4阶段铁律） | 出现任何 bug/错误/异常/测试失败时 | 根因已定位，修复已验证 |
 | ⑤ | `bug-detective` | 快速错误排查（备用） | 简单错误快速定位时 | 错误已定位 |
+
+**核心铁律**：遇到任何报错/异常/bug，必须先调用 `systematic-debugging` 定位根因，再动手改代码。禁止跳过调试直接猜测修复。未完成根因调查前，禁止提出任何修复方案。
 
 #### 12.3 技术栈专项检查（按修改范围触发）
 
@@ -240,176 +298,247 @@ git log --oneline -5
 | ⑬ | `webapp-testing` | Web 应用测试（Playwright） | 前端功能开发完成时 | 浏览器验证通过 |
 | ⑭ | `upkeep` | 文档代码一致性 | 改动涉及配置/表结构/API时 | 文档与代码一致 |
 
-**`systematic-debugging` 核心铁律**：未完成根因调查前，禁止提出任何修复方案。症状修复 = 失败。
+**前端验证流程**：每次修改前端页面后，调用 `webapp-testing` Skill 在浏览器中自动验证功能（页面加载、元素可见性、按钮点击、表单输入、弹窗交互、API 响应断言），不依赖手动 F5 刷新。
 
-**验证标准**：每次 `git commit` 前，上述 Skill 检查结果必须全部通过。如有未通过项，必须先修复再提交。
+**全面检查触发词**：当用户说"检查"、"全面检查"、"检测"、"verify"、"check"时，必须按顺序调用全部上述 Skill 进行检查，不得跳过。输出格式：每个 Skill 输出 名称 + 范围 + 问题数 + 通过/未通过。
 
----
-
-### 规则13：技术栈 Skill 清单（已安装 14 个）
-
-| 类别 | Skill 名称 | 来源 | 安装量 | 安全 |
-|------|-----------|------|:------:|:---:|
-| 后端 | `fastapi-python` | mindrally/skills | 12.5K | ✅ |
-| 后端 | `sqlalchemy-alembic-expert-best-practices-code-review` | wispbit-ai/skills | 1.6K | ✅ |
-| 前端 | `vue` | antfu/skills | 33K | ✅ |
-| 前端 | `pinia` | antfu/skills | 17.7K | ✅ |
-| 数据库 | `mysql` | planetscale/database-skills | 7.5K | ⚠️ Med |
-| 数据库 | `mysql-best-practices` | mindrally/skills | 2.5K | ✅ |
-| Docker | `docker-patterns` | affaan-m/ecc | 11K | ⚠️ High |
-| 测试 | `webapp-testing` | anthropics/skills | 149K | ✅ |
-| 审查 | `code-review-and-quality` | addyosmani/agent-skills | 36.1K | ✅ |
-| 审查 | `code-quality-skill` | 本地 | — | ✅ |
-| 审查 | `detect-code-smells` | 本地 | — | ✅ |
-| 调试 | `systematic-debugging` | obra/superpowers | 246K | ✅ |
-| 调试 | `bug-detective` | 本地 | — | ✅ |
-| 文档 | `upkeep` | 本地 | — | ✅ |
+**验证标准**：每次 `git commit` 前，上述 Skill 检查结果必须全部通过。
 
 ---
 
-### 规则14：新 Skill 双次验证（不可协商）
+### 规则13：Excel 导出格式规范（不可协商）
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 每次新安装的 Skill，必须分别调用 2 次验证其加载成功。首次调用确认路径正确，二次调用确认稳定可用。 |
-| 验证方式 | 每个 Skill 分两批调用（每批 2 个），两轮全部通过后方可投入使用 |
-| 验证标准 | 两次调用均返回 Skill 完整内容（路径 + 描述 + 详情），无报错、无截断 |
-
-**已验证 Skill 清单（2026-09-03）：**
-
-| Skill | 第1次 | 第2次 | 状态 |
-|-------|:---:|:---:|:---:|
-| `fastapi-python` | ✅ | ✅ | 就绪 |
-| `sqlalchemy-alembic-expert-best-practices-code-review` | ✅ | ✅ | 就绪 |
-| `vue` | ✅ | ✅ | 就绪 |
-| `pinia` | ✅ | ✅ | 就绪 |
-| `mysql` | ✅ | ✅ | 就绪 |
-| `mysql-best-practices` | ✅ | ✅ | 就绪 |
-| `docker-patterns` | ✅ | ✅ | 就绪 |
-| `webapp-testing` | ✅ | ✅ | 就绪 |
-| `code-review-and-quality` | ✅ | ✅ | 就绪 |
-
----
-
-### 规则15：搜索功能复用（不可协商）
-
-| 条目 | 内容 |
-|------|------|
-| 规则 | 新模块（主线A/B/C/D）的列表页面必须包含搜索功能。后端模糊搜索统一复用 `inventory_service._keyword_filter` 函数，前端搜索区参考 `InventoryDetail.vue` 模式。 |
-| 后端复用 | `from app.service.inventory_service import _keyword_filter`，该函数支持：单关键词模糊匹配 SN + 商品名（`LIKE %keyword%`），多行批量搜索 SN（最多 100 个），OR 逻辑连接 |
-| 前端模式 | 每个新列表页面至少包含：① 关键词输入框（`keyword`）② 分类下拉（联动 SKU）③ 状态筛选 ④ 日期范围。根据业务场景可增减 |
-| 验证标准 | 在搜索框输入关键词后，列表数据按条件过滤；输入部分 SN 能模糊匹配到结果；多行粘贴多个 SN 能批量搜索 |
-
----
-
-### 规则16：Excel 导出格式规范（不可协商）
-
-| 条目 | 内容 |
-|------|------|
-| 规则 | 所有业务模块的 Excel 导出统一使用 `item_export.py` 中的通用工具函数，格式统一、美观、专业。 |
-| 标题行 | 第1行，深蓝背景 `#4472C4` + 白色粗体 11pt + 居中，列名作为标题 |
-| 表头 | （无独立标题行，标题行即列名行） |
+| 规则 | 所有业务模块的 Excel 导出统一使用 `item_export.py` 中的通用工具函数，格式统一。 |
+| 标题行 | 第1行，深蓝背景 `#4472C4` + 白色粗体 11pt + 居中 |
 | 数据行 | 白色/浅蓝交替斑马纹（`#FFFFFF` / `#DDEBF7`），全表细线边框（`#999999`），自动筛选器 |
 | 金额列 | 千分位格式 `#,##0.00`，右对齐 |
-| 数量列 | 整数格式 `#,##0`，居中对齐 |
 | SN列 | 文本格式（避免科学计数法） |
 | 长文本列 | 自动换行（`wrap_text=True`） |
-| 列宽 | 序号6 / 编码18 / 名称25 / 规格18 / 数量12 / 日期14 / 金额14 / 备注30 / 其他12 |
 | 冻结 | 标题行冻结（冻结首行） |
-| 文件名 | 格式 `IMS-{模块名}-{内容}-{日期}.xlsx`，如 `IMS-来料到货-20260904.xlsx` |
-| 验证标准 | 下载导出的 Excel 文件，检查：标题行深蓝白字、斑马纹交替、边框完整、金额有千分位、SN为文本、自动筛选可用、滚动时标题固定 |
+| 文件名 | 格式 `IMS-{模块名}-{内容}-{日期}.xlsx` |
+| 验证标准 | 下载导出的 Excel 文件，检查：标题行深蓝白字、斑马纹交替、边框完整、金额有千分位、SN为文本、自动筛选可用 |
 
----
-
-### 规则17：调试流程（不可协商）
+### 规则14：搜索功能复用（不可协商）
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 遇到任何报错/异常/bug，必须先调用 `systematic-debugging` Skill 定位根因，再动手改代码。禁止跳过调试直接猜测修复。 |
-| 流程 | 报错 → 调用 `systematic-debugging` → 找到根因 → 修复 → 验证 |
-| 验证标准 | 修复后错误不再复现，且 `systematic-debugging` 4阶段全部走完 |
+| 规则 | 新模块的列表页面必须包含搜索功能。后端模糊搜索统一复用 `inventory_service._keyword_filter` 函数，前端搜索区参考 `InventoryDetail.vue` 模式。 |
+| 后端复用 | `from app.service.inventory_service import _keyword_filter`，支持：单关键词模糊匹配 SN + 商品名（`LIKE %keyword%`），多行批量搜索 SN（最多 100 个），OR 逻辑连接 |
+| 前端模式 | 每个新列表页面至少包含：① 关键词输入框（`keyword`）② 分类下拉（联动 SKU）③ 状态筛选 ④ 日期范围 |
+| 验证标准 | 输入关键词后列表数据按条件过滤；部分 SN 能模糊匹配；多行粘贴多个 SN 能批量搜索 |
 
-### 规则18：前端验证流程（不可协商）
-
-| 条目 | 内容 |
-|------|------|
-| 规则 | 每次修改前端页面后，调用 `webapp-testing` Skill 在浏览器中自动验证功能，不依赖手动 F5 刷新。 |
-| 验证内容 | 页面加载、元素可见性、按钮点击、表单输入、弹窗交互、API 响应断言（非仅截图） |
-| 验证标准 | `webapp-testing` 报告全部通过，关键交互有 Playwright 脚本可复用 |
-
----
-
-### 规则19：主线完成验证与文档归档（不可协商）
+### 规则15：全局检查触发词（不可协商）
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 每完成一个主线（A/B/C/D），必须执行前后端运行验证，并将该主线的新增/变更内容归档为文档。 |
-| 验证流程 | ① 启动后端 `python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000` ② 启动前端 `npm run dev` ③ 浏览器访问 http://localhost:5173 ④ 登录验证 ⑤ 进入对应模块页面，验证核心功能（列表→搜索→新增→编辑→弹窗） |
-| 文档归档 | 在 `doc/` 下创建 `主线X_完成报告.md`，记录：新增表/字段/Schema/API/前端页面/组件/路由/菜单、编号规则、业务规则、验收结果 |
-| 验证标准 | 前后端均无报错启动，浏览器能正常登录并访问新模块，核心 CRUD 操作可执行，完成报告已创建 |
+| 规则 | 当用户说"全局检查"、"全面检查"、"全量检查"、"check all"时，AI 必须先搜索该模块的所有相关文件，逐一检查，而非只改用户提到的那一处。 |
+| 触发词 | "全局检查"、"全面检查"、"全量检查"、"check"、"verify"、"一致性检查"、"检查所有" |
+| 执行流程 | ① 搜索该模块相关代码（SearchCodebase / Grep）② 列出涉及的所有文件 ③ 逐一检查每个文件 ④ 保持一致性调整 ⑤ 输出检查报告 |
+| 验证标准 | AI 输出至少列出 3 个相关文件，跨文件一致性已确认 |
 
-### 规则20：开发环境问题记录（不可协商）
+### 规则16：主线收尾触发词（不可协商）
 
 | 条目 | 内容 |
 |------|------|
-| 规则 | 每次开发环境搭建或启动过程中遇到的问题及解决方案，必须记录到 `开发环境问题记录.md`，供后续参考。 |
-| 记录内容 | 问题现象、根因分析、解决方案、涉及的命令 |
-| 存放位置 | `doc/开发环境问题记录.md` |
-| 验证标准 | 文件存在，每个问题有完整的"现象→原因→解决"三段式记录 |
+| 规则 | 当用户说"主线[字母]收尾"、"完成[模块名]验收"时，AI 必须按以下 7 步自动执行收尾检查。 |
+| 触发词 | "主线[字母]收尾"、"主线[字母]完成"、"[模块名]验收"、"收尾检查"、"交付检查" |
 
-### 规则21：Bug 记录与追溯（不可协商）
+**主线收尾 7 步检查清单：**
+
+| 步骤 | 操作 | 命令/动作 |
+|:---:|------|-----------|
+| ① | 代码质量检查 | 调用 `code-quality-skill` |
+| ② | 代码异味检测 | 调用 `detect-code-smells` |
+| ③ | 技术栈专项检查 | 调用 `fastapi-python` + `vue` + `sqlalchemy-alembic-expert-best-practices-code-review`（按修改范围） |
+| ④ | 浏览器验证 | 调用 `webapp-testing` 验证核心流程 |
+| ⑤ | 后端启动验证 | `uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000`，确认无报错 |
+| ⑥ | 前端启动验证 | `npm run dev`，确认无报错 |
+| ⑦ | 结果记录 | 输出总结报告，记录到 `doc/主线[字母]_完成报告.md` |
+
+**收尾输出格式：**
+
+```
+## 主线X 收尾检查报告
+| 步骤 | 检查项 | 结果 | 备注 |
+|:---:|--------|:----:|------|
+| ① | 代码质量 | ✅/❌ | ... |
+... 
+总结：通过/未通过，待修复项：[列表]
+```
+
+### 规则17：完整检测清单触发词（不可协商）
+
+| 条目 | 内容 |
+|------|------|
+| 规则 | 当用户说"执行完整检测清单"时，AI 必须按 `检测项目清单.md` 中定义的 5 步顺序，逐一执行全部检查。 |
+| 触发词 | **"执行完整检测清单"** |
+
+**5 步执行流程：**
+
+| 步骤 | 内容 | 命令/操作 |
+|:---:|------|-----------|
+| ① | 后端测试 | `cd backend && python -m pytest tests/ -v --tb=short` |
+| ② | 前端测试 | `cd frontend && npm run test` |
+| ③ | Skill 代码质量检查 | `code-quality-skill` → `detect-code-smells` → `code-review-and-quality` |
+| ④ | 技术栈专项检查 | 按修改范围调用对应 Skill |
+| ⑤ | 上线检查 | 数据库迁移、种子数据、环境配置、浏览器兼容性（人工项） |
+
+### 规则18：大文件批量修改规范（不可协商）
+
+| 条目 | 内容 |
+|------|------|
+| 规则 | 修改超过 800 行的大文件时，必须使用 PowerShell 一次性批量替换，禁止逐个 Edit 调用。 |
+| 原因 | Edit 工具每次修改都要搜索匹配、定位、写入，VS Code 诊断每次保存都触发，大文件会越来越慢。 |
+| 解决方案 | 使用 PowerShell 的 `-replace` 操作符一次性批量替换，1 次读写完成。 |
+
+```powershell
+$content = Get-Content 文件名.py -Raw -Encoding UTF8
+$content = $content -replace '旧值1', '新值1'
+$content = $content -replace '旧值2', '新值2'
+$content | Set-Content 文件名.py -NoNewline -Encoding UTF8
+Write-Host "Done!"
+```
+
+| 验证标准 | 替换后 `Grep` 检查旧值已全部消失，新值全部出现 |
+
+### 规则19：Bug 记录与追溯（不可协商）
 
 | 条目 | 内容 |
 |------|------|
 | 规则 | 每次发现问题/Bug 必须即时记录到 `bug记录.md`，不得跳过。修复后更新状态为"已修复"。 |
 | 记录内容 | 编号、日期、严重程度、模块、现象、根因、修复方案、涉及文件、教训 |
 | 存放位置 | `doc/bug记录.md` |
-| 模板 | 文件内含标准模板，新 Bug 复制模板填写 |
 | 验证标准 | 每个 Bug 有完整记录，状态已更新，教训已提炼 |
 
----
+### 规则20：开发环境问题记录（不可协商）
 
-## 3. 验收检查点速查表
+| 条目 | 内容 |
+|------|------|
+| 规则 | 每次开发环境搭建或启动过程中遇到的问题及解决方案，必须记录到 `doc/开发环境问题记录.md`。 |
+| 记录内容 | 问题现象、根因分析、解决方案、涉及的命令 |
+| 验证标准 | 文件存在，每个问题有完整的"现象→原因→解决"三段式记录 |
 
-| 检查项 | 命令/操作 | 预期结果 |
-|--------|-----------|----------|
-| Git记录 | `git log --oneline -5` | 5条以上记录，格式规范 |
-| Skill检查 | 按规则12分类触发：①code-quality ②detect-smells ③code-review ④systematic-debugging ⑤tech-stack ⑥webapp-testing ⑦upkeep | 全部通过，无阻塞项 |
-| 数据库表 | `SHOW TABLES;` | 新增表可见 |
-| 审计日志 | `SELECT * FROM audit_log WHERE entity_no='RC20260901001';` | 有记录 |
-| 角色权限 | 不同角色登录 | 菜单按权限显示 |
-| SN关联 | 维修完成 | 新旧SN互相关联 |
-| 变更原因 | 状态变更时 | 弹窗必填，不填不可提交 |
-| 外键关联 | `DESC incoming_receipt;` | `supplier_id`、`sku_id` 存在且为外键 |
-| 模糊搜索 | 在各列表页搜索框输入关键词 | 数据按条件过滤，部分 SN 可模糊匹配，多行 SN 可批量搜索 |
-| Excel导出 | 点击导出按钮，打开下载的 xlsx | 标题行+表头+数据完整，斑马纹、边框、金额格式正确，自动筛选可用 |
+### 规则21：性能优化规范（不可协商）
 
----
+所有新模块开发及现有模块改造，必须遵循以下四层性能优化规范。
 
-## 4. 开发顺序
+#### 21.1 Redis 缓存层
 
-### 开发顺序（按优先级）
+| 项目 | 规范 |
+|------|------|
+| 启用条件 | Docker Compose 部署时自动启用 Redis；本地开发降级为内存缓存 |
+| 缓存后端 | `app/core/cache.py` — 统一缓存抽象，支持 Redis 和 MemoryCache 双模式 |
+| 高频下拉选项 | 分类列表（`get_categories`）、往来单位分组（`get_groups`）必须加缓存，TTL=600s |
+| 缓存失效 | 数据变更时必须调用 `invalidate_cache(key)` 立即失效对应缓存 |
+| 缓存键规范 | 格式 `ims:{模块}:{资源}`，如 `ims:categories:all` |
+| 新模块接入 | 新增高频只读查询默认评估是否需要加缓存 |
+| 验证标准 | 第二次请求同一接口，响应时间明显缩短；数据变更后缓存立即刷新 |
 
+#### 21.2 MySQL 查询优化
+
+| 项目 | 规范 |
+|------|------|
+| 连接池 | `pool_size=10` + `max_overflow=20`，`pool_pre_ping=True` + `pool_recycle=3600` |
+| 查询超时 | 通过 `init_command` 设置 `max_execution_time=30000`（30秒） |
+| 事务隔离 | 使用 `READ-COMMITTED`，避免长事务锁表 |
+| 分页查询 | 默认使用偏移分页（`OFFSET/LIMIT`）；大数据量场景（>1万条）使用游标分页 |
+| 索引建议 | 所有 `WHERE` 条件字段、`JOIN` 外键字段、`ORDER BY` 字段建议建索引 |
+| 验证标准 | 慢查询日志无超过 3 秒的查询；`EXPLAIN` 输出 type 不为 ALL |
+
+#### 21.3 前端无限滚动（虚拟滚动）
+
+| 项目 | 规范 |
+|------|------|
+| 适用场景 | 库存明细、入库记录、出货记录等大数据量列表页面 |
+| 实现方式 | Element Plus `v-infinite-scroll` 指令 + 游标分页 API |
+| 模式切换 | 页面提供"普通分页"和"无限滚动"切换按钮，默认普通分页 |
+| 加载提示 | 底部显示"加载中..."和"已加载全部 N 条"状态 |
+| 每次加载量 | 默认 `page_size=50` |
+| 新页面开发 | 列表数据量预计 >500 条时，默认同时提供两种分页模式 |
+| 验证标准 | 滚动到底部自动加载更多，无卡顿；切换回普通分页正常 |
+
+#### 21.4 游标分页（Cursor Pagination）
+
+| 项目 | 规范 |
+|------|------|
+| 适用场景 | 大数据量列表（>1万条）、无限滚动加载、实时数据流 |
+| 实现方式 | 基于主键 ID 降序，cursor 为 Base64 编码的 JSON `{"id": last_id}` |
+| Schema | 使用 `CursorPageResult`（`app/schemas/common.py`），包含 `items`、`next_cursor`、`has_more` |
+| API 端点 | 在现有列表端点基础上增加 `/cursor` 子路径 |
+| 服务层 | 新增 `get_items_cursor()` 方法，复用查询条件构建 |
+| 新模块接入 | 预计数据量 >5000 条的列表，默认增加游标分页端点 |
+| 验证标准 | 首次请求返回 items + next_cursor；用 next_cursor 请求下一页数据不重复不遗漏 |
+
+### 规则22：测试计划与执行（不可协商）
+
+| 条目 | 内容 |
+|------|------|
+| 规则 | 每次修改代码后，必须根据修改范围运行对应的测试类型。 |
+| 测试文档 | `ims-main/backend/tests/测试计划.md` |
+| 种子数据 | `ims-main/backend/tests/seed_data.py` |
+
+| 类型 | 标记 | 用途 |
+|------|------|------|
+| 合约测试 | `contract` | 验证 API 请求/响应格式、状态码、字段完整性 |
+| 场景测试 | `scenario` | 验证端到端业务流程完整性 |
+
+**运行命令：**
+
+```bash
+cd ims-main/backend && uv run pytest tests/ -v          # 全部测试
+uv run pytest tests/contract/ -v -m contract           # 合约测试
+uv run pytest tests/scenario/ -v -m scenario           # 场景测试
 ```
-数据库备份 + Git → product_sku改造 → 审计日志改造 → 角色扩展 → SN表改造
-→ 原材料库存表 → 主线A（来料管理）→ 主线B（返厂维修）→ 主线C（出货管理）
-→ 主线D（BOM）→ 权限与审计 → 扫码功能
-```
 
-### 里程碑
+**自然语言触发词：**
 
-| 阶段 | 周期 | 交付物 | 验收标准 |
-|------|------|--------|----------|
-| 环境搭建 | 1天 | 部署IMS、数据库就绪 | `docker compose up` 成功，浏览器可访问 |
-| 数据库改造 | 2天 | 新增16张表、改造SN表、创建审计日志表 | 对应"数据库验证 SQL"全部可执行 |
-| 主线A开发 | 4天 | 到货登记→检验→入库→退货 全部功能 | A-01 至 A-07 全部通过 |
-| 主线B开发 | 6天 | 退货登记→诊断→分配→维修→换SN→流转→报废审批→再出货 | B-01 至 B-16 全部通过 |
-| 主线C开发 | 2天 | 出货登记 | C-01 至 C-04 全部通过 |
-| 主线D开发 | 3天 | BOM导入导出→库存对比→采购建议 | D-01 至 D-08 全部通过 |
-| 权限与审计 | 2天 | 权限矩阵落地、审计日志验证 | L-01 至 L-05 + P-01 至 P-05 全部通过 |
-| 扫码功能 | 1天 | 所有SN输入框接入扫码组件 | S-01 至 S-02 通过 |
-| 测试与数据迁移 | 3天 | 2026年历史数据导入、全员测试 | UAT通过 |
+| 触发词 | 自动执行动作 |
+|--------|-------------|
+| "跑测试"、"运行测试"、"全部测试" | `uv run pytest tests/ -v` |
+| "合约测试"、"跑合约"、"契约测试" | `uv run pytest tests/contract/ -v -m contract` |
+| "场景测试"、"跑场景"、"流程测试" | `uv run pytest tests/scenario/ -v -m scenario` |
+| "主线A测试"、"跑A线" | `uv run pytest tests/contract/test_incoming_contract.py tests/scenario/test_scenario_mainline_a.py -v` |
+| "主线B测试"、"跑B线" | `uv run pytest tests/contract/test_rma_contract.py tests/scenario/test_scenario_mainline_b.py -v` |
+| "主线C测试"、"跑C线" | `uv run pytest tests/contract/test_shipment_contract.py tests/scenario/test_scenario_mainline_c.py -v` |
+| "主线D测试"、"跑D线" | `uv run pytest tests/contract/test_bom_contract.py tests/scenario/test_scenario_mainline_d.py -v` |
+| "覆盖率"、"测试报告" | `uv run pytest tests/ --cov=app --cov-report=html` |
+
+**测试隔离机制：**
+
+| 机制 | 说明 |
+|------|------|
+| 数据库 | SQLite `:memory:` 内存数据库，每个测试独立会话 |
+| 主键兼容 | `BigInteger` 自动转换为 `Integer` |
+| 种子数据 | `seed_data` fixture 提供用户、SKU、供应商 |
+| 回滚 | 每个测试结束后自动回滚事务 |
+
+**验证标准**：`uv run pytest tests/ -v` 全部通过，零失败。
 
 ---
+
+### 规则23：文档编写规范（不可协商）
+
+| 条目 | 内容 |
+|------|------|
+| 规则 | 编写 IMS 系统说明书和用户操作手册时，必须严格遵守 `docs/文档编写规范.md`。 |
+
+**编写每章后 Trae 必须自查：**
+
+- 标题层级正确（不超过四级）
+- 所有状态值使用代码格式（`` `STATUS` ``）
+- 所有按钮名称加粗（**按钮**）
+- 所有表格有表头对齐标记
+- Mermaid 图表标注语言类型
+- 操作步骤使用 `**步骤N：标题**` 格式
+- 路径使用 `→` 连接
+- 注意事项用 `⚠️` 前缀
+- 代码块标注语言类型
+- 图片路径正确（相对路径）
+- 无绝对路径引用
+- 所有枚举值/状态值/字段名与代码一致
+
+**触发词：** "编写说明书第X章" → 开始编写《系统说明书》对应章节；"编写操作手册第X章" → 开始编写《用户操作手册》对应章节；"检查文档规范" → 按上述清单逐项核对。
 
 > 📋 **参考数据**（权限矩阵、表结构、业务逻辑、迁移说明）→ 见 `.trae/rules/reference.md`，AI 按需读取。

@@ -114,7 +114,7 @@ onMounted(() => { fetchData() })
         </el-table-column>
         <el-table-column prop="status" label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'COMPLETED' ? 'success' : row.status === 'IN_PROGRESS' ? 'warning' : ''" size="small">
+            <el-tag :type="row.status === 'COMPLETED' ? 'success' : row.status === 'IN_PROGRESS' ? 'warning' : 'info'" size="small">
               {{ statusMap[row.status] || row.status }}
             </el-tag>
           </template>

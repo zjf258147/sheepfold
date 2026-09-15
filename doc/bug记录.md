@@ -472,4 +472,147 @@ UnboundLocalError: cannot access local variable 'dt' where it is not associated 
 
 ---
 
-## 模板（新 Bug 复制此格式）
+## Bug #016：GET /incoming/receipts/{id} 不存在时返回 500
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-016 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🔴 高（API 500） |
+| **模块** | 主线A·来料管理 |
+| **状态** | 🔴 待修复 |
+| **发现方式** | API 全量冒烟测试（自动发现） |
+
+### 现象
+`GET /api/v1/incoming/receipts/99999` → 500，响应体 `{"code":500,"msg":"服务器内部错误","data":null}`。期望返回 404。
+
+### 根因
+- `incoming_service.py:159` — `get_receipt()` 未找到到货单时 `raise ValueError(f"到货单不存在：{receipt_id}")`
+- `incoming.py:101` — API 层 `get_receipt` 没有 `except ValueError` 包装
+- `incoming.py` 是整个项目中唯二缺少 `except ValueError` 的 API 模块（另一个是 `rma.py`）
+
+### 修复
+在 `incoming.py` 的 `get_receipt` 函数中包裹 `try/except ValueError`，返回 `HTTPException(status_code=404)`。
+
+### 涉及文件
+- `backend/app/api/incoming.py` (L101-108)
+- `backend/app/service/incoming_service.py` (L159)
+
+### 教训
+**API 层必须 `except ValueError` 转换为 HTTPException。所有其他模块（14个）都有此模式，仅 `incoming.py` 和 `rma.py` 遗漏。**
+
+---
+
+## Bug #017：POST /incoming/receipts/{id}/confirm 不存在时返回 500
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-017 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🔴 高（API 500） |
+| **模块** | 主线A·来料管理 |
+| **状态** | 🔴 待修复 |
+| **发现方式** | API 全量冒烟测试（自动发现） |
+
+### 现象
+`POST /api/v1/incoming/receipts/99999/confirm` → 500。期望返回 404。
+
+### 根因
+- `incoming_service.py:267` — `confirm_receipt()` 未找到到货单时 `raise ValueError(f"到货单不存在：{receipt_id}")`
+- `incoming.py:120` — API 层 `confirm_receipt` 没有 `except ValueError` 包装
+
+### 修复
+在 `incoming.py` 的 `confirm_receipt` 函数中包裹 `try/except ValueError`。
+
+### 涉及文件
+- `backend/app/api/incoming.py` (L119-127)
+- `backend/app/service/incoming_service.py` (L267)
+
+---
+
+## Bug #018：POST /rma/scraps 返厂单不存在时返回 500
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-018 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🔴 高（API 500） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | 🔴 待修复 |
+| **发现方式** | API 全量冒烟测试（自动发现） |
+
+### 现象
+`POST /api/v1/rma/scraps` → 500（return_id=99999 不存在）。期望返回 404。
+
+### 根因
+- `rma_service.py:288` — `create_scrap()` 未找到返厂单时 `raise ValueError(f"返厂单不存在：{data.return_id}")`
+- `rma.py:131` — API 层 `create_scrap` 没有 `except ValueError` 包装
+
+### 修复
+在 `rma.py` 的 `create_scrap` 函数中包裹 `try/except ValueError`。
+
+### 涉及文件
+- `backend/app/api/rma.py` (L131-138)
+- `backend/app/service/rma_service.py` (L288)
+
+---
+
+## Bug #019：POST /rma/scraps/{id}/approve 报废单不存在时返回 500
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-019 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🔴 高（API 500） |
+| **模块** | 主线B·返厂维修 |
+| **状态** | 🔴 待修复 |
+| **发现方式** | API 全量冒烟测试（自动发现） |
+
+### 现象
+`POST /api/v1/rma/scraps/99999/approve` → 500。期望返回 404。
+
+### 根因
+- `rma_service.py:324` — `approve_scrap()` 未找到报废单时 `raise ValueError(f"报废单不存在：{scrap_id}")`
+- `rma.py:141` — API 层 `approve_scrap` 没有 `except ValueError` 包装
+
+### 修复
+在 `rma.py` 的 `approve_scrap` 函数中包裹 `try/except ValueError`。
+
+### 涉及文件
+- `backend/app/api/rma.py` (L141-148)
+- `backend/app/service/rma_service.py` (L324)
+
+---
+
+## Bug #020：incoming.py / rma.py 全模块缺少 ValueError 异常捕获（系统性问题）
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-020 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🔴 高（系统性风险） |
+| **模块** | 主线A + 主线B |
+| **状态** | 🔴 待修复 |
+| **发现方式** | API 全量冒烟测试 + 全局代码审查 |
+
+### 现象
+`incoming.py`（来料管理）和 `rma.py`（返厂维修）两个 API 模块中，**所有** POST/PUT 端点都没有 `except ValueError` 异常捕获。这意味着任意 ValueError（不存在、状态不符、业务校验失败）都会变成 500。
+
+其他 14 个 API 模块（`user.py`, `stocktake.py`, `station.py`, `snapshot.py`, `shipment.py`, `settings.py`, `product.py`, `partner.py`, `outbound.py`, `inventory_adjustment.py`, `inventory.py`, `inbound.py`, `device_ledger.py`, `bom.py`）均已正确添加 `except ValueError as e` 模式。
+
+### 根因
+开发 incoming 和 rma 模块时遗漏了 `except ValueError` 的包装模式，其他模块后续补全时未同步修复这两个模块。
+
+### 涉及端点（共 ~25 个）
+
+| 模块 | 缺少异常捕获的端点 |
+|------|-------------------|
+| `incoming.py` | `get_receipt`, `create_receipt`, `update_receipt`, `confirm_receipt`, `create_inspection`, `create_return` |
+| `rma.py` | `create_return`, `get_return`, `assign_return`, `transfer_return`, `create_diagnosis`, `create_repair`, `create_scrap`, `approve_scrap`, `create_reship`, `create_quality_check`, `create_warehouse_in` |
+
+### 修复方案
+在每个端点函数中包裹 `try/except ValueError as e: raise HTTPException(status_code=400, detail=str(e))`（参考其他14个模块的写法）。
+
+### 涉及文件
+- `backend/app/api/incoming.py` (6个端点)
+- `backend/app/api/rma.py` (11个端点)

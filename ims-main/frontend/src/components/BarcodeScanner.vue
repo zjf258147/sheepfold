@@ -27,6 +27,8 @@ const selectedCode = ref('')
 
 let html5QrCode = null
 
+const isCapacitor = !!(window.Capacitor?.isNativePlatform?.())
+
 onMounted(() => {
   dialogFullscreen.value = window.innerWidth < 768
 })
@@ -42,9 +44,39 @@ async function open() {
   scanMode.value = true
   isScanning.value = false
   dialogFullscreen.value = window.innerWidth < 768
+
+  if (isCapacitor) {
+    await tryNativeScan()
+    return
+  }
+
   visible.value = true
   await nextTick()
   startScan()
+}
+
+async function tryNativeScan() {
+  try {
+    const { BarcodeScanner } = await import('@capacitor/barcode-scanner')
+    const result = await BarcodeScanner.startScan()
+
+    if (result.hasContent && result.content) {
+      scanResult.value = result.content
+      if (navigator.vibrate) navigator.vibrate(200)
+      emit('update:modelValue', result.content)
+      emit('scan', result.content)
+      return
+    }
+
+    showManualDialog()
+  } catch (e) {
+    showManualDialog()
+  }
+}
+
+function showManualDialog() {
+  visible.value = true
+  cameraError.value = '原生扫码未识别，请手动输入'
 }
 
 function close() {
@@ -350,6 +382,9 @@ function onInput(e) {
 
 onUnmounted(() => {
   stopScan()
+  if (isCapacitor) {
+    try { import('@capacitor/barcode-scanner').then(m => m.BarcodeScanner.stopScan()).catch(() => {}) } catch {}
+  }
 })
 </script>
 

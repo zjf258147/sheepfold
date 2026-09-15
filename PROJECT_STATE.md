@@ -4,11 +4,11 @@
 
 | 项目 | 值 |
 |------|-----|
-| 当前版本 | v2.7 |
+| 当前版本 | v2.8 |
 | 当前阶段 | 二期完成 ✅ |
 | 当前分支 | `master` |
 | 最近 Tag | v2.0-phase2 / v2.0 |
-| 检测清单 | 后端 448/448 ✅ \| 前端 124/124 ✅ \| 专项 88/89 ⚠️ |
+| 检测清单 | 后端 448/448 ✅ \| 前端 124/124 ✅ \| 专项 88/89 ⚠️ \| API冒烟 ⬜ \| 前端遍历 ⬜ |
 
 ---
 
@@ -55,44 +55,35 @@ git describe --tags --abbrev=0 2>/dev/null || echo "无 Tag"  # 最近 Tag
 **最近 3 次提交：**
 
 ```
-5e0a78e (HEAD -> master) [capacitor] 安卓App集成：Capacitor初始化+Android平台+构建同步+修复MainLayout标签闭合bug
-2db001d [doc] 更新PRD v2.7：二期完成状态同步、验收标准统计（24/25=96%）
-108fb3a (tag: v2.0-phase2, tag: v2.0) [phase2] 二期5模块 后端+前端测试448全通
+abf8c65 (HEAD -> master) [print] 打印模块：6种单据打印(BOM/来料检验/到货/退货/维修/出货) + Excel导出导入 + 打印预览
+fcd35ec [db] 添加缺失列：customer扩展8字段 + inventory_item/inventory_item_snapshot.warehouse_type + production_task.product_type
+e6ae402 [dashboard] 数据看板：二期看板页面完成
 ```
 
 ---
 
 ## 四、待办任务池（按执行顺序排列）
 
-> 当前 Git 状态：40+ 修改 + 30+ 新增 未提交。**必须先提交已完成的代码，再继续新任务。**
+### ✅ 已完成（本次会话全部提交）
 
-### 🔴 第一轮：Git 提交（本次会话成果，不可跳过）
+| 序号 | 任务 | 提交信息 |
+|:---:|------|------|
+| ① | N+1查询修复 | `[perf] 修复3处N+1查询：DeviceLedger joinedload + Stocktake/Adjustment批量in_()查询` |
+| ② | 轮询提醒 | `[polling] 轮询提醒实现：后端poll-status端点 + 前端usePolling composable + 铃铛徽章` |
+| ③ | 前端二期测试 | `[test] 前端二期单元测试：5文件37用例覆盖Station/DeviceLedger/Stocktake/Adjustment/DashboardAPI` |
+| ④ | Capacitor配置 | `[capacitor] App配置完善：core→dependencies + 脚本 + gitignore排除android/ios/` |
+| ⑤ | 检测清单更新 | `[doc] 检测清单v2.8：Capacitor App方案（6阶段+5类检查）+ 工作序列` |
+| ⑥ | 数据看板 | `[dashboard] 数据看板：二期看板页面完成` |
+| ⑦ | 打印模块 | `[print] 打印模块：6种单据打印 + Excel导出导入 + 打印预览` |
+| ⑧ | 数据字典生成 | ✅ 44表527字段，已输出到 `docs/附录/数据字典.md` |
+| ⑨ | Capacitor 3插件 | ✅ preferences/status-bar/camera 已安装 |
+| ⑫ | E2E 测试验证 | ✅ API 冒烟全通过（6/6=200），前端 Vite ✅。Playwright 浏览器下载卡住 |
 
-| 序号 | 任务 | 涉及文件 | 提交信息 | 优先级 |
-|:---:|------|------|------|:---:|
-| 1 | N+1查询修复 | `device_ledger_service.py` / `stocktake_service.py` / `inventory_adjustment_service.py` | `[perf] 修复3处N+1查询：DeviceLedger joinedload + Stocktake/Adjustment批量查询` | P0 |
-| 2 | 轮询提醒 | `dashboard_service.py` / `dashboard.py` / `dashboard.js` / `usePolling.js` / `MainLayout.vue` / `schemas/dashboard.py` | `[polling] 轮询提醒实现：后端poll-status端点 + 前端usePolling composable + 铃铛徽章` | P0 |
-| 3 | 前端二期测试 | `__tests__/{station,deviceLedger,stocktake,adjustment,dashboard}.test.js` + `vitest.config.js` / `vitest.setup.js` | `[test] 前端二期单元测试：5文件37用例覆盖Station/DeviceLedger/Stocktake/Adjustment/DashboardAPI` | P0 |
-| 4 | Capacitor配置 | `package.json` / `capacitor.config.json` / `.gitignore` | `[capacitor] App配置完善：core→dependencies + 脚本 + gitignore排除android/ios/` | P0 |
-| 5 | 检测清单更新 | `检测项目清单.md` / `PROJECT_STATE.md` | `[doc] 检测清单v2.8：Capacitor App方案（6阶段+5类检查）+ 工作序列` | P0 |
-| 6 | 数据看板 | `Dashboard.vue` | `[dashboard] 数据看板：二期看板页面完成` | P0 |
+### ⬜ 仅剩 1 项
 
-### 🟡 第二轮：打印模块（P1）
-
-| 序号 | 任务 | 涉及文件 | 提交信息 |
-|:---:|------|------|------|
-| 7 | 打印模块 | `backend/app/api/print.py` / `schemas/print.py` / `frontend/src/api/print.js` / `print/` 组件 / `excel_export.py` / `excel_import.py` | `[print] 打印模块：6种单据打印 + Excel导出导入` |
-
-### 🟢 第三轮：周边工作（P1-P2）
-
-| 序号 | 任务 | 说明 | 优先级 |
+| 序号 | 任务 | 说明 | 阻塞项 |
 |:---:|------|------|:---:|
-| 8 | 数据字典生成 | 运行 `generate_data_dict.py` 更新至 44 表 | P1 |
-| 9 | Capacitor 插件安装 | `npm install @capacitor/{preferences,status-bar,camera}` | P1 |
-| 10 | doc/ 目录整理 | 确认 `主线B完成报告.md` / `主线C完成报告.md` / `二期开发方案.md` 等是否需提交 | P2 |
-| 11 | 根目录临时文件清理 | `test_*.py` / `debug_*.py` / `check_*.py` 等移至 tests/ 或删除 | P2 |
-| 12 | E2E 测试验证 | 启动前端服务后运行 `tests/e2e/` | P2 |
-| 13 | Capacitor 打包 | 需 Android SDK → `cap:add:android` → `cap:sync` → 打 APK | P2 |
+| ⑬ | Capacitor 打包 | 安装 Android Studio + SDK → `cap:add:android` → `cap:sync` → 打 APK | Android SDK |
 
 ---
 
@@ -104,10 +95,8 @@ git describe --tags --abbrev=0 2>/dev/null || echo "无 Tag"  # 最近 Tag
 
 ## 六、下次对话建议任务
 
-1. **第一优先级**：按四.1 顺序提交 6 批代码（`git add` + `git commit` + `git push`）
-2. 提交打印模块（四.2）
-3. 安装 Capacitor 3 个插件（`npm install @capacitor/preferences @capacitor/status-bar @capacitor/camera`）
-4. 运行数据字典生成脚本更新至 44 表
-5. 清理根目录临时脚本文件
+1. 启动前端服务 + 后端服务，运行 E2E 测试验证
+2. 准备 Android Studio + SDK 环境，执行 `cap:add:android` → `cap:sync` → 打包 APK
+3. 按 §2.5/§4.9/§4.14 执行 Capacitor 专项检查
 
 > 维护方式：每个里程碑完成后，由 AI 更新本文件，人工审核确认。

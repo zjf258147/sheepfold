@@ -32,7 +32,7 @@
 | Stocktake（盘点） | ✅ | ✅ | ✅ 11用例 | ✅ | ✅ | ✅ | P0 |
 | InventoryAdjustment（库存调整） | ✅ | ✅ | ✅ 6用例 | ✅ | ✅ | ✅ | P0 |
 | Customer（客户扩展 8 字段） | ✅ | ✅ | ✅ 3用例 | ✅ | ❌ 无需独立页 | ❌ | P0 |
-| 安卓 App（Capacitor） | ✅ 配置就绪 | ✅ 插件已装 | — | — | — | ⬜ 需SDK | P1 |
+| 安卓 App（Capacitor） | ✅ 配置就绪 + 打包脚本 + 关于页面 | ✅ 插件已装 | — | — | ✅ 9步脚本 | P1 |
 | 轮询提醒 | ✅ 后端端点 | ✅ 前端铃铛 | — | — | — | ✅ | P0 |
 | 前端二期单元测试 (5文件) | — | ✅ 37用例 | — | — | — | ✅ | P0 |
 | 数据看板（基础版） | — | ✅ | ✅ 合约测试 | ✅ | ✅ | ✅ | P0 |
@@ -55,9 +55,9 @@ git describe --tags --abbrev=0 2>/dev/null || echo "无 Tag"  # 最近 Tag
 **最近 3 次提交：**
 
 ```
-abf8c65 (HEAD -> master) [print] 打印模块：6种单据打印(BOM/来料检验/到货/退货/维修/出货) + Excel导出导入 + 打印预览
-fcd35ec [db] 添加缺失列：customer扩展8字段 + inventory_item/inventory_item_snapshot.warehouse_type + production_task.product_type
-e6ae402 [dashboard] 数据看板：二期看板页面完成
+5e5490f (HEAD -> master) [app] 新增打包脚本和关于页面：9步打包检查 + 版本号/构建时间注入 + 服务器地址显示
+6d3256a [capacitor] 运行时配置：动态API地址 + 服务器设置弹窗 + 测试连接代理 + 登录页入口
+1f05bc2 [doc] 记录Capacitor构建：Bug #021中文路径 + #022 JDK21 + 环境4项(问题10-13 SDK/Gradle/JDK/完整流程)
 ```
 
 ---

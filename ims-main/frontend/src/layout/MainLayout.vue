@@ -5,8 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brand'
 import { changePassword } from '@/api/user'
 import {
-  House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton,
-  Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock,
+  House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton, Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock, InfoFilled,
 } from '@element-plus/icons-vue'
 import { usePolling } from '@/composables/usePolling'
 import ServerSettingsDialog from '@/components/ServerSettingsDialog.vue'
@@ -288,7 +287,7 @@ async function submitPasswordChange() {
               </div>
             </div>
           </el-popover>
-          <el-dropdown class="header-right" trigger="click" @command="(cmd) => { if (cmd === 'password') openPasswordDialog(); else if (cmd === 'server') serverSettingsRef?.open(); else handleLogout(); }">
+          <el-dropdown class="header-right" trigger="click" @command="(cmd) => { if (cmd === 'password') openPasswordDialog(); else if (cmd === 'server') serverSettingsRef?.open(); else if (cmd === 'about') router.push('/about'); else handleLogout(); }">
           <div class="user-trigger">
             <el-icon class="user-icon"><User /></el-icon>
             <span class="username">{{ auth.user?.nickname || auth.user?.username }}</span>
@@ -303,6 +302,10 @@ async function submitPasswordChange() {
               <el-dropdown-item command="server">
                 <el-icon><Connection /></el-icon>
                 服务器设置
+              </el-dropdown-item>
+              <el-dropdown-item command="about">
+                <el-icon><InfoFilled /></el-icon>
+                关于
               </el-dropdown-item>
               <el-dropdown-item command="logout" divided>
                 <el-icon><SwitchButton /></el-icon>

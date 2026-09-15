@@ -51,6 +51,7 @@ const routes = [
       { path: 'customers', name: 'Customers', component: () => import('@/views/Customer.vue'), meta: { title: '客户管理' } },
       { path: 'workflow', name: 'Workflow', component: () => import('@/views/WorkflowDiagram.vue'), meta: { title: '业务流程' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings.vue'), meta: { title: '系统设置', admin: true } },
+      { path: 'about', name: 'About', component: () => import('@/views/About.vue'), meta: { title: '关于' } },
     ],
   },
 ]

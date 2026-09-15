@@ -9,6 +9,7 @@ import {
   Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock,
 } from '@element-plus/icons-vue'
 import { usePolling } from '@/composables/usePolling'
+import ServerSettingsDialog from '@/components/ServerSettingsDialog.vue'
 
 const MOBILE_BREAKPOINT = 768
 
@@ -23,6 +24,7 @@ const menuCollapsed = ref(false)
 const passwordDialog = ref(false)
 const passwordLoading = ref(false)
 const passwordFormRef = ref()
+const serverSettingsRef = ref(null)
 const passwordForm = ref({
   old_password: '',
   new_password: '',
@@ -286,7 +288,7 @@ async function submitPasswordChange() {
               </div>
             </div>
           </el-popover>
-          <el-dropdown class="header-right" trigger="click" @command="(cmd) => cmd === 'password' ? openPasswordDialog() : handleLogout()">
+          <el-dropdown class="header-right" trigger="click" @command="(cmd) => { if (cmd === 'password') openPasswordDialog(); else if (cmd === 'server') serverSettingsRef?.open(); else handleLogout(); }">
           <div class="user-trigger">
             <el-icon class="user-icon"><User /></el-icon>
             <span class="username">{{ auth.user?.nickname || auth.user?.username }}</span>
@@ -297,6 +299,10 @@ async function submitPasswordChange() {
               <el-dropdown-item command="password">
                 <el-icon><Lock /></el-icon>
                 修改密码
+              </el-dropdown-item>
+              <el-dropdown-item command="server">
+                <el-icon><Connection /></el-icon>
+                服务器设置
               </el-dropdown-item>
               <el-dropdown-item command="logout" divided>
                 <el-icon><SwitchButton /></el-icon>
@@ -329,6 +335,9 @@ async function submitPasswordChange() {
         <el-button type="primary" :loading="passwordLoading" @click="submitPasswordChange">确定</el-button>
       </template>
     </el-dialog>
+
+    <ServerSettingsDialog ref="serverSettingsRef" />
+
   </el-container>
 </template>
 

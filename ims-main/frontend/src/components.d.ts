@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BarcodeScanner: typeof import('./components/BarcodeScanner.vue')['default']
+    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -59,6 +60,7 @@ declare module 'vue' {
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ServerSettingsDialog: typeof import('./components/ServerSettingsDialog.vue')['default']
   }
   export interface GlobalDirectives {
     vInfiniteScroll: typeof import('element-plus/es')['ElInfiniteScroll']

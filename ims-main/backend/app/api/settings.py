@@ -107,3 +107,36 @@ def clear_logo(
         ),
     )
     return R.ok(data=BrandingResponse(**data), msg="Logo 已清除")
+
+
+from pydantic import BaseModel
+
+
+class TestConnectionRequest(BaseModel):
+    url: str
+
+
+@router.post("/test-connection", summary="测试服务器连接")
+def test_connection(body: TestConnectionRequest):
+    """从后端代理测试目标服务器的连通性，避免浏览器 CORS / Mixed Content 拦截。"""
+    import urllib.request
+    import json
+
+    base = body.url.strip().rstrip("/")
+    if not base.startswith(("http://", "https://")):
+        base = "http://" + base
+
+    try:
+        req = urllib.request.Request(f"{base}/health", method="GET")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            raw = resp.read().decode()
+            try:
+                data = json.loads(raw)
+                msg = data.get("msg", data.get("status", "连接成功"))
+            except json.JSONDecodeError:
+                msg = "连接成功"
+            return R.ok(data={"ok": True, "msg": msg, "status": resp.status})
+    except urllib.error.URLError as e:
+        return R.ok(data={"ok": False, "msg": f"无法连接：{e.reason}", "status": 0})
+    except Exception as e:
+        return R.ok(data={"ok": False, "msg": f"连接失败：{str(e)}", "status": 0})

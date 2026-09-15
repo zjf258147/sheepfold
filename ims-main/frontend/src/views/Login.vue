@@ -1,18 +1,29 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, Lock } from '@element-plus/icons-vue'
+import { User, Lock, Connection } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brand'
+import { getApiBaseUrl, getCachedBaseUrl } from '@/utils/apiConfig'
+import ServerSettingsDialog from '@/components/ServerSettingsDialog.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const brand = useBrandStore()
 const loading = ref(false)
 const form = ref({ username: '', password: '' })
+const serverRef = ref(null)
+const showServerTip = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   if (!brand.loaded) brand.fetchBranding()
+  const isApp = !!(window.Capacitor?.isNativePlatform?.())
+  if (isApp) {
+    const url = getCachedBaseUrl() || (await getApiBaseUrl())
+    if (!url) {
+      showServerTip.value = true
+    }
+  }
 })
 
 async function handleLogin() {
@@ -39,6 +50,20 @@ async function handleLogin() {
       </div>
       <h1>{{ brand.appName }}</h1>
       <p class="subtitle">{{ brand.appSubtitle }}</p>
+      <el-alert
+        v-if="showServerTip"
+        title="未配置服务器地址，请先设置"
+        type="warning"
+        show-icon
+        :closable="false"
+        style="margin-bottom:16px"
+      >
+        <template #default>
+          <el-button type="warning" size="small" plain @click="serverRef?.open()" style="margin-top:8px">
+            立即设置
+          </el-button>
+        </template>
+      </el-alert>
       <el-form @submit.prevent="handleLogin">
         <el-form-item>
           <el-input v-model="form.username" placeholder="用户名" size="large" :prefix-icon="User" />
@@ -48,7 +73,12 @@ async function handleLogin() {
         </el-form-item>
         <el-button type="primary" size="large" style="width:100%" :loading="loading" @click="handleLogin">登 录</el-button>
       </el-form>
+      <div class="server-entry" @click="serverRef?.open()">
+        <el-icon><Connection /></el-icon>
+        <span>服务器设置</span>
+      </div>
     </div>
+    <ServerSettingsDialog ref="serverRef" />
   </div>
 </template>
 
@@ -79,4 +109,21 @@ async function handleLogin() {
 }
 h1 { text-align: center; margin: 0 0 8px; color: #1d2b3a; }
 .subtitle { text-align: center; color: #909399; margin: 0 0 32px; font-size: 14px; }
+.server-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 8px;
+  color: #909399;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.server-entry:hover {
+  color: #409EFF;
+  background: #ecf5ff;
+}
 </style>

@@ -1,13 +1,24 @@
 import axios from 'axios'
 import router from '@/router'
+import { getApiBaseUrl } from './apiConfig'
 
 const request = axios.create({
-  // 生产环境留空，由 Nginx 同源代理 /api；开发环境可通过 VITE_API_BASE_URL 覆盖
-  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 30000,
 })
 
-request.interceptors.request.use((config) => {
+let baseUrlReady = false
+let baseUrlPromise = null
+
+request.interceptors.request.use(async (config) => {
+  if (!baseUrlReady) {
+    if (!baseUrlPromise) {
+      baseUrlPromise = getApiBaseUrl()
+    }
+    const url = await baseUrlPromise
+    request.defaults.baseURL = url
+    baseUrlReady = true
+  }
+
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`

@@ -690,3 +690,41 @@ winget install --id Microsoft.OpenJDK.21 --accept-source-agreements --accept-pac
 
 ### 教训
 **Capacitor 8 + AGP 8 的 toolchain 要求 JDK 21，旧版 JDK 17 不满足。安装新 JDK 后需同时修改 JAVA_HOME 环境变量。**
+
+---
+
+## Bug #023：测试连接 fetch 被 CORS 拦截导致 "failed to fetch"
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-023 |
+| **发现日期** | 2026-09-15 |
+| **严重程度** | 🟡 中（服务器设置功能不可用） |
+| **模块** | 方式B·运行时配置 / ServerSettingsDialog |
+| **状态** | ✅ 已修复 |
+
+### 现象
+浏览器中打开「服务器设置」弹窗，点击「测试连接」按钮，提示 `failed to fetch`，无法验证服务器地址是否可达。
+
+### 根因
+`ServerSettingsDialog.vue` 中使用浏览器原生 `fetch()` 直连后端 `/health`：
+```js
+const res = await fetch(testUrl, { method: 'GET', signal: AbortSignal.timeout(5000) })
+```
+该请求从 `http://localhost:5175`（Vite dev）发往 `http://192.168.10.77:8000`，属于跨域请求。而后端 `.env` 中 `CORS_ORIGINS` 仅配置了 `http://localhost:5173,http://localhost:8080,http://127.0.0.1:8080`，缺少 `localhost:5175`，导致浏览器 CORS 拦截，`fetch` 抛出网络错误。
+
+**注意**：常规 API 请求不受影响，因为它们走的是 Vite proxy（`/api/v1/*`），不存在跨域问题。
+
+### 修复
+在 `backend/.env` 的 `CORS_ORIGINS` 中追加 `http://localhost:5175`：
+```
+CORS_ORIGINS=http://localhost:5173,http://localhost:5175,http://localhost:8080,http://127.0.0.1:8080
+```
+然后重启后端使配置生效。
+
+### 涉及文件
+- `backend/.env` (CORS_ORIGINS 追加 `localhost:5175`)
+- `frontend/src/components/ServerSettingsDialog.vue` (测试连接逻辑，无需改动)
+
+### 教训
+**直接使用 `fetch()` 发出的请求绕过 Vite proxy，必须确保后端 CORS 白名单包含当前前端端口。后续如有端口变更需同步更新 CORS_ORIGINS。**

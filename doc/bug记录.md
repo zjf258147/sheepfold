@@ -616,3 +616,77 @@ UnboundLocalError: cannot access local variable 'dt' where it is not associated 
 ### 涉及文件
 - `backend/app/api/incoming.py` (6个端点)
 - `backend/app/api/rma.py` (11个端点)
+
+
+---
+
+## Bug #021：Capacitor Gradle 构建因项目路径含中文失败
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-021 |
+| **发现日期** | 2026-09-14 |
+| **严重程度** | 🔴 高（APK构建阻塞） |
+| **模块** | Capacitor / Android 构建 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+`./gradlew.bat assembleDebug` 构建失败，错误：
+```
+Your project path contains non-ASCII characters. This will most likely cause
+the build to fail on Windows. Please move your project to a different directory.
+```
+
+### 根因
+项目路径 `C:\Users\25075\Desktop\IMS生产物料与产品追溯管理系统\` 包含中文字符「生产物料与产品追溯管理系统」，Android Gradle Plugin 默认拒绝非 ASCII 路径。
+
+### 修复
+在 `android/gradle.properties` 中添加：
+```properties
+android.overridePathCheck=true
+```
+
+### 涉及文件
+- `ims-main/frontend/android/gradle.properties`
+
+### 教训
+**创建项目时应使用全英文路径。如果无法避免（现有项目），需在 gradle.properties 中显式开启 overridePathCheck。**
+
+
+---
+
+## Bug #022：Capacitor Camera 插件编译要求 JDK 21（JDK 17 不满足）
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-022 |
+| **发现日期** | 2026-09-14 |
+| **严重程度** | 🔴 高（APK构建阻塞） |
+| **模块** | Capacitor / Android 构建 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+Gradle 构建失败，`capacitor-camera` 模块报错：
+```
+Cannot find a Java installation on your machine matching:
+{languageVersion=21 vendor=any vendor implementation=vendor-specific}
+```
+
+JDK 17 已安装但不满足插件的 toolchain 要求。
+
+### 根因
+Capacitor 8.x + Android Gradle Plugin 8.x 的 `capacitor-camera` 插件使用 Gradle toolchain 机制自动检测 Java 版本，其 `compileDebugJavaWithJavac` 任务要求 JDK 21。项目中配置的 JDK 17 不满足此要求。
+
+### 修复
+通过 winget 安装 Microsoft OpenJDK 21：
+```bash
+winget install --id Microsoft.OpenJDK.21 --accept-source-agreements --accept-package-agreements --silent
+```
+构建时设置 `JAVA_HOME=C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`。
+
+### 涉及文件
+- 无代码文件（仅环境配置）
+- `capacitor-camera` AAR 依赖的 `bundleLibCompileToJarDebug` 任务
+
+### 教训
+**Capacitor 8 + AGP 8 的 toolchain 要求 JDK 21，旧版 JDK 17 不满足。安装新 JDK 后需同时修改 JAVA_HOME 环境变量。**

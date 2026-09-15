@@ -79,11 +79,12 @@ e6ae402 [dashboard] 数据看板：二期看板页面完成
 | ⑨ | Capacitor 3插件 | ✅ preferences/status-bar/camera 已安装 |
 | ⑫ | E2E 测试验证 | ✅ API 冒烟全通过（6/6=200），前端 Vite ✅。Playwright 浏览器下载卡住 |
 
-### ⬜ 仅剩 1 项
+| ⑩ | doc/ + 临时文件 | ⏭ 用户保留，跳过 |
+| ⑪ | 临时文件清理 | ⏭ 用户保留，跳过 |
+| ⑬ | Capacitor APK 打包 | ✅ **`app-debug.apk` 构建成功 20.3MB** |
 
-| 序号 | 任务 | 说明 | 阻塞项 |
-|:---:|------|------|:---:|
-| ⑬ | Capacitor 打包 | 安装 Android Studio + SDK → `cap:add:android` → `cap:sync` → 打 APK | Android SDK |
+> **⑬ 构建环境**：JDK 21 (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`) + Android SDK (`C:\Android`，API 36 + build-tools 36.0.0) + Gradle 8.14.3（腾讯镜像下载）
+> **APK 位置**：`ims-main/frontend/android/app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 
@@ -95,8 +96,8 @@ e6ae402 [dashboard] 数据看板：二期看板页面完成
 
 ## 六、下次对话建议任务
 
-1. 启动前端服务 + 后端服务，运行 E2E 测试验证
-2. 准备 Android Studio + SDK 环境，执行 `cap:add:android` → `cap:sync` → 打包 APK
-3. 按 §2.5/§4.9/§4.14 执行 Capacitor 专项检查
+1. 在 Android 真机或模拟器安装 `app-debug.apk`，验证扫码/拍照/轮询等核心功能
+2. 签名正式版 APK（当前为 debug 版）
+3. 安装 Playwright 浏览器后执行 E2E 测试
 
 > 维护方式：每个里程碑完成后，由 AI 更新本文件，人工审核确认。

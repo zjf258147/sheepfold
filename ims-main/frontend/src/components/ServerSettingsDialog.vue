@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getApiBaseUrl, getDefaultBaseUrl, setApiBaseUrl, clearApiBaseUrl, resetBaseUrlCache, getCachedBaseUrl } from '@/utils/apiConfig'
-import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const emit = defineEmits(['saved'])
@@ -38,10 +37,14 @@ async function testConnection() {
   testing.value = true
   testResult.value = null
   try {
-    const res = await request.post('/api/v1/settings/test-connection', {
-      url: url.value.trim(),
+    const baseUrl = url.value.trim().replace(/\/+$/, '')
+    const resp = await fetch(baseUrl + '/api/v1/settings/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: baseUrl }),
     })
-    testResult.value = { ok: res.data.ok, msg: res.data.msg }
+    const data = await resp.json()
+    testResult.value = { ok: data.ok ?? true, msg: data.msg || '连接成功' }
   } catch (e) {
     testResult.value = { ok: false, msg: e.message || '请求失败' }
   } finally {
@@ -78,9 +81,6 @@ async function resetDefault() {
   try {
     await ElMessageBox.confirm('将恢复为默认地址，确定吗？', '确认', {
       type: 'warning',
-      appendTo: document.body,
-      customClass: 'server-settings-msgbox',
-      lockScroll: false,
     })
   } catch {
     return
@@ -156,9 +156,3 @@ defineExpose({ open })
   margin-top: 8px;
 }
 </style>
-
-<style>
-/* 恢复默认地址确认弹窗（非 scoped，因 appendTo body） */
-.server-settings-msgbox {
-  z-index: 2100 !important;
-}

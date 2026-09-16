@@ -608,7 +608,7 @@ async function submitPasswordChange() {
 
 @media (max-width: 767px) {
   .layout {
-    height: 100vh;
+    height: calc(100vh + 1px);
     overflow: hidden;
   }
 

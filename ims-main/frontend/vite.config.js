@@ -22,6 +22,14 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       // basicSsl(),
+      {
+        name: 'port-logger',
+        configureServer(server) {
+          server.httpServer?.once('listening', () => {
+            console.log(`\n  ✅ 前端运行在: http://localhost:${server.config.server.port}\n`)
+          })
+        }
+      },
       AutoImport({
         resolvers: [ElementPlusResolver()],
         dts: 'src/auto-imports.d.ts',
@@ -39,6 +47,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
+      strictPort: false,
       proxy: {
         '/api': {
           target: apiTarget,

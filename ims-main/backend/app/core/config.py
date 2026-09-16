@@ -40,6 +40,7 @@ class Settings(BaseSettings):
 
     # 跨域白名单，.env 中用逗号分隔，此处自动解析为列表
     CORS_ORIGINS: str = "http://localhost:5173"
+    CORS_ORIGIN_REGEX: str = r"http://(localhost|127\.0\.0\.1):\d+"
 
     @property
     def cors_origins_list(self) -> List[str]:

@@ -80,6 +80,7 @@ async function resetDefault() {
       type: 'warning',
       appendTo: document.body,
       customClass: 'server-settings-msgbox',
+      lockScroll: false,
     })
   } catch {
     return
@@ -155,3 +156,9 @@ defineExpose({ open })
   margin-top: 8px;
 }
 </style>
+
+<style>
+/* 恢复默认地址确认弹窗（非 scoped，因 appendTo body） */
+.server-settings-msgbox {
+  z-index: 2100 !important;
+}

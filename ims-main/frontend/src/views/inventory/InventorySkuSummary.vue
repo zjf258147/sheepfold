@@ -62,7 +62,7 @@ async function loadData() {
       <el-table-column prop="repair" label="维修" align="center" />
       <el-table-column prop="dept_procurement" label="部门采购" align="center" />
     </el-table-column>
-    <el-table-column label="统计" min-width="90" align="center" fixed="right">
+    <el-table-column label="统计" min-width="90" align="center">
       <template #default="{ row }">{{ skuRowTotal(row) }}</template>
     </el-table-column>
   </el-table>

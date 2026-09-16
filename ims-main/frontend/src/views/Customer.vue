@@ -142,7 +142,7 @@ function formatDate(v) {
       </el-table-column>
       <el-table-column prop="address" label="地址" min-width="140" show-overflow-tooltip />
       <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
-      <el-table-column label="操作" width="70" fixed="right">
+      <el-table-column label="操作" width="70">
         <template #default="{ row }">
           <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
         </template>

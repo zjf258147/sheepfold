@@ -355,7 +355,7 @@ async function handleCompleteOfflineSale(row) {
         <el-tag :type="statusTagType(row.operation_status)" size="small">{{ OPERATION_STATUS_MAP[row.operation_status] || row.operation_status }}</el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="操作" min-width="120" fixed="right" align="center">
+    <el-table-column label="操作" min-width="120" align="center">
       <template #default="{ row }">
         <el-button
           v-if="row.stock_status === 'PRESOLD'"
@@ -431,7 +431,7 @@ async function handleCompleteOfflineSale(row) {
           <el-tag :type="statusTagType(row.operation_status)" size="small">{{ OPERATION_STATUS_MAP[row.operation_status] || row.operation_status }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="120" fixed="right" align="center">
+      <el-table-column label="操作" min-width="120" align="center">
         <template #default="{ row }">
           <el-button
             v-if="row.stock_status === 'PRESOLD'"

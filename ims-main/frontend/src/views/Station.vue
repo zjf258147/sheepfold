@@ -194,7 +194,7 @@ async function handleDelete(row) {
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-      <el-table-column label="操作" width="140" fixed="right">
+      <el-table-column label="操作" width="140">
         <template #default="{ row }">
           <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
           <el-button type="danger" link :icon="Delete" @click="handleDelete(row)">删除</el-button>

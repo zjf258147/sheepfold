@@ -248,7 +248,7 @@ function openLedgerDetail(row) {
   <el-table-column label="期末资产金额" min-width="130" align="right">
     <template #default="{ row }">{{ formatAmount(row.closing_asset_amount) }}</template>
   </el-table-column>
-  <el-table-column label="操作" min-width="70" fixed="right" align="center">
+  <el-table-column label="操作" min-width="70" align="center">
     <template #default="{ row }">
       <el-tooltip content="查看明细" placement="top">
         <el-button type="primary" link :icon="View" @click="openLedgerDetail(row)" />

@@ -65,3 +65,51 @@
 | 修复方案 | 将预期值从 210.0 修正为 200.0。 |
 | 涉及文件 | `tests/scenario/test_scenario_mainline_d.py` |
 | 教训 | 测试预期值应与测试数据保持一致，避免复制粘贴导致的数值错误。 |
+
+---
+
+## BUG-005
+
+| 字段 | 内容 |
+|------|------|
+| 编号 | BUG-005 |
+| 日期 | 2026-09-16 |
+| 严重程度 | 高 |
+| 模块 | 移动端 - 扫码录入 |
+| 现象 | 安装 APK 后打开扫码功能，不弹摄像头权限申请对话框，直接提示"原生扫码未识别请手动输入" |
+| 根因 | ① `@capacitor/barcode-scanner` v3.1.2 不声明 `CAMERA` 权限也不内部请求权限；② 前端用 `BarcodeScanner.checkPermissions()` 但该 API 在 v3.1.2 不存在，抛异常后被 catch 吞掉；③ 改用 `Camera.checkPermissions()` 仍无效，因为 WebView 层 JS 调用 `Camera.requestPermissions()` 可能因 Capacitor 桥未就绪而失败 |
+| 修复方案 | 在 `MainActivity.java` 的 `onCreate()` 中用原生 `ActivityCompat.requestPermissions()` 直接请求 `CAMERA` 权限，不依赖 JS 层权限调用。`BarcodeScanner.startScan()` 恢复为直接调用。 |
+| 涉及文件 | `BarcodeScanner.vue`、`MainActivity.java`、`AndroidManifest.xml` |
+| 教训 | Capacitor 插件的权限 API 版本差异大，建议在 Android 原生层用 `ActivityCompat.requestPermissions()` 统一处理敏感权限，不依赖 JS 层。 |
+
+---
+
+## BUG-006
+
+| 字段 | 内容 |
+|------|------|
+| 编号 | BUG-006 |
+| 日期 | 2026-09-16 |
+| 严重程度 | 中 |
+| 模块 | 移动端 - 表格操作列 |
+| 现象 | 手机端表格左右滑动时，操作列固定在右侧不跟随滚动，占据大量屏幕空间 |
+| 根因 | 所有列表页的 `el-table-column` 操作列设置了 `fixed="right"` 属性，Element Plus 将其渲染为独立的固定层（`el-table__fixed-right`），脱离主表格滚动流。CSS 隐藏固定层方案不可靠（部分场景仍有显示问题）。 |
+| 修复方案 | 批量移除 19 个 Vue 文件中所有操作列的 `fixed="right"` 属性，在 `style.css` 手机端媒体查询中设 `th:last-child, td:last-child { max-width:100px }` 限制宽度 |
+| 涉及文件 | `style.css` + 19 个 views/*.vue（BOM、Customer、Dashboard、DeviceLedger、Inbound、IncomingReceipt、InventoryDetail、InventorySkuSummary、Outbound、Partners、ProductionTask、Products、RmaReturn、Settings、Shipment、SnapshotDetails、SnapshotLedger、Station、Stocktake） |
+| 教训 | 移动端表格固定列体验差，应从源头去掉 `fixed` 属性而非仅用 CSS 覆盖。批量修改用 PowerShell `-replace` 高效可靠。 |
+
+---
+
+## BUG-007
+
+| 字段 | 内容 |
+|------|------|
+| 编号 | BUG-007 |
+| 日期 | 2026-09-16 |
+| 严重程度 | 中 |
+| 模块 | 移动端 - 侧边菜单 |
+| 现象 | 手机端左侧菜单栏无法上下滚动，菜单项多时被截断无法看到底部菜单 |
+| 根因 | `.aside--mobile` 设置了 `overflow-y:auto` 但内部 `el-menu` 组件没有弹性布局约束，`overflow` 实际未生效 |
+| 修复方案 | `.aside--mobile` 改为 `display:flex; flex-direction:column; overflow:hidden`；`.aside--mobile .el-menu` 新增 `flex:1; overflow-y:auto; overflow-x:hidden` |
+| 涉及文件 | `MainLayout.vue` |
+| 教训 | Element Plus 的 `el-menu` 在 flex 容器中需显式设 `flex:1` + `overflow-y:auto` 才能滚动；父容器 `overflow-y:auto` 在子元素无明确高度时不会生效。 |

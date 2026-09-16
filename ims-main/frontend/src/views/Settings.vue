@@ -249,7 +249,7 @@ async function handleDeleteUser(row) {
               <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">{{ row.status === 1 ? '正常' : '禁用' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right">
+          <el-table-column label="操作">
             <template #default="{ row }">
               <el-button type="warning" link @click="handleToggleUser(row)">{{ row.status === 1 ? '禁用' : '启用' }}</el-button>
               <el-button type="danger" link @click="handleDeleteUser(row)">删除</el-button>
@@ -308,7 +308,7 @@ async function handleDeleteUser(row) {
           <el-table-column prop="resource_name" label="关联资源" width="160" show-overflow-tooltip />
           <el-table-column prop="change_reason" label="变更原因" width="140" show-overflow-tooltip />
           <el-table-column prop="ip_address" label="IP" width="130" />
-          <el-table-column label="详情" width="70" fixed="right">
+          <el-table-column label="详情" width="70">
             <template #default="{ row }">
               <el-button type="primary" link @click="openDetail(row)">查看</el-button>
             </template>

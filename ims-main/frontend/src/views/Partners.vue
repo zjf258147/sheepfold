@@ -123,7 +123,7 @@ async function removePartner(row) {
             <template #default="{ row }">{{ PARTNER_TYPE_MAP[row.partner_type] }}</template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" show-overflow-tooltip />
-          <el-table-column label="操作" fixed="right">
+          <el-table-column label="操作">
             <template #default="{ row }">
               <el-button type="primary" link :icon="Edit" title="编辑" @click="openPartnerDialog(row)" />
               <el-button type="danger" link :icon="Delete" title="删除" @click="removePartner(row)" />

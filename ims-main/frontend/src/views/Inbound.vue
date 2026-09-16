@@ -641,7 +641,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
       </el-table-column>
       
       <el-table-column prop="created_at" label="创建时间" min-width="120" :formatter="dateTimeColumnFormatter" />
-      <el-table-column label="操作" min-width="168" align="center" fixed="right">
+      <el-table-column label="操作" min-width="168" align="center">
         <template #default="{ row }">
           <div class="row-actions">
             <el-tooltip content="详情" placement="top">

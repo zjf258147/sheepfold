@@ -336,7 +336,7 @@ async function showHistory(row) {
       <el-tag :type="statusTagType(row.operation_status)" size="small">{{ OPERATION_STATUS_MAP[row.operation_status] || row.operation_status }}</el-tag>
     </template>
   </el-table-column>
-  <el-table-column label="轨迹" min-width="70" fixed="right" align="center">
+  <el-table-column label="轨迹" min-width="70" align="center">
     <template #default="{ row }">
       <el-tooltip content="变动轨迹" placement="top">
         <el-button type="primary" link :icon="Clock" @click="showHistory(row)" />

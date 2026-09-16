@@ -494,7 +494,7 @@ onMounted(() => {
       <el-table-column prop="repair_time_hours" label="修复耗时(h)" width="100" align="center" />
       <el-table-column prop="turnaround_days" label="周转(天)" width="90" align="center" />
       <el-table-column prop="return_date" label="退货日期" width="110" />
-      <el-table-column label="操作" width="260" fixed="right" align="center">
+      <el-table-column label="操作" width="260" align="center">
         <template #default="{ row }">
           <el-button v-if="row.repair_id" type="warning" link size="small" @click="handlePrintRepair(row)" :loading="printLoading">维修单</el-button>
           <el-button v-if="row.status === 'PENDING_DIAGNOSIS'" type="primary" link size="small" @click="openDiagnosis(row)">诊断</el-button>

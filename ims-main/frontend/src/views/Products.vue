@@ -118,7 +118,7 @@ async function removeSku(row) {
               <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">{{ row.status === 1 ? '启用' : '停用' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right">
+          <el-table-column label="操作">
             <template #default="{ row }">
               <el-button type="primary" link :icon="Edit" title="编辑" @click="openSkuDialog(row)" />
               <el-button type="danger" link :icon="Delete" title="删除" @click="removeSku(row)" />

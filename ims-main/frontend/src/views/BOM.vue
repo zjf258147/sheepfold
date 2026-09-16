@@ -305,7 +305,7 @@ onMounted(() => { fetchCategories(); fetchData() })
           </template>
         </el-table-column>
         <el-table-column prop="created_by" label="创建人" width="90" />
-        <el-table-column label="操作" width="340" fixed="right">
+        <el-table-column label="操作" width="340">
             <template #default="{ row }">
               <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">打印</el-button>
               <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
@@ -384,7 +384,7 @@ onMounted(() => { fetchCategories(); fetchData() })
           <el-table-column label="备注" min-width="120">
             <template #default="{ row: r }"><el-input v-model="r.remark" size="small" placeholder="备注" /></template>
           </el-table-column>
-          <el-table-column label="操作" width="60" fixed="right">
+          <el-table-column label="操作" width="60">
             <template #default="{ $index }"><el-button type="danger" link size="small" @click="removeDetailRow($index)">删除</el-button></template>
           </el-table-column>
         </el-table>

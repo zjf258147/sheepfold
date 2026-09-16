@@ -357,7 +357,7 @@ onMounted(() => {
         <el-table-column prop="tf_version" label="TF版本" width="100" />
         <el-table-column prop="host_version" label="上位机版本" width="110" />
         <el-table-column prop="created_by" label="创建人" width="90" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">打印</el-button>
             <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>

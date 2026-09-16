@@ -253,7 +253,7 @@ function formatDate(v) {
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip />
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="180">
         <template #default="{ row }">
           <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
           <el-button v-if="!row.removed_date" type="warning" link :icon="Delete" @click="openRemoveDialog(row)">回收</el-button>

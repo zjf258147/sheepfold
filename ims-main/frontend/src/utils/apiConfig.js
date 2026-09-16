@@ -1,26 +1,26 @@
 const STORAGE_KEY = 'api_base_url'
-const DEFAULT_BASE_URL = 'http://192.168.10.77:8000'
 let cachedBaseUrl = null
 
 const isCapacitor = () => !!(window.Capacitor?.isNativePlatform?.())
 
 export function getDefaultBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL || DEFAULT_BASE_URL
+  return import.meta.env.VITE_API_BASE_URL || ''
 }
 
 export async function getApiBaseUrl() {
-  if (cachedBaseUrl) return cachedBaseUrl
+  if (cachedBaseUrl !== null) return cachedBaseUrl
 
   if (isCapacitor()) {
     try {
       const { Preferences } = await import('@capacitor/preferences')
       const { value } = await Preferences.get({ key: STORAGE_KEY })
-      cachedBaseUrl = value || DEFAULT_BASE_URL
+      cachedBaseUrl = value || ''
     } catch {
-      cachedBaseUrl = DEFAULT_BASE_URL
+      cachedBaseUrl = ''
     }
   } else {
-    cachedBaseUrl = localStorage.getItem(STORAGE_KEY) || getDefaultBaseUrl()
+    const stored = localStorage.getItem(STORAGE_KEY)
+    cachedBaseUrl = stored !== null ? stored : getDefaultBaseUrl()
   }
 
   return cachedBaseUrl

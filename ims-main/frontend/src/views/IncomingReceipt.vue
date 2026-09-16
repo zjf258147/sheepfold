@@ -426,7 +426,7 @@ onMounted(() => {
       </el-table-column>
       <el-table-column prop="remark" label="备注" width="140" show-overflow-tooltip align="center" />
       <el-table-column label="创建时间" width="160" :formatter="dateTimeColumnFormatter" prop="created_at" align="center" />
-      <el-table-column label="操作" width="360" fixed="right" align="center">
+      <el-table-column label="操作" width="360" align="center">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">收货单</el-button>
           <el-button v-if="row.inspection_id" type="success" link size="small" @click="handleInspectionPrint(row)" :loading="inspectionPrintLoading">检验报告</el-button>

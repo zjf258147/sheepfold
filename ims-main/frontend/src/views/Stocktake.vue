@@ -204,7 +204,7 @@ function formatDate(v) {
         <template #default="{ row }">{{ formatDate(row.completed_at) }}</template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="200">
         <template #default="{ row }">
           <el-button type="primary" link :icon="Search" @click="openDetail(row)">明細</el-button>
           <el-button
@@ -266,7 +266,7 @@ function formatDate(v) {
       <el-table-column label="扫码时间" width="160">
         <template #default="{ row }">{{ formatDate(row.scanned_at) }}</template>
       </el-table-column>
-      <el-table-column v-if="detailTask?.status === 'IN_PROGRESS'" label="操作" width="80" fixed="right">
+      <el-table-column v-if="detailTask?.status === 'IN_PROGRESS'" label="操作" width="80">
         <template #default="{ row }">
           <el-button v-if="row.diff_qty !== 0" type="primary" link :icon="Edit" @click="openReason(row)">原因</el-button>
         </template>

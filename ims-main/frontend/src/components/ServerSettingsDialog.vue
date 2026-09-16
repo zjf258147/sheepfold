@@ -78,13 +78,6 @@ async function save() {
 }
 
 async function resetDefault() {
-  try {
-    await ElMessageBox.confirm('将恢复为默认地址，确定吗？', '确认', {
-      type: 'warning',
-    })
-  } catch {
-    return
-  }
   await clearApiBaseUrl()
   const defaultUrl = getDefaultBaseUrl()
   url.value = defaultUrl

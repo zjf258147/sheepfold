@@ -117,7 +117,7 @@ class TestConnectionRequest(BaseModel):
 
 
 @router.post("/test-connection", summary="测试服务器连接")
-def test_connection(body: TestConnectionRequest):
+def test_connection(body: TestConnectionRequest) -> R[dict]:
     """从后端代理测试目标服务器的连通性，避免浏览器 CORS / Mixed Content 拦截。"""
     import urllib.request
     import json

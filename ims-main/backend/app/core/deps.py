@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from typing import Callable
 
 from app.core.security import decode_access_token
 from app.db.database import get_db
@@ -49,7 +50,7 @@ def get_current_user(
     return user
 
 
-def require_roles(*roles: str):
+def require_roles(*roles: str) -> Callable:
     """仅允许指定角色访问。ADMIN 拥有全部权限。"""
 
     async def checker(user: User = Depends(get_current_user)) -> User:

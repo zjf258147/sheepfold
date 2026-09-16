@@ -45,7 +45,7 @@ def get_boms(
     page_size: int = 15,
     keyword: str | None = None,
     status: str | None = None,
-):
+) -> tuple[list[BomHeader], int]:
     query = db.query(BomHeader)
     if keyword:
         kw = f"%{keyword}%"
@@ -61,7 +61,7 @@ def get_boms(
     return items, total
 
 
-def get_bom_detail(db: Session, bom_id: int):
+def get_bom_detail(db: Session, bom_id: int) -> dict:
     bom = db.query(BomHeader).filter(BomHeader.id == bom_id).first()
     if not bom:
         raise ValueError(f"BOM不存在：{bom_id}")
@@ -72,11 +72,11 @@ def get_bom_detail(db: Session, bom_id: int):
 
 
 def create_bom(
-    db: Session,
-    data: BomCreate,
-    username: str,
-    ip_address: str | None = None,
-):
+db: Session,
+data: BomCreate,
+username: str,
+ip_address: str | None = None,
+) -> BomHeader:
     bom_no = generate_bom_no(db)
     bom = BomHeader(
         bom_no=bom_no,
@@ -125,12 +125,12 @@ def create_bom(
 
 
 def update_bom(
-    db: Session,
-    bom_id: int,
-    data: BomUpdate,
-    username: str,
-    ip_address: str | None = None,
-):
+db: Session,
+bom_id: int,
+data: BomUpdate,
+username: str,
+ip_address: str | None = None,
+) -> BomHeader:
     bom = db.query(BomHeader).filter(BomHeader.id == bom_id).first()
     if not bom:
         raise ValueError(f"BOM不存在：{bom_id}")
@@ -175,11 +175,11 @@ def update_bom(
 
 
 def delete_bom(
-    db: Session,
-    bom_id: int,
-    username: str,
-    ip_address: str | None = None,
-):
+db: Session,
+bom_id: int,
+username: str,
+ip_address: str | None = None,
+) -> None:
     bom = db.query(BomHeader).filter(BomHeader.id == bom_id).first()
     if not bom:
         raise ValueError(f"BOM不存在：{bom_id}")
@@ -200,7 +200,7 @@ def delete_bom(
     db.commit()
 
 
-def check_material_availability(db: Session, bom_id: int):
+def check_material_availability(db: Session, bom_id: int) -> dict:
     bom = db.query(BomHeader).filter(BomHeader.id == bom_id).first()
     if not bom:
         raise ValueError(f"BOM不存在：{bom_id}")
@@ -244,7 +244,7 @@ def get_tasks(
     page_size: int = 15,
     keyword: str | None = None,
     status: str | None = None,
-):
+) -> tuple[list[ProductionTask], int]:
     query = db.query(ProductionTask)
     if keyword:
         kw = f"%{keyword}%"
@@ -253,11 +253,15 @@ def get_tasks(
         query = query.filter(ProductionTask.status == status)
     total = query.count()
     items = query.order_by(ProductionTask.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
-    for item in items:
-        bom = db.query(BomHeader).filter(BomHeader.id == item.bom_id).first()
-        if bom:
-            item.bom_no = bom.bom_no
-            item.bom_name = bom.bom_name
+
+    bom_ids = list({item.bom_id for item in items if item.bom_id})
+    if bom_ids:
+        bom_map = {b.id: b for b in db.query(BomHeader).filter(BomHeader.id.in_(bom_ids)).all()}
+        for item in items:
+            bom = bom_map.get(item.bom_id)
+            if bom:
+                item.bom_no = bom.bom_no
+                item.bom_name = bom.bom_name
     return items, total
 
 
@@ -291,10 +295,13 @@ def export_tasks_xlsx(db: Session, keyword: str | None = None, status: str | Non
         query = query.filter(ProductionTask.status == status)
     items = query.order_by(ProductionTask.id.desc()).all()
 
+    bom_ids = list({t.bom_id for t in items if t.bom_id})
+    bom_map = {b.id: b for b in db.query(BomHeader).filter(BomHeader.id.in_(bom_ids)).all()} if bom_ids else {}
+
     headers = ["任务编号", "BOM编号", "BOM名称", "计划数量", "物料齐套", "状态", "开始日期", "结束日期", "创建人"]
     rows = []
     for t in items:
-        bom = db.query(BomHeader).filter(BomHeader.id == t.bom_id).first()
+        bom = bom_map.get(t.bom_id)
         rows.append([
             t.task_no, bom.bom_no if bom else "", bom.bom_name if bom else "",
             t.plan_quantity, t.material_availability, t.status,
@@ -305,11 +312,11 @@ def export_tasks_xlsx(db: Session, keyword: str | None = None, status: str | Non
 
 
 def create_task(
-    db: Session,
-    data: ProductionTaskCreate,
-    username: str,
-    ip_address: str | None = None,
-):
+db: Session,
+data: ProductionTaskCreate,
+username: str,
+ip_address: str | None = None,
+) -> ProductionTask:
     bom = db.query(BomHeader).filter(BomHeader.id == data.bom_id).first()
     if not bom:
         raise ValueError(f"BOM不存在：{data.bom_id}")
@@ -348,12 +355,12 @@ def create_task(
 
 
 def update_task(
-    db: Session,
-    task_id: int,
-    data: ProductionTaskUpdate,
-    username: str,
-    ip_address: str | None = None,
-):
+db: Session,
+task_id: int,
+data: ProductionTaskUpdate,
+username: str,
+ip_address: str | None = None,
+) -> ProductionTask:
     task = db.query(ProductionTask).filter(ProductionTask.id == task_id).first()
     if not task:
         raise ValueError(f"生产任务不存在：{task_id}")

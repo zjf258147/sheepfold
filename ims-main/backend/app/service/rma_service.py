@@ -216,7 +216,7 @@ def create_diagnosis(
     return diagnosis
 
 
-def get_diagnoses(db: Session, return_id: int):
+def get_diagnoses(db: Session, return_id: int) -> list[RmaDiagnosis]:
     return db.query(RmaDiagnosis).filter(RmaDiagnosis.return_id == return_id).order_by(RmaDiagnosis.id.desc()).all()
 
 
@@ -273,7 +273,7 @@ def create_repair(
     return repair
 
 
-def get_repairs(db: Session, return_id: int):
+def get_repairs(db: Session, return_id: int) -> list[RmaRepair]:
     return db.query(RmaRepair).filter(RmaRepair.return_id == return_id).order_by(RmaRepair.id.desc()).all()
 
 
@@ -355,7 +355,7 @@ def approve_scrap(
     return scrap
 
 
-def get_scraps(db: Session, return_id: int):
+def get_scraps(db: Session, return_id: int) -> list[RmaScrap]:
     return db.query(RmaScrap).filter(RmaScrap.return_id == return_id).order_by(RmaScrap.id.desc()).all()
 
 
@@ -399,11 +399,11 @@ def create_reship(
     return reship
 
 
-def get_reships(db: Session, return_id: int):
+def get_reships(db: Session, return_id: int) -> list[RmaReship]:
     return db.query(RmaReship).filter(RmaReship.return_id == return_id).order_by(RmaReship.id.desc()).all()
 
 
-def get_quality_checks(db: Session, return_id: int):
+def get_quality_checks(db: Session, return_id: int) -> list[RmaQualityCheck]:
     return db.query(RmaQualityCheck).filter(RmaQualityCheck.return_id == return_id).order_by(RmaQualityCheck.id.desc()).all()
 
 
@@ -441,7 +441,7 @@ def create_quality_check(
     return qc
 
 
-def get_warehouse_ins(db: Session, return_id: int):
+def get_warehouse_ins(db: Session, return_id: int) -> list[RmaWarehouseIn]:
     return db.query(RmaWarehouseIn).filter(RmaWarehouseIn.return_id == return_id).order_by(RmaWarehouseIn.id.desc()).all()
 
 

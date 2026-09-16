@@ -54,7 +54,7 @@ def delete_group(db: Session, group: PartnerGroup) -> None:
     invalidate_cache(GROUP_CACHE_KEY)
 
 
-def get_partners(db: Session, page: int = 1, page_size: int = 20, group_id: int | None = None, partner_type: int | None = None, keyword: str | None = None):
+def get_partners(db: Session, page: int = 1, page_size: int = 20, group_id: int | None = None, partner_type: int | None = None, keyword: str | None = None) -> tuple[int, list[Partner]]:
     query = db.query(Partner)
     if group_id:
         query = query.filter(Partner.group_id == group_id)

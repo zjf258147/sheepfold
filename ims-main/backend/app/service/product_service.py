@@ -55,7 +55,7 @@ def delete_category(db: Session, cat: ProductCategory) -> None:
     invalidate_cache(CATEGORY_CACHE_KEY)
 
 
-def get_skus(db: Session, page: int = 1, page_size: int = 20, category_id: int | None = None, keyword: str | None = None):
+def get_skus(db: Session, page: int = 1, page_size: int = 20, category_id: int | None = None, keyword: str | None = None) -> tuple[int, list[ProductSku]]:
     query = db.query(ProductSku)
     if category_id:
         query = query.filter(ProductSku.category_id == category_id)

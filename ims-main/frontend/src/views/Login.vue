@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Lock, Connection } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
@@ -22,6 +22,8 @@ onMounted(async () => {
     const url = getCachedBaseUrl() || (await getApiBaseUrl())
     if (!url) {
       showServerTip.value = true
+      await nextTick()
+      serverRef.value?.open()
     }
   }
 })

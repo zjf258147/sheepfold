@@ -113,3 +113,35 @@
 | 修复方案 | `.aside--mobile` 改为 `display:flex; flex-direction:column; overflow:hidden`；`.aside--mobile .el-menu` 新增 `flex:1; overflow-y:auto; overflow-x:hidden` |
 | 涉及文件 | `MainLayout.vue` |
 | 教训 | Element Plus 的 `el-menu` 在 flex 容器中需显式设 `flex:1` + `overflow-y:auto` 才能滚动；父容器 `overflow-y:auto` 在子元素无明确高度时不会生效。 |
+
+---
+
+## BUG-008
+
+| 字段 | 内容 |
+|------|------|
+| 编号 | BUG-008 |
+| 日期 | 2026-09-15 |
+| 严重程度 | 高 |
+| 模块 | 全局异常处理 |
+| 现象 | 冒烟测试 4 项失败：对不存在的资源（到货单/报废单）发起操作时，API 返回 500 而非 400/404。合约测试 2 项断言 `status_code == 500` 通过（实为 Bug 得到"正确的错误结果"）。 |
+| 根因 | `main.py` 的全局 `Exception` 处理器将服务层抛出的 `ValueError`（如"到货单不存在"、"状态不允许操作"）统一返回 `500 服务器内部错误`。FastAPI 异常处理器的优先级规则是"子类先于父类"，但 `ValueError` 没有专用处理器，被最宽泛的 `Exception` 处理器捕获。 |
+| 修复方案 | 在 `Exception` 处理器之前添加 `@app.exception_handler(ValueError)`，返回 `400 Bad Request` + `str(exc)` 作为 `msg`。同时将 2 个合约测试的断言从 `500` 修正为 `400`。 |
+| 涉及文件 | `main.py`（新增 ValueError 处理器）<br/>`tests/contract/test_incoming_contract.py`（500→400）<br/>`tests/contract/test_rma_contract.py`（500→400） |
+| 教训 | ① 全局异常处理器必须为业务异常（ValueError、KeyError 等）设置专用处理器，不能只依赖最宽泛的 `Exception`；② 测试不应将"错误的 HTTP 状态码"当作正确行为来断言。 |
+
+---
+
+## BUG-009
+
+| 字段 | 内容 |
+|------|------|
+| 编号 | BUG-009 |
+| 日期 | 2026-09-15 |
+| 严重程度 | 高 |
+| 模块 | E2E 测试 / API 配置 |
+| 现象 | E2E 测试 3 项全部失败：Playwright 登录后页面停留在 `/login`，未跳转到 `/dashboard`，`wait_for_url("**/dashboard**")` 超时（15s→30s 均超时）。Control 测试 10 项通过但 3 项登录流程失败。 |
+| 根因 | `frontend/src/utils/apiConfig.js` 的 `DEFAULT_BASE_URL` 硬编码为 `http://192.168.10.77:8000`。开发环境下前端页面通过 `localhost:5176` 访问，但 Axios 直接向 `192.168.10.77:8000` 发请求，绕过 Vite 的 `/api` 代理，触发浏览器 CORS 拦截。登录 API 失败后 `router.push('/dashboard')` 无法执行。 |
+| 修复方案 | ① `DEFAULT_BASE_URL` 改为空字符串 `''`，使 Axios 使用相对路径，经 Vite 代理转发到后端；② 修复 `cachedBaseUrl` 的空值判断（`if cachedBaseUrl` → `if cachedBaseUrl !== null`），避免空字符串被误判为"未初始化"；③ E2E 测试超时从 15s 增至 30s，登录后增加 `wait_for_load_state("networkidle")`。 |
+| 涉及文件 | `frontend/src/utils/apiConfig.js`<br/>`tests/e2e/test_e2e_flows.py` |
+| 教训 | ① 前端 API 基础 URL 在开发环境下必须为空或 `/`，不能硬编码具体 IP，否则绕过 Vite 代理导致 CORS；② 布尔判断空字符串时要区分"未初始化"（null）和"空值"（''），用 `!== null` 而非 truthy 判断。 |

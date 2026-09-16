@@ -25,7 +25,7 @@ import os
 import time
 from playwright.sync_api import sync_playwright, Page, expect
 
-BASE_URL = os.environ.get("E2E_BASE_URL", "https://localhost:5173")
+BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:5173")
 API_URL = os.environ.get("E2E_API_URL", "http://localhost:8000")
 
 TEST_USER = {

@@ -20,7 +20,7 @@ import os
 import pytest
 from playwright.sync_api import sync_playwright, Browser, Page
 
-BASE_URL = os.environ.get("E2E_BASE_URL", "https://localhost:5173")
+BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:5173")
 
 try:
     from playwright.sync_api import sync_playwright as _sp

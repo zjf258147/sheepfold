@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getApiBaseUrl, getDefaultBaseUrl, setApiBaseUrl, clearApiBaseUrl, resetBaseUrlCache, getCachedBaseUrl } from '@/utils/apiConfig'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['saved'])
 
@@ -64,11 +64,6 @@ async function save() {
     visible.value = false
 
     if (url.value.trim() !== originalUrl.value) {
-      await ElMessageBox.confirm(
-        '服务器地址已更改，需要刷新页面才能生效。是否立即刷新？',
-        '提示',
-        { confirmButtonText: '刷新', cancelButtonText: '稍后', type: 'info' }
-      )
       resetBaseUrlCache()
       window.location.reload()
     }

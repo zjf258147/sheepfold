@@ -103,9 +103,10 @@ def create_app() -> FastAPI:
     async def global_exception_handler(request: Request, exc: Exception):
         """捕获未处理的异常，返回统一错误格式并记录日志。"""
         logger.exception(f"未处理异常 [{request.method} {request.url}]: {exc}")
+        detail = str(exc) if settings.DEBUG else "服务器内部错误"
         return JSONResponse(
             status_code=500,
-            content={"code": 500, "msg": "服务器内部错误", "data": None},
+            content={"code": 500, "msg": detail, "data": None},
         )
 
     # ── 挂载路由 ─────────────────────────────────────────────────

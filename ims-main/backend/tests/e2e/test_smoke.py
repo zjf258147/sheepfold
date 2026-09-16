@@ -2,11 +2,13 @@
 前端页面冒烟测试 — 验证关键页面可正常渲染（无需后端/数据库）
 ============================================================
 运行前提：
-  1. 前端已启动: cd frontend && npm run dev (端口 5173)
+  1. 前端已启动: cd frontend && npm run dev
   2. Playwright 浏览器已安装: python -m playwright install chromium
+  3. 可通过 E2E_BASE_URL 环境变量覆盖默认端口
 
 运行方式：
   python tests/e2e/test_smoke.py
+  # 或指定端口: $env:E2E_BASE_URL="http://127.0.0.1:5176"; python tests/e2e/test_smoke.py
 """
 
 import os

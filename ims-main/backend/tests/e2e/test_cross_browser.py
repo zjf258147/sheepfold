@@ -11,9 +11,11 @@
   2. Playwright 浏览器已安装:
      python -m playwright install chromium firefox
      (Edge 使用 Windows 内置 channel)
+  3. 可通过 E2E_BASE_URL 环境变量覆盖默认端口
 
 运行方式：
   cd backend && python -m pytest tests/e2e/test_cross_browser.py -v --tb=short
+  # 或指定端口: $env:E2E_BASE_URL="http://127.0.0.1:5176"; python -m pytest tests/e2e/test_cross_browser.py -v
 """
 
 import os

@@ -13,7 +13,7 @@ E2E 端到端测试 — 13 个核心用例覆盖 4 条业务主线
 import os
 from playwright.sync_api import sync_playwright, Page
 
-BASE_URL = os.environ.get("E2E_BASE_URL", "http://127.0.0.1:5174")
+BASE_URL = os.environ.get("E2E_BASE_URL", "http://127.0.0.1:5173")
 API_URL = os.environ.get("E2E_API_URL", "http://127.0.0.1:8000")
 
 TEST_USER = {"username": "admin", "password": "admin123"}

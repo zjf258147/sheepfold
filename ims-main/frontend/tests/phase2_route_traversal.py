@@ -4,11 +4,16 @@
 - 多角色遍历（admin + 4角色）
 - 空数据渲染
 - 加载状态
+
+运行方式：
+  python phase2_route_traversal.py
+  # 或指定端口: $env:E2E_BASE_URL="http://127.0.0.1:5176"; python phase2_route_traversal.py
 """
 from playwright.sync_api import sync_playwright
 import json
+import os
 
-BASE = "http://localhost:5174"
+BASE = os.environ.get("E2E_BASE_URL", "http://127.0.0.1:5173")
 
 ADMIN_CRED = {"username": "admin", "password": "admin123"}
 

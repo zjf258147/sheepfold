@@ -728,3 +728,46 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:5175,http://localhost:8080,h
 
 ### 教训
 **直接使用 `fetch()` 发出的请求绕过 Vite proxy，必须确保后端 CORS 白名单包含当前前端端口。后续如有端口变更需同步更新 CORS_ORIGINS。**
+
+---
+
+## Bug #024：API 响应时间约 2s（Uvicorn 仅监听 IPv4 导致 localhost 解析超时）
+
+| 字段 | 内容 |
+|------|------|
+| **编号** | BUG-024 |
+| **发现日期** | 2026-09-16 |
+| **严重程度** | 🟡 中（性能严重劣化，但不影响 Vite 代理用户） |
+| **模块** | 基础设施·网络层 |
+| **状态** | ✅ 已修复 |
+
+### 现象
+直接访问 `http://localhost:8000/*` 任意 API 端点（包括静态 `openapi.json`）均需 ~2000ms。而访问 `http://127.0.0.1:8000/*` 仅需 10~100ms。E2E 测试每次请求都有 2s 固定延迟。
+
+### 根因
+**双因素叠加**：
+1. **Windows DNS 解析策略**：`ping localhost` 解析到 `::1`（IPv6），Windows 默认 IPv6 优先策略高于 hosts 文件中 `127.0.0.1 localhost` 映射。
+2. **Uvicorn 仅监听 IPv4**：启动命令 `uvicorn main:app --host 0.0.0.0` 只绑定 IPv4 地址，不监听 IPv6 `::1`。
+
+**链路**：浏览器/pytest → `localhost` DNS 解析 → `[::1]:8000` IPv6 连接尝试 → 端口 8000 无 IPv6 监听（拒绝连接）→ 等待超时（~2s）→ 回退 IPv4 `127.0.0.1:8000` → 成功。
+
+### 修复
+将 Uvicorn 启动命令从 `--host 0.0.0.0` 改为 `--host ::`（IPv6 双栈，同时监听 IPv4 + IPv6）：
+```bash
+uv run uvicorn main:app --reload --host :: --port 8000
+```
+修复后 `localhost` 响应与 `127.0.0.1` 持平：17~453ms。
+
+### 涉及文件
+- `backend/main.py` — Uvicorn 启动参数 `--host 0.0.0.0` → `--host ::`
+- `backend/tests/e2e/test_e2e_flows.py` — 默认 `BASE_URL` + `API_URL` 从 `localhost` 改为 `127.0.0.1`（兼容性兜底）
+- `backend/tests/e2e/test_smoke.py` — 同上
+- `backend/tests/e2e/test_cross_browser.py` — 同上
+- `backend/tests/e2e/debug_login.py` — 同上
+- `backend/tests/e2e/_inspect.py` — 同上
+- `frontend/.env.example` — `VITE_API_TARGET` 端口修正 `5178` → `8000`
+
+### 教训
+**1. 所有本地开发服务（Uvicorn/Node/任何 HTTP server）应使用 `--host ::` 或 `--host 0.0.0.0 --ipv6`，确保双栈监听，避免 DNS 解析策略导致的隐蔽延迟。**
+**2. E2E/测试脚本中默认 URL 优先使用 `127.0.0.1` 而非 `localhost`，兼容性更好。**
+**3. 性能测试前应先排除网络层延迟（`127.0.0.1` vs `localhost`），避免误判为应用层慢查询。**

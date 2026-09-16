@@ -1,0 +1,181 @@
+[
+  {
+    "route": "/dashboard",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/dashboard",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/inventory",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/inventory",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/inventory/sku",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/inventory/sku",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/inventory/partner",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/inventory/partner",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/inbound",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/inbound",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/incoming",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/incoming",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/rma",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/rma",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/shipment",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/shipment",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/bom",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/bom",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/production-task",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/production-task",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/outbound",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/outbound",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/snapshot",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/snapshot",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/snapshot/statistics",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/snapshot/statistics",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/snapshot/details",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/snapshot/details",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/products",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/products",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/partners",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/partners",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/station",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/station",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/device-ledger",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/device-ledger",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/stocktake",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/stocktake",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/adjustment",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/adjustment",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/customers",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/customers",
+    "status": "OK",
+    "issues": []
+  },
+  {
+    "route": "/workflow",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/workflow",
+    "status": "WARN",
+    "issues": [
+      "无主要内容元素"
+    ]
+  },
+  {
+    "route": "/settings",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/settings",
+    "status": "OK",
+    "issues": [],
+    "empty_data": true
+  },
+  {
+    "route": "/about",
+    "role": "ADMIN",
+    "url": "http://localhost:5174/about",
+    "status": "WARN",
+    "issues": [
+      "无主要内容元素"
+    ]
+  }
+]

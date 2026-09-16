@@ -38,7 +38,7 @@ async function copyVersionInfo() {
 
 <template>
   <div class="about-page">
-    <div class="about-card">
+    <el-card class="about-card">
       <div class="about-header">
         <img
           v-if="brand.logoUrl"
@@ -73,7 +73,7 @@ async function copyVersionInfo() {
       <div class="about-footer">
         <p>&copy; 2026 西安敦临计量检测有限公司</p>
       </div>
-    </div>
+    </el-card>
 
     <ServerSettingsDialog ref="serverRef" />
   </div>

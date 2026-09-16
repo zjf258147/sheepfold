@@ -247,7 +247,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="workflow-page">
+  <el-card class="workflow-page">
     <div class="toolbar">
       <h3 class="toolbar-title">IMS系统业务流程关系图</h3>
       <div class="toolbar-actions">
@@ -306,7 +306,7 @@ onUnmounted(() => {
       <span class="role-item">C: Shipment → OutboundOrder → InventoryItem</span>
       <span class="role-item">D: BomHeader/BomDetail → ProductionTask</span>
     </div>
-  </div>
+  </el-card>
 </template>
 
 <style scoped>

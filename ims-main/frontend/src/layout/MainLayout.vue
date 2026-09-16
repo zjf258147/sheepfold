@@ -375,6 +375,13 @@ async function submitPasswordChange() {
   z-index: 1001;
   transform: translateX(0);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.aside--mobile .el-menu {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 }

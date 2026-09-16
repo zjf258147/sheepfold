@@ -111,6 +111,16 @@ html, body {
     visibility: visible !important;
   }
 
+  /* ---- 操作列宽度限制（手机端） ---- */
+  .el-table th:last-child,
+  .el-table td:last-child {
+    max-width: 100px !important;
+    min-width: 60px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .el-table .cell {
     padding: 0 8px !important;
     white-space: nowrap;

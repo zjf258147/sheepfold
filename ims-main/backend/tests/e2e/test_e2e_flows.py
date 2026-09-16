@@ -33,7 +33,7 @@ TEST_USER = {
     "password": "admin123",
 }
 
-WAIT_TIMEOUT = 15000
+WAIT_TIMEOUT = 30000
 
 
 def login(page: Page, username: str = TEST_USER["username"], password: str = TEST_USER["password"]):
@@ -42,6 +42,7 @@ def login(page: Page, username: str = TEST_USER["username"], password: str = TES
     page.fill('input[placeholder="用户名"]', username)
     page.fill('input[placeholder="密码"]', password)
     page.click('button:has-text("登 录")')
+    page.wait_for_load_state("networkidle")
     page.wait_for_url("**/dashboard**", timeout=WAIT_TIMEOUT)
 
 

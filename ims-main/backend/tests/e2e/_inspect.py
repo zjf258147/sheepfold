@@ -2,7 +2,7 @@
 import os
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "https://localhost:5174"
+BASE_URL = "http://127.0.0.1:5174"
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)

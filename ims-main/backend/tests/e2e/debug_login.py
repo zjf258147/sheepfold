@@ -1,7 +1,7 @@
 """诊断脚本：详细检查登录API调用"""
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "http://localhost:5176"
+BASE_URL = "http://127.0.0.1:5176"
 
 p = sync_playwright().start()
 browser = p.chromium.launch(headless=True)

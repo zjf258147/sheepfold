@@ -12,7 +12,7 @@
 import os
 from playwright.sync_api import sync_playwright
 
-BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:5173")
+BASE_URL = os.environ.get("E2E_BASE_URL", "http://127.0.0.1:5173")
 
 
 def check_page_loads(url: str, expected_element: str, description: str) -> bool:

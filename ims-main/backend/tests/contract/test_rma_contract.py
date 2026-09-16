@@ -133,7 +133,7 @@ class TestRmaDiagnosisContract:
         client.post("/api/v1/rma/diagnoses", json=diag, headers=auth_headers)
 
         res = client.post("/api/v1/rma/diagnoses", json=diag, headers=auth_headers)
-        assert res.status_code == 500
+        assert res.status_code == 400
 
     def test_get_diagnoses_list(self, client, auth_headers, seed_data):
         """GET /rma/returns/{id}/diagnoses 返回诊断列表。"""

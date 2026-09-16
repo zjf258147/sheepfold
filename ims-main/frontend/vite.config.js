@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import basicSsl from '@vitejs/plugin-basic-ssl'
+// import basicSsl from '@vitejs/plugin-basic-ssl'
 import { fileURLToPath, URL } from 'node:url'
 import { readFileSync } from 'node:fs'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       vue(),
-      basicSsl(),
+      // basicSsl(),
       AutoImport({
         resolvers: [ElementPlusResolver()],
         dts: 'src/auto-imports.d.ts',
@@ -55,6 +55,14 @@ export default defineConfig(({ mode }) => {
         },
         '/health': { target: apiTarget, changeOrigin: true },
         '/uploads': { target: apiTarget, changeOrigin: true },
+      },
+    },
+    build: {
+      rollupOptions: {
+        external: [
+          '@capacitor/barcode-scanner',
+          '@capacitor/network',
+        ],
       },
     },
   }

@@ -47,3 +47,164 @@ html, body, #app { height: 100%; font-family: -apple-system, BlinkMacSystemFont,
 .el-card{
   padding-bottom: 16px;
 }
+
+/* ---- 触控手势 ---- */
+html, body {
+  touch-action: auto;
+}
+
+/* ===================== 移动端适配 ===================== */
+@media (max-width: 768px) {
+  /* ---- 基础字体和间距 ---- */
+  body { font-size: 14px; }
+  .main-content { padding: 8px !important; }
+
+  /* ---- 卡片间距 ---- */
+  .el-card {
+    margin-bottom: 8px;
+    padding: 8px !important;
+    padding-bottom: 12px !important;
+  }
+
+  /* ---- 弹窗全屏 ---- */
+  .el-dialog {
+    width: 96% !important;
+    max-width: 96% !important;
+    margin-top: 2vh !important;
+  }
+
+  .el-dialog__body {
+    padding: 12px !important;
+  }
+
+  .el-dialog__header {
+    padding: 12px 12px 0 !important;
+  }
+
+  .el-dialog__footer {
+    padding: 8px 12px 12px !important;
+  }
+
+  /* ---- 表格横向滚动 ---- */
+  .el-table__header-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .el-table__body-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ---- 去除固定列，所有列统一滚动 ---- */
+  .el-table__fixed-right,
+  .el-table__fixed,
+  .el-table__fixed-right-patch,
+  .el-table__fixed-body-wrapper {
+    display: none !important;
+  }
+  .el-table__body-wrapper .el-table__cell[style*="visibility: hidden"],
+  .el-table__header-wrapper .el-table__cell[style*="visibility: hidden"] {
+    visibility: visible !important;
+  }
+
+  .el-table .cell {
+    padding: 0 8px !important;
+    white-space: nowrap;
+  }
+
+  /* ---- 表单项上下布局 ---- */
+  .el-form-item {
+    display: block !important;
+    margin-bottom: 12px !important;
+  }
+
+  .el-form-item__label {
+    display: block !important;
+    width: auto !important;
+    text-align: left !important;
+    padding-bottom: 4px !important;
+    line-height: 1.4 !important;
+  }
+
+  .el-form-item__content {
+    margin-left: 0 !important;
+  }
+
+  /* ---- 触摸友好按钮 ---- */
+  .el-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .el-button--small {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  /* ---- 菜单项触摸优化 ---- */
+  .el-menu-item {
+    min-height: 48px;
+  }
+
+  .el-dropdown-menu__item {
+    min-height: 44px;
+    line-height: 44px;
+  }
+
+  /* ---- 分页简化 ---- */
+  .el-pagination .el-pager li {
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+  }
+
+  .el-pagination button {
+    min-height: 32px;
+  }
+
+  .el-pagination__sizes,
+  .el-pagination__jump {
+    display: none !important;
+  }
+
+  /* ---- 搜索表单精简 ---- */
+  .el-form--inline .el-form-item {
+    display: block !important;
+    margin-right: 0 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .el-form--inline .el-form-item__content {
+    width: 100% !important;
+  }
+
+  .el-form--inline .el-input,
+  .el-form--inline .el-select {
+    width: 100% !important;
+  }
+
+  /* ---- 输入框适配 ---- */
+  .el-input__inner {
+    font-size: 16px !important;
+  }
+
+  .el-select .el-input__inner {
+    font-size: 16px !important;
+  }
+
+  /* ---- 标签页触摸优化 ---- */
+  .el-tabs__item {
+    min-height: 44px;
+    line-height: 44px;
+    padding: 0 12px !important;
+  }
+
+  /* ---- 确认框适配 ---- */
+  .el-message-box {
+    width: 90% !important;
+    max-width: 360px !important;
+  }
+}

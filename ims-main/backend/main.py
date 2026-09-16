@@ -90,6 +90,15 @@ def create_app() -> FastAPI:
     )
 
     # ── 全局异常处理 ──────────────────────────────────────────────
+    @app.exception_handler(ValueError)
+    async def value_error_handler(request: Request, exc: ValueError):
+        """捕获业务逻辑层抛出的 ValueError，返回 400 错误。"""
+        logger.warning(f"业务校验失败 [{request.method} {request.url}]: {exc}")
+        return JSONResponse(
+            status_code=400,
+            content={"code": 400, "msg": str(exc), "data": None},
+        )
+
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         """捕获未处理的异常，返回统一错误格式并记录日志。"""

@@ -8,6 +8,7 @@ import {
   House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton, Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock, InfoFilled,
 } from '@element-plus/icons-vue'
 import { usePolling } from '@/composables/usePolling'
+import { useNetwork } from '@/composables/useNetwork'
 import ServerSettingsDialog from '@/components/ServerSettingsDialog.vue'
 
 const MOBILE_BREAKPOINT = 768
@@ -17,6 +18,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const brand = useBrandStore()
 const { pollData, isOnline, totalBadge, start: startPolling, stop: stopPolling, fetchStatus } = usePolling()
+const { isOnline: networkOnline } = useNetwork()
 
 const isMobile = ref(false)
 const menuCollapsed = ref(false)
@@ -316,6 +318,10 @@ async function submitPasswordChange() {
         </el-dropdown>
       </div>
       </el-header>
+      <div v-if="!networkOnline" class="offline-banner">
+        <el-icon><WarningFilled /></el-icon>
+        <span>网络已断开，请检查设备网络连接</span>
+      </div>
       <el-main class="main">
         <router-view />
       </el-main>
@@ -369,6 +375,8 @@ async function submitPasswordChange() {
   z-index: 1001;
   transform: translateX(0);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .aside--mobile.aside--collapsed {
@@ -496,7 +504,25 @@ async function submitPasswordChange() {
   color: #f56c6c;
   font-size: 13px;
   border-radius: 4px;
-  margin-bottom: 8px;
+}
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #fef0f0;
+  color: #f56c6c;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #fde2e2;
+  animation: offlineSlideIn 0.3s ease;
+}
+
+@keyframes offlineSlideIn {
+  from { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
+  to { max-height: 44px; opacity: 1; }
 }
 
 .notify-popover .notify-list {
@@ -574,6 +600,10 @@ async function submitPasswordChange() {
 }
 
 @media (max-width: 767px) {
+  .layout {
+    overflow: auto;
+  }
+
   .header {
     padding: 0 12px;
   }

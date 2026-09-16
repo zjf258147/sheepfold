@@ -41,7 +41,7 @@ async function testConnection() {
     const res = await request.post('/api/v1/settings/test-connection', {
       url: url.value.trim(),
     })
-    testResult.value = { ok: res.data.data.ok, msg: res.data.data.msg }
+    testResult.value = { ok: res.data.ok, msg: res.data.msg }
   } catch (e) {
     testResult.value = { ok: false, msg: e.message || '请求失败' }
   } finally {

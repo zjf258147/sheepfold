@@ -202,7 +202,7 @@ class TestIncomingConfirmContract:
             json={"change_reason": "确认入库"},
             headers=auth_headers,
         )
-        assert res.status_code == 500
+        assert res.status_code == 400
 
     def test_confirm_success(self, client, auth_headers, seed_data):
         """确认入库成功。"""

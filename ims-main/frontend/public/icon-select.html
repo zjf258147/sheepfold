@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DL-IMS App 图标 - 中间符号方案</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d0d2b 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #e0e0e0;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #A78BFA, #7C3AED);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+    .hint {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 36px;
+      font-size: 0.82rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 28px 20px 24px;
+      text-align: center;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(167,139,250,0.4);
+      box-shadow: 0 12px 40px rgba(124,58,237,0.2);
+    }
+    .card.selected {
+      border-color: #A78BFA;
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.35), 0 12px 40px rgba(124,58,237,0.3);
+    }
+    .card img {
+      width: 150px;
+      height: 150px;
+      border-radius: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+      color: #C4B5FD;
+    }
+    .card .desc {
+      color: #94a3b8;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .selected-label {
+      display: none;
+      font-size: 0.82rem;
+      color: #A78BFA;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .card.selected .selected-label { display: block; }
+    .footer {
+      text-align: center;
+      margin-top: 36px;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>DL-IMS App 图标 · 中间符号方案</h1>
+  <p class="subtitle">统一紫渐变背景 · 只换中间符号 · 底部文字不变</p>
+  <p class="hint">点击卡片选中 → 告诉我编号（1 / 2 / 3 / 4）</p>
+
+  <div class="grid">
+    <!-- 方案1：盾牌+对勾 -->
+    <div class="card" onclick="select(1)" id="card1">
+      <img src="icon-new-1-shield.svg" alt="盾牌对勾">
+      <h3>方案 1 · 盾牌对勾</h3>
+      <div class="desc">质检验收 / 品质保障<br>适合强调"来料检测"</div>
+      <div class="selected-label">✅ 已选择</div>
+    </div>
+
+    <!-- 方案2：盒子/包装 -->
+    <div class="card" onclick="select(2)" id="card2">
+      <img src="icon-new-2-box.svg" alt="包装箱">
+      <h3>方案 2 · 3D包装箱</h3>
+      <div class="desc">物料产品 / 库存管理<br>箱体带 IMS 字样</div>
+      <div class="selected-label">✅ 已选择</div>
+    </div>
+
+    <!-- 方案3：条形码 -->
+    <div class="card" onclick="select(3)" id="card3">
+      <img src="icon-new-3-barcode.svg" alt="条形码">
+      <h3>方案 3 · 条形码</h3>
+      <div class="desc">追溯扫描 / SN管理<br>简洁直观</div>
+      <div class="selected-label">✅ 已选择</div>
+    </div>
+
+    <!-- 方案4：四叶SN -->
+    <div class="card" onclick="select(4)" id="card4">
+      <img src="icon-new-4-sn.svg" alt="SN四叶">
+      <h3>方案 4 · SN 十字标</h3>
+      <div class="desc">唯一SN贯穿全生命周期<br>中心带 SN 标识</div>
+      <div class="selected-label">✅ 已选择</div>
+    </div>
+  </div>
+
+  <p class="footer">确定后，我会替换 favicon + Android 启动图标，重新打包 APK</p>
+
+  <script>
+    function select(n) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('card' + n).classList.add('selected');
+    }
+  </script>
+</body>
+</html>

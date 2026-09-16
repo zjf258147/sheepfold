@@ -96,15 +96,18 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ---- 去除固定列，所有列统一滚动 ---- */
+  /* ---- 去除固定列，所有列统一滚动（仅手机端） ---- */
   .el-table__fixed-right,
   .el-table__fixed,
   .el-table__fixed-right-patch,
   .el-table__fixed-body-wrapper {
     display: none !important;
   }
-  .el-table__body-wrapper .el-table__cell[style*="visibility: hidden"],
-  .el-table__header-wrapper .el-table__cell[style*="visibility: hidden"] {
+  .el-table .is-hidden {
+    visibility: visible !important;
+  }
+  .el-table__body-wrapper .el-table__cell[style*="visibility"],
+  .el-table__header-wrapper .el-table__cell[style*="visibility"] {
     visibility: visible !important;
   }
 

@@ -58,6 +58,17 @@ async function open() {
 async function tryNativeScan() {
   try {
     const { BarcodeScanner } = await import('@capacitor/barcode-scanner')
+
+    const perm = await BarcodeScanner.checkPermissions()
+    if (perm.camera !== 'granted') {
+      const req = await BarcodeScanner.requestPermissions()
+      if (req.camera !== 'granted') {
+        cameraError.value = '相机权限被拒绝，请在系统设置中开启'
+        showManualDialog()
+        return
+      }
+    }
+
     const result = await BarcodeScanner.startScan()
 
     if (result.hasContent && result.content) {

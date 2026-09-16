@@ -6,12 +6,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.webkit.WebSettings;
-import androidx.core.app.ActivityCompat;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    private static final int CAMERA_PERMISSION_REQUEST = 1001;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,15 +25,18 @@ public class MainActivity extends BridgeActivity {
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
 
+        cameraPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                // 权限结果：granted 或 denied，已处理即可
+            }
+        );
+
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.CAMERA},
-                    CAMERA_PERMISSION_REQUEST
-                );
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
             }
-        }, 800);
+        }, 1000);
     }
 }

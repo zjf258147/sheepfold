@@ -122,6 +122,15 @@ def create_app() -> FastAPI:
         name="uploads",
     )
 
+    # ── APK 下载目录 ──────────────────────────────────────────
+    download_dir = Path("static/download")
+    download_dir.mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/download",
+        StaticFiles(directory=str(download_dir)),
+        name="download",
+    )
+
     # ── 健康检查（不需要鉴权）────────────────────────────────────
     @app.get("/health", tags=["系统"], summary="健康检查")
     def health_check():

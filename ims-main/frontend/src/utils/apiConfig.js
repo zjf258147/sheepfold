@@ -51,6 +51,18 @@ export function resetBaseUrlCache() {
   cachedBaseUrl = null
 }
 
+export function getFrontendUrl(backendUrl) {
+  const base = backendUrl || getCachedBaseUrl() || getDefaultBaseUrl() || ''
+  const frontendPort = import.meta.env.VITE_FRONTEND_PORT || '8080'
+  try {
+    const url = new URL(base)
+    url.port = frontendPort
+    return url.origin
+  } catch {
+    return base.replace(/:8000$/, `:${frontendPort}`)
+  }
+}
+
 export function clearApiBaseUrl() {
   cachedBaseUrl = null
   localStorage.removeItem(STORAGE_KEY)

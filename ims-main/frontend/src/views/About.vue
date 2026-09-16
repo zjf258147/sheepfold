@@ -1,16 +1,27 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBrandStore } from '@/stores/brand'
 import { getApiBaseUrl } from '@/utils/apiConfig'
 import ServerSettingsDialog from '@/components/ServerSettingsDialog.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 
 const brand = useBrandStore()
 const serverUrl = ref('')
 const serverRef = ref(null)
+const downloading = ref(false)
 
 const appVersion = __APP_VERSION__
 const buildTime = __BUILD_TIME__
+
+const isApp = !!(window.Capacitor?.isNativePlatform?.())
+const isRemote = computed(() => {
+  return isApp && !window.location.href.startsWith('capacitor://')
+})
+
+const downloadUrl = computed(() => {
+  return serverUrl.value ? `${serverUrl.value}/download/ims-latest.apk` : ''
+})
 
 onMounted(async () => {
   if (!brand.loaded) brand.fetchBranding()
@@ -21,11 +32,38 @@ function openServerSettings() {
   serverRef.value?.open()
 }
 
+async function switchToLocal() {
+  try {
+    await ElMessageBox.confirm(
+      '切回本地版本后，下次打开 App 将使用旧版本功能。确定吗？',
+      '切回本地',
+      { type: 'warning' }
+    )
+    const { Preferences } = await import('@capacitor/preferences')
+    await Preferences.set({ key: 'use_online', value: 'false' })
+    await Preferences.remove({ key: 'jump_token' })
+    ElMessage.success('已切回本地版本，请重启 App')
+  } catch {
+    /* 用户取消 */
+  }
+}
+
+function handleDownload() {
+  if (!downloadUrl.value) {
+    ElMessage.warning('服务器地址未配置')
+    return
+  }
+  downloading.value = true
+  window.open(downloadUrl.value, '_blank')
+  setTimeout(() => { downloading.value = false }, 2000)
+}
+
 async function copyVersionInfo() {
   const info = [
     `${brand.appName} v${appVersion}`,
     `构建时间：${buildTime}`,
     `服务器：${serverUrl.value}`,
+    `运行模式：${isRemote.value ? '在线版' : '本地版'}`,
   ].join('\n')
   try {
     await navigator.clipboard.writeText(info)
@@ -52,6 +90,14 @@ async function copyVersionInfo() {
 
       <div class="about-info">
         <div class="info-row">
+          <span class="info-label">运行模式</span>
+          <span class="info-value">
+            <el-tag :type="isRemote ? 'success' : 'info'" size="small">
+              {{ isRemote ? '在线版' : '本地版' }}
+            </el-tag>
+          </span>
+        </div>
+        <div class="info-row">
           <span class="info-label">App 版本</span>
           <span class="info-value">{{ appVersion }}</span>
         </div>
@@ -66,6 +112,13 @@ async function copyVersionInfo() {
       </div>
 
       <div class="about-actions">
+        <el-button type="primary" @click="handleDownload" :loading="downloading">
+          <el-icon><Download /></el-icon>
+          下载 Android App
+        </el-button>
+        <el-button v-if="isRemote" @click="switchToLocal" type="warning" plain>
+          切回本地版本
+        </el-button>
         <el-button type="primary" plain @click="openServerSettings">切换服务器</el-button>
         <el-button plain @click="copyVersionInfo">复制版本信息</el-button>
       </div>

@@ -200,6 +200,10 @@ $apkDest = "$distApkDir/$apkName"
 
 Copy-Item $apkSource $apkDest -Force
 
+$staticDir = "$projectRoot/backend/static/download"
+New-Item -ItemType Directory -Force -Path $staticDir | Out-Null
+Copy-Item $apkSource "$staticDir/ims-latest.apk" -Force
+
 Write-Host " OK" -ForegroundColor Green
 
 # ============================================================
@@ -216,4 +220,5 @@ Write-Host "  构建时间：$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host "  最新提交：$latestCommit"
 Write-Host "  APK 大小：$([math]::Round((Get-Item $apkDest).Length / 1MB, 2)) MB"
 Write-Host "  APK 路径：$apkDest"
+Write-Host "  下载路径：$staticDir/ims-latest.apk"
 Write-Host "========================================" -ForegroundColor Cyan

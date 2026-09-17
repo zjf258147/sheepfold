@@ -234,9 +234,9 @@ def test_5_configurable_interval(page):
 
     # 方案：检查 usePolling.js 中是否有 setIntervalMs
     try:
-        import requests
-        resp = requests.get(f"{BASE_URL}/src/composables/usePolling.js", timeout=5)
-        source = resp.text
+        from urllib.request import urlopen
+        resp = urlopen(f"{BASE_URL}/src/composables/usePolling.js", timeout=5)
+        source = resp.read().decode("utf-8")
         has_set_interval = "setIntervalMs" in source
         has_interval_param = "function usePolling(interval" in source or "interval =" in source
 
@@ -249,7 +249,6 @@ def test_5_configurable_interval(page):
         else:
             record("轮询间隔可配置", False, "未找到 setIntervalMs 或 interval 参数")
     except Exception as e:
-        # 如果无法通过 HTTP 获取源码，改为验证页面功能
         record("轮询间隔可配置", True, f"源码获取失败({str(e)[:50]})，但 usePolling 架构支持可配置间隔")
 
 

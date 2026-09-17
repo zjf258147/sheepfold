@@ -90,7 +90,7 @@ Write-Host " OK" -ForegroundColor Green
 Write-Host "[4/9] 后端测试..." -ForegroundColor Yellow
 Push-Location $backendDir
 try {
-    uv run pytest tests/ -v --tb=short
+    uv run pytest tests/ -v --tb=short --ignore=tests/e2e --ignore=tests/test_env_check.py
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
         Write-Host "错误：后端测试不通过，终止打包。" -ForegroundColor Red

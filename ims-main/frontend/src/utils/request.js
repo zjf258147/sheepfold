@@ -49,11 +49,16 @@ request.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    const isTimeoutError = !error.response && error.code === 'ECONNABORTED'
     const isNetworkError = !error.response && (
       error.message === 'Network Error' ||
-      error.code === 'ERR_NETWORK' ||
-      error.code === 'ECONNABORTED'
+      error.code === 'ERR_NETWORK'
     )
+
+    if (isTimeoutError) {
+      ElMessage.error('请求超时，请检查网络后重试')
+      return Promise.reject(error)
+    }
 
     if (isNetworkError) {
       if (!isOnline.value) {

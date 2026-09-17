@@ -1,0 +1,368 @@
+{
+  "timestamp": "2026-09-17T12:38:14.801583",
+  "pass": 60,
+  "fail": 0,
+  "total": 60,
+  "results": [
+    {
+      "section": "路由",
+      "test": "登录",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "数据看板",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "库存明细",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "到货登记",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "出货管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "返厂维修",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "BOM管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "场站管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "设备台账",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "盘点管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "库存调整",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "客户管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "往来单位",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "物料管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "仓库管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "用户管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "角色管理",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "审计日志",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "系统设置",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "关于",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "个人中心",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "导入",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "路由",
+      "test": "导出",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "API",
+      "test": "登录",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "API",
+      "test": "库存",
+      "status": "PASS",
+      "detail": "200/270ms"
+    },
+    {
+      "section": "API",
+      "test": "到货",
+      "status": "PASS",
+      "detail": "200/11ms"
+    },
+    {
+      "section": "API",
+      "test": "出货",
+      "status": "PASS",
+      "detail": "200/7ms"
+    },
+    {
+      "section": "API",
+      "test": "返厂",
+      "status": "PASS",
+      "detail": "200/10ms"
+    },
+    {
+      "section": "API",
+      "test": "BOM",
+      "status": "PASS",
+      "detail": "200/10ms"
+    },
+    {
+      "section": "API",
+      "test": "场站",
+      "status": "PASS",
+      "detail": "200/9ms"
+    },
+    {
+      "section": "API",
+      "test": "设备",
+      "status": "PASS",
+      "detail": "200/9ms"
+    },
+    {
+      "section": "API",
+      "test": "盘点",
+      "status": "PASS",
+      "detail": "200/7ms"
+    },
+    {
+      "section": "API",
+      "test": "调整",
+      "status": "PASS",
+      "detail": "200/9ms"
+    },
+    {
+      "section": "API",
+      "test": "客户",
+      "status": "PASS",
+      "detail": "200/7ms"
+    },
+    {
+      "section": "API",
+      "test": "往来单位",
+      "status": "PASS",
+      "detail": "200/15ms"
+    },
+    {
+      "section": "API",
+      "test": "分类",
+      "status": "PASS",
+      "detail": "200/8ms"
+    },
+    {
+      "section": "API",
+      "test": "看板",
+      "status": "PASS",
+      "detail": "200/21ms"
+    },
+    {
+      "section": "并发",
+      "test": "×50 items",
+      "status": "PASS",
+      "detail": "50/50/5.54s"
+    },
+    {
+      "section": "并发",
+      "test": "×50 receipts",
+      "status": "PASS",
+      "detail": "50/50/5.29s"
+    },
+    {
+      "section": "并发",
+      "test": "×50 phase2-stats",
+      "status": "PASS",
+      "detail": "50/50/5.29s"
+    },
+    {
+      "section": "并发",
+      "test": "×50 stations",
+      "status": "PASS",
+      "detail": "50/50/5.28s"
+    },
+    {
+      "section": "404",
+      "test": "/api/v1/nonexistent",
+      "status": "PASS",
+      "detail": "404"
+    },
+    {
+      "section": "404",
+      "test": "/api/v1/inventory/nonexistent",
+      "status": "PASS",
+      "detail": "404"
+    },
+    {
+      "section": "404",
+      "test": "/api/v2/anything",
+      "status": "PASS",
+      "detail": "404"
+    },
+    {
+      "section": "404",
+      "test": "/api/v1/auth/nonexistent",
+      "status": "PASS",
+      "detail": "404"
+    },
+    {
+      "section": "404",
+      "test": "前端SPA",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "section": "打印",
+      "test": "到货单",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "打印",
+      "test": "出货单",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "打印",
+      "test": "检验报告",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "打印",
+      "test": "退货单",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "打印",
+      "test": "维修工单",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "打印",
+      "test": "BOM清单",
+      "status": "PASS",
+      "detail": "OK"
+    },
+    {
+      "section": "导出",
+      "test": "库存",
+      "status": "PASS",
+      "detail": "9938B/0.76s"
+    },
+    {
+      "section": "导出",
+      "test": "到货",
+      "status": "PASS",
+      "detail": "5864B/0.02s"
+    },
+    {
+      "section": "导出",
+      "test": "返厂",
+      "status": "PASS",
+      "detail": "5812B/0.02s"
+    },
+    {
+      "section": "导出",
+      "test": "BOM",
+      "status": "PASS",
+      "detail": "5429B/0.04s"
+    },
+    {
+      "section": "导出",
+      "test": "出库",
+      "status": "PASS",
+      "detail": "5641B/0.02s"
+    },
+    {
+      "section": "导出",
+      "test": "入库",
+      "status": "PASS",
+      "detail": "5560B/0.02s"
+    },
+    {
+      "section": "导出",
+      "test": "SKU",
+      "status": "PASS",
+      "detail": "6136B/0.03s"
+    },
+    {
+      "section": "导出",
+      "test": "往来单位",
+      "status": "PASS",
+      "detail": "5538B/0.03s"
+    }
+  ]
+}

@@ -263,3 +263,73 @@ class TestWarrantyEdgeCases:
             "removed_date": "2026-09-01"
         }, headers=auth_headers)
         assert res.json()["code"] == 0
+
+
+class TestSerializationEdgeCases:
+    """序列化异常测试：验证 datetime / Decimal / None 字段正确序列化，不产生 500。"""
+
+    def test_inventory_response_serializes_decimal_and_datetime(self, client, auth_headers):
+        """GET /api/v1/inventory/items 返回 unit_price(Decimal) + created_at(datetime)，验证 JSON 序列化无 500。"""
+        resp = client.get("/api/v1/inventory/items", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["code"] == 0
+        for item in data.get("data", {}).get("items", []):
+            if "unit_price" in item:
+                raw = resp.text
+                assert "Decimal" not in raw, f"unit_price 未序列化: {raw[:200]}"
+
+    def test_inbound_response_serializes_decimal_price(self, client, auth_headers):
+        """GET /api/v1/inbound/orders 返回 unit_price(Decimal)，验证不出现 'Decimal' 字符串。"""
+        resp = client.get("/api/v1/inbound/orders", headers=auth_headers)
+        assert resp.status_code == 200
+        raw = resp.text
+        assert "Decimal" not in raw, f"响应含未序列化的 Decimal: {raw[:200]}"
+
+    def test_snapshot_list_serializes_decimal_amount(self, client, auth_headers):
+        """GET /api/v1/snapshots 返回 closing_asset_amount(Decimal)，验证序列化正常。"""
+        resp = client.get("/api/v1/snapshots", headers=auth_headers)
+        assert resp.status_code == 200
+        raw = resp.text
+        assert "Decimal" not in raw, f"snapshot 响应含未序列化的 Decimal: {raw[:200]}"
+
+    def test_incoming_receipt_pagination_serialization(self, client, auth_headers):
+        """GET /api/v1/incoming/receipts 分页返回 datetime 字段，验证序列化。"""
+        resp = client.get("/api/v1/incoming/receipts?page=1&page_size=10", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["code"] == 0
+        raw = resp.text
+        assert "datetime" not in raw.lower(), f"响应含未序列化的 datetime: {raw[:200]}"
+
+    def test_product_list_serializes_datetime(self, client, auth_headers):
+        """GET /api/v1/products/skus 返回 created_at/updated_at(datetime)，验证序列化。"""
+        resp = client.get("/api/v1/products/skus", headers=auth_headers)
+        assert resp.status_code == 200
+        raw = resp.text
+        assert "datetime" not in raw.lower(), f"products 响应含未序列化的 datetime: {raw[:200]}"
+
+    def test_partner_list_serializes_none_fields(self, client, auth_headers):
+        """GET /api/v1/partners 返回可选字段(可含 None)，验证 None 正确序列化为 null。"""
+        resp = client.get("/api/v1/partners", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        if data["code"] == 0 and data.get("data", {}).get("items"):
+            raw = resp.text
+            assert "None" not in raw, f"响应含 Python None 字符串: {raw[:200]}"
+
+    def test_station_list_serializes_datetime(self, client, auth_headers):
+        """GET /api/v1/stations 二期接口，验证 created_at 序列化。"""
+        resp = client.get("/api/v1/stations", headers=auth_headers)
+        assert resp.status_code == 200
+        raw = resp.text
+        assert "datetime" not in raw.lower(), f"stations 响应含未序列化的 datetime: {raw[:200]}"
+
+    def test_customer_list_serializes_none(self, client, auth_headers):
+        """GET /api/v1/customers 返回可选扩展字段(可含 None)，验证序列化。"""
+        resp = client.get("/api/v1/customers", headers=auth_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        if data["code"] == 0 and data.get("data", {}).get("items"):
+            raw = resp.text
+            assert "None" not in raw, f"customers 响应含 Python None: {raw[:200]}"

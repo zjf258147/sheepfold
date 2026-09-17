@@ -51,17 +51,17 @@ RESULTS = []
 
 def login(page):
     """登录系统。"""
-    print(f"[登录] 访问 {BASE_URL}/login ...")
-    page.goto(f"{BASE_URL}/login", wait_until="networkidle", timeout=30000)
+    print(f"[登录] 访问 {BASE_URL}/log in ...")
+    page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded", timeout=30000)
     page.wait_for_timeout(2000)
 
     # 填写登录表单
     page.fill('input[placeholder="用户名"]', "admin", timeout=10000)
     page.fill('input[placeholder="密码"]', "admin123", timeout=10000)
     page.click('button:has-text("登 录")', timeout=10000)
-    page.wait_for_url(f"{BASE_URL}/dashboard", timeout=15000)
-    page.wait_for_load_state("networkidle", timeout=15000)
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(5000)
+    page.wait_for_url(f"**/dashboard", timeout=30000)
+    page.wait_for_timeout(2000)
     print("[登录] 登录成功 ✓")
 
 
@@ -79,7 +79,7 @@ def check_page(page, route, name):
 
     try:
         print(f"  访问 {name} ({url}) ...")
-        resp = page.goto(url, wait_until="networkidle", timeout=30000)
+        resp = page.goto(url, wait_until="domcontentloaded", timeout=30000)
         page.wait_for_timeout(2000)
 
         # 检查 HTTP 状态

@@ -54,6 +54,7 @@ const routes = [
       { path: 'about', name: 'About', component: () => import('@/views/About.vue'), meta: { title: '关于' } },
     ],
   },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue'), meta: { title: '404 页面未找到', public: true } },
 ]
 
 const router = createRouter({

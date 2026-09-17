@@ -1,0 +1,194 @@
+[
+  {
+    "route": "/dashboard",
+    "name": "首页",
+    "url": "http://localhost:5173/dashboard",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/inventory",
+    "name": "实时库存",
+    "url": "http://localhost:5173/inventory",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/inventory/sku",
+    "name": "按SKU统计库存",
+    "url": "http://localhost:5173/inventory/sku",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/inventory/partner",
+    "name": "按关联单位出库统计",
+    "url": "http://localhost:5173/inventory/partner",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/inbound",
+    "name": "入库",
+    "url": "http://localhost:5173/inbound",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/incoming",
+    "name": "来料管理",
+    "url": "http://localhost:5173/incoming",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/rma",
+    "name": "返厂维修",
+    "url": "http://localhost:5173/rma",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/shipment",
+    "name": "出货管理",
+    "url": "http://localhost:5173/shipment",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/bom",
+    "name": "BOM管理",
+    "url": "http://localhost:5173/bom",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/production-task",
+    "name": "生产任务",
+    "url": "http://localhost:5173/production-task",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/outbound",
+    "name": "出库",
+    "url": "http://localhost:5173/outbound",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/snapshot",
+    "name": "库存流水",
+    "url": "http://localhost:5173/snapshot",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/snapshot/statistics",
+    "name": "库存快照汇总",
+    "url": "http://localhost:5173/snapshot/statistics",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/snapshot/details",
+    "name": "快照明细",
+    "url": "http://localhost:5173/snapshot/details",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/products",
+    "name": "商品SKU",
+    "url": "http://localhost:5173/products",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/partners",
+    "name": "往来单位",
+    "url": "http://localhost:5173/partners",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/customers",
+    "name": "客户管理",
+    "url": "http://localhost:5173/customers",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/settings",
+    "name": "系统设置",
+    "url": "http://localhost:5173/settings",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/about",
+    "name": "关于",
+    "url": "http://localhost:5173/about",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/workflow",
+    "name": "业务流程",
+    "url": "http://localhost:5173/workflow",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/station",
+    "name": "场站管理",
+    "url": "http://localhost:5173/station",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/device-ledger",
+    "name": "设备台账",
+    "url": "http://localhost:5173/device-ledger",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/stocktake",
+    "name": "盘点管理",
+    "url": "http://localhost:5173/stocktake",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  },
+  {
+    "route": "/adjustment",
+    "name": "库存调整",
+    "url": "http://localhost:5173/adjustment",
+    "status": "OK",
+    "errors": [],
+    "http_status": 200
+  }
+]

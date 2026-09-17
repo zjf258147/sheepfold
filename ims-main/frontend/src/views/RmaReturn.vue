@@ -5,7 +5,7 @@ import { listSkus, listCategories } from '@/api/product'
 import { RMA_STATUS_MAP, RMA_STATUS_TAG, DIAGNOSIS_RESULT_MAP, ASSIGN_TYPE_MAP, QUALITY_CHECK_RESULT_MAP, WAREHOUSE_TYPE_MAP } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
-import { getRmaRepairPrintData } from '@/api/print'
+import { getRmaRepairPrintData, getRmaRepairBatchPrintData } from '@/api/print'
 import PrintPreview from '@/print/components/PrintPreview.vue'
 import RmaRepairPrint from '@/print/components/RmaRepairPrint.vue'
 
@@ -26,6 +26,9 @@ const query = ref({
 const printVisible = ref(false)
 const printData = ref(null)
 const printLoading = ref(false)
+const batchPrintLoading = ref(false)
+const printRepairs = ref([])
+const selectedReturns = ref([])
 
 async function handlePrintRepair(row) {
   if (!row.repair_id) {
@@ -36,12 +39,37 @@ async function handlePrintRepair(row) {
   try {
     const res = await getRmaRepairPrintData(row.repair_id)
     printData.value = res.data
+    printRepairs.value = []
     printVisible.value = true
   } catch {
     ElMessage.error('获取维修工单打印数据失败')
   } finally {
     printLoading.value = false
   }
+}
+
+async function handleBatchPrintRepair() {
+  const items = selectedReturns.value.filter(r => r.repair_id)
+  if (items.length === 0) {
+    ElMessage.warning('所选记录中没有维修工单，请先选择有维修工单的记录')
+    return
+  }
+  batchPrintLoading.value = true
+  try {
+    const ids = items.map(r => r.repair_id)
+    const results = await getRmaRepairBatchPrintData(ids)
+    printRepairs.value = results.map(r => r.data)
+    printData.value = null
+    printVisible.value = true
+  } catch {
+    ElMessage.error('批量获取维修工单失败')
+  } finally {
+    batchPrintLoading.value = false
+  }
+}
+
+function handleSelectionChange(rows) {
+  selectedReturns.value = rows
 }
 
 const categories = ref([])
@@ -474,9 +502,13 @@ onMounted(() => {
       <el-button @click="reset">重置</el-button>
       <el-button type="primary" plain @click="openCreate">退货登记</el-button>
       <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
+      <el-button type="warning" :loading="batchPrintLoading" :disabled="!selectedReturns.some(r => r.repair_id)" @click="handleBatchPrintRepair">
+        批量打印维修单 {{ selectedReturns.filter(r => r.repair_id).length > 0 ? `(${selectedReturns.filter(r => r.repair_id).length})` : '' }}
+      </el-button>
     </div>
 
-    <el-table :data="returns" v-loading="loading" stripe border style="width:100%">
+    <el-table :data="returns" v-loading="loading" stripe border style="width:100%" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="return_no" label="返厂单号" width="150" />
       <el-table-column prop="sn" label="设备SN" width="150" />
       <el-table-column prop="sku_code" label="物料编码" width="120" show-overflow-tooltip />
@@ -714,7 +746,7 @@ onMounted(() => {
   </div>
 
   <PrintPreview v-model:visible="printVisible" title="维修工单">
-    <RmaRepairPrint v-if="printData" :data="printData" />
+    <RmaRepairPrint v-if="printData || printRepairs.length > 0" :data="printData" :repairs="printRepairs" />
   </PrintPreview>
 </template>
 

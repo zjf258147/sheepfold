@@ -1,16 +1,27 @@
 <script setup>
+import { computed } from 'vue'
 import { COMPANY_INFO, formatDate } from '../print-utils'
 
 const props = defineProps({
   data: { type: Object, default: null },
+  returns: { type: Array, default: () => [] },
 })
 
-const doc = props.data?.data || {}
+const allDocs = computed(() => {
+  if (props.returns && props.returns.length > 0) {
+    return props.returns.map(r => r.data || r)
+  }
+  if (props.data) {
+    return [props.data.data || props.data]
+  }
+  return []
+})
 </script>
 
 <template>
   <div class="print-document return-print">
-    <div class="print-page">
+    <template v-for="(doc, idx) in allDocs" :key="doc.return_no || idx">
+    <div class="print-page" :class="{ 'batch-page': idx < allDocs.length - 1 }">
       <div class="header-accent"></div>
       <div class="brand-area">
         <div class="company-full">{{ COMPANY_INFO.fullName }}</div>
@@ -93,9 +104,10 @@ const doc = props.data?.data || {}
       </div>
 
       <div class="page-footer">
-        <span>第 1 页 / 共 1 页</span>
+        <span>{{ allDocs.length > 1 ? `第 ${idx + 1} 页 / 共 ${allDocs.length} 页（退货单）` : '第 1 页 / 共 1 页' }}</span>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -114,6 +126,12 @@ const doc = props.data?.data || {}
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
+}
+
+.batch-page {
+  page-break-after: always;
+  margin-bottom: 20px;
+  border-bottom: 2px dashed #cbd5e1;
 }
 
 .header-accent {

@@ -7,7 +7,7 @@ import { INCOMING_STATUS_MAP, INCOMING_STATUS_TAG, INSPECTION_RESULT_MAP } from 
 import { dateTimeColumnFormatter } from '@/utils/datetime'
 import { Download } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getIncomingReceiptPrintData, getIncomingReceiptBatchPrintData, getIncomingInspectionPrintData, getIncomingReturnPrintData } from '@/api/print'
+import { getIncomingReceiptPrintData, getIncomingReceiptBatchPrintData, getIncomingInspectionPrintData, getIncomingInspectionBatchPrintData, getIncomingReturnPrintData, getIncomingReturnBatchPrintData } from '@/api/print'
 import PrintPreview from '@/print/components/PrintPreview.vue'
 import IncomingReceiptPrint from '@/print/components/IncomingReceiptPrint.vue'
 import IncomingInspectionPrint from '@/print/components/IncomingInspectionPrint.vue'
@@ -83,10 +83,14 @@ const selectedReceipts = ref([])
 const inspectionPrintVisible = ref(false)
 const inspectionPrintData = ref(null)
 const inspectionPrintLoading = ref(false)
+const inspectionBatchPrintLoading = ref(false)
+const inspectionPrints = ref([])
 
 const returnPrintVisible = ref(false)
 const returnPrintData = ref(null)
 const returnPrintLoading = ref(false)
+const returnBatchPrintLoading = ref(false)
+const returnPrints = ref([])
 
 async function handlePrint(row) {
   printLoading.value = true
@@ -130,6 +134,7 @@ async function handleInspectionPrint(row) {
   try {
     const res = await getIncomingInspectionPrintData(row.inspection_id)
     inspectionPrintData.value = res.data
+    inspectionPrints.value = []
     inspectionPrintVisible.value = true
   } catch {
     ElMessage.error('获取检验报告打印数据失败')
@@ -147,11 +152,52 @@ async function handleReturnPrint(row) {
   try {
     const res = await getIncomingReturnPrintData(row.return_id)
     returnPrintData.value = res.data
+    returnPrints.value = []
     returnPrintVisible.value = true
   } catch {
     ElMessage.error('获取退货单打印数据失败')
   } finally {
     returnPrintLoading.value = false
+  }
+}
+
+async function handleBatchInspectionPrint() {
+  const items = selectedReceipts.value.filter(r => r.inspection_id)
+  if (items.length === 0) {
+    ElMessage.warning('所选记录中没有检验报告，请先选择有检验报告的记录')
+    return
+  }
+  inspectionBatchPrintLoading.value = true
+  try {
+    const ids = items.map(r => r.inspection_id)
+    const results = await getIncomingInspectionBatchPrintData(ids)
+    inspectionPrints.value = results.map(r => r.data)
+    inspectionPrintData.value = null
+    inspectionPrintVisible.value = true
+  } catch {
+    ElMessage.error('批量获取检验报告失败')
+  } finally {
+    inspectionBatchPrintLoading.value = false
+  }
+}
+
+async function handleBatchReturnPrint() {
+  const items = selectedReceipts.value.filter(r => r.return_id)
+  if (items.length === 0) {
+    ElMessage.warning('所选记录中没有退货单，请先选择有退货单的记录')
+    return
+  }
+  returnBatchPrintLoading.value = true
+  try {
+    const ids = items.map(r => r.return_id)
+    const results = await getIncomingReturnBatchPrintData(ids)
+    returnPrints.value = results.map(r => r.data)
+    returnPrintData.value = null
+    returnPrintVisible.value = true
+  } catch {
+    ElMessage.error('批量获取退货单失败')
+  } finally {
+    returnBatchPrintLoading.value = false
   }
 }
 
@@ -404,7 +450,13 @@ onMounted(() => {
       <el-button type="primary" @click="openCreate">到货登记</el-button>
       <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedReceipts.length === 0" @click="handleBatchPrint">
-        批量打印 {{ selectedReceipts.length > 0 ? `(${selectedReceipts.length})` : '' }}
+        批量打印收货单 {{ selectedReceipts.length > 0 ? `(${selectedReceipts.length})` : '' }}
+      </el-button>
+      <el-button type="success" :loading="inspectionBatchPrintLoading" :disabled="!selectedReceipts.some(r => r.inspection_id)" @click="handleBatchInspectionPrint">
+        批量打印检验报告 {{ selectedReceipts.filter(r => r.inspection_id).length > 0 ? `(${selectedReceipts.filter(r => r.inspection_id).length})` : '' }}
+      </el-button>
+      <el-button type="danger" :loading="returnBatchPrintLoading" :disabled="!selectedReceipts.some(r => r.return_id)" @click="handleBatchReturnPrint">
+        批量打印退货单 {{ selectedReceipts.filter(r => r.return_id).length > 0 ? `(${selectedReceipts.filter(r => r.return_id).length})` : '' }}
       </el-button>
     </div>
 
@@ -546,11 +598,11 @@ onMounted(() => {
   </PrintPreview>
 
   <PrintPreview v-model:visible="inspectionPrintVisible" title="来料检验报告">
-    <IncomingInspectionPrint v-if="inspectionPrintData" :data="inspectionPrintData" />
+    <IncomingInspectionPrint v-if="inspectionPrintData || inspectionPrints.length > 0" :data="inspectionPrintData" :inspections="inspectionPrints" />
   </PrintPreview>
 
   <PrintPreview v-model:visible="returnPrintVisible" title="退货单">
-    <IncomingReturnPrint v-if="returnPrintData" :data="returnPrintData" />
+    <IncomingReturnPrint v-if="returnPrintData || returnPrints.length > 0" :data="returnPrintData" :returns="returnPrints" />
   </PrintPreview>
 </template>
 

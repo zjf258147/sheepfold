@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { listBoms, createBom, updateBom, deleteBom, checkAvailability, listTasks, createTask, updateTask, deleteTask, exportBoms } from '@/api/bom'
 import { listSkus, listCategories } from '@/api/product'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getBomPrintData } from '@/api/print'
+import { getBomPrintData, getBomBatchPrintData } from '@/api/print'
 import PrintPreview from '@/print/components/PrintPreview.vue'
 import BomPrint from '@/print/components/BomPrint.vue'
 
@@ -42,18 +42,45 @@ const availabilityLoading = ref(false)
 const printVisible = ref(false)
 const printData = ref(null)
 const printLoading = ref(false)
+const batchPrintLoading = ref(false)
+const printBoms = ref([])
+const selectedBoms = ref([])
 
 async function handlePrint(row) {
   printLoading.value = true
   try {
     const res = await getBomPrintData(row.id)
     printData.value = res.data
+    printBoms.value = []
     printVisible.value = true
   } catch {
     ElMessage.error('获取BOM打印数据失败')
   } finally {
     printLoading.value = false
   }
+}
+
+async function handleBatchPrint() {
+  if (selectedBoms.value.length === 0) {
+    ElMessage.warning('请先选择要打印的BOM')
+    return
+  }
+  batchPrintLoading.value = true
+  try {
+    const ids = selectedBoms.value.map(r => r.id)
+    const results = await getBomBatchPrintData(ids)
+    printBoms.value = results.map(r => r.data)
+    printData.value = null
+    printVisible.value = true
+  } catch {
+    ElMessage.error('批量获取BOM打印数据失败')
+  } finally {
+    batchPrintLoading.value = false
+  }
+}
+
+function handleSelectionChange(rows) {
+  selectedBoms.value = rows
 }
 
 const taskDialog = ref(false)
@@ -288,9 +315,13 @@ onMounted(() => { fetchCategories(); fetchData() })
       <div class="toolbar">
         <el-button type="primary" @click="openCreate">创建BOM</el-button>
         <el-button :loading="exportLoading" @click="handleExport">导出Excel</el-button>
+        <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedBoms.length === 0" @click="handleBatchPrint">
+          批量打印 {{ selectedBoms.length > 0 ? `(${selectedBoms.length})` : '' }}
+        </el-button>
       </div>
 
-      <el-table :data="boms" v-loading="loading" border stripe>
+      <el-table :data="boms" v-loading="loading" border stripe @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="50" />
         <el-table-column prop="bom_no" label="BOM编号" width="150" />
         <el-table-column prop="bom_name" label="BOM名称" min-width="160" show-overflow-tooltip />
         <el-table-column prop="version" label="版本" width="80" />
@@ -463,7 +494,7 @@ onMounted(() => { fetchCategories(); fetchData() })
     </el-dialog>
 
     <PrintPreview v-model:visible="printVisible" title="BOM清单">
-      <BomPrint v-if="printData" :data="printData" />
+      <BomPrint v-if="printData || printBoms.length > 0" :data="printData" :boms="printBoms" />
     </PrintPreview>
   </div>
 </template>

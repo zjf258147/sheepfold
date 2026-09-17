@@ -4,13 +4,36 @@ import { COMPANY_INFO, paginateItems, PAGE_SIZE } from '../print-utils'
 
 const props = defineProps({
   data: { type: Object, default: null },
+  boms: { type: Array, default: () => [] },
 })
 
-const doc = props.data?.data || {}
-const rawItems = props.data?.items || []
+const allBoms = computed(() => {
+  if (props.boms && props.boms.length > 0) {
+    return props.boms.map(r => r.data || r)
+  }
+  if (props.data) {
+    return [props.data.data || props.data]
+  }
+  return []
+})
 
-const pages = computed(() => paginateItems(rawItems, PAGE_SIZE))
-const totalPages = computed(() => pages.value.length)
+const allPages = computed(() => {
+  const result = []
+  allBoms.value.forEach((bom, bomIdx) => {
+    const rawItems = bom.items || []
+    const pageItems = paginateItems(rawItems, PAGE_SIZE)
+    pageItems.forEach((page, pageIdx) => {
+      result.push({
+        bom,
+        bomIdx,
+        pageIdx,
+        pageItems: page,
+        isFirstBomPage: pageIdx === 0,
+      })
+    })
+  })
+  return result
+})
 
 function indentStyle(level) {
   const px = (level || 0) * 20
@@ -20,7 +43,7 @@ function indentStyle(level) {
 
 <template>
   <div class="print-document bom-print">
-    <div v-for="(pageItems, pageIndex) in pages" :key="pageIndex" class="print-page">
+    <div v-for="(page, globalIdx) in allPages" :key="globalIdx" class="print-page" :class="{ 'bom-separator': page.bomIdx > 0 && page.pageIdx === 0 }">
       <div class="header-accent"></div>
       <div class="brand-area">
         <div class="company-full">{{ COMPANY_INFO.fullName }}</div>
@@ -28,8 +51,8 @@ function indentStyle(level) {
         <div class="doc-title">物料清单</div>
         <div class="doc-subtitle">Bill of Materials</div>
         <div class="doc-meta-row">
-          <span class="doc-meta-item">BOM编号：<strong>{{ doc.bom_no }}</strong></span>
-          <span class="doc-meta-item version-tag">版本：{{ doc.version }}</span>
+          <span class="doc-meta-item">BOM编号：<strong>{{ page.bom.bom_no }}</strong></span>
+          <span class="doc-meta-item version-tag">版本：{{ page.bom.version }}</span>
         </div>
       </div>
 
@@ -37,19 +60,19 @@ function indentStyle(level) {
         <div class="info-grid">
           <div class="info-item">
             <span class="info-label">BOM名称</span>
-            <span class="info-value">{{ doc.bom_name }}</span>
+            <span class="info-value">{{ page.bom.bom_name }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">成品物料</span>
-            <span class="info-value">{{ doc.product_sku_code }} / {{ doc.product_sku_name }}</span>
+            <span class="info-value">{{ page.bom.product_sku_code }} / {{ page.bom.product_sku_name }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">计划数量</span>
-            <span class="info-value">{{ doc.plan_quantity }}</span>
+            <span class="info-value">{{ page.bom.plan_quantity }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">状态</span>
-            <span class="info-value">{{ doc.status }}</span>
+            <span class="info-value">{{ page.bom.status }}</span>
           </div>
         </div>
       </div>
@@ -69,7 +92,7 @@ function indentStyle(level) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in pageItems" :key="item.row_no">
+          <tr v-for="item in page.pageItems" :key="item.row_no">
             <td class="col-seq">{{ item.row_no }}</td>
             <td class="col-level">{{ item.level }}</td>
             <td class="col-code" :style="indentStyle(item.level)">{{ item.material_sku_code }}</td>
@@ -86,12 +109,13 @@ function indentStyle(level) {
       <div class="info-section bottom-info">
         <div class="info-item">
           <span class="info-label">制单人</span>
-          <span class="info-value">{{ doc.created_by }}</span>
+          <span class="info-value">{{ page.bom.created_by }}</span>
         </div>
       </div>
 
       <div class="page-footer">
-        <span>第 {{ pageIndex + 1 }} 页 / 共 {{ totalPages }} 页</span>
+        <span>第 {{ globalIdx + 1 }} 页 / 共 {{ allPages.length }} 页</span>
+        <span v-if="allBoms.length > 1" style="margin-left: 16px">| BOM #{{ page.bomIdx + 1 }}/{{ allBoms.length }}</span>
       </div>
     </div>
   </div>
@@ -112,7 +136,10 @@ function indentStyle(level) {
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;
-  page-break-after: always;
+}
+
+.bom-separator {
+  page-break-before: always;
 }
 
 .print-page:last-child {

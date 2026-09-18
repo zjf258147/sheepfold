@@ -17,6 +17,7 @@ class InboundOrderCreate(BaseModel):
     stock_condition: StockCondition
     partner_id: int = Field(..., description="关联往来单位")
     related_outbound_order_id: int | None = None
+    change_reason: str | None = None
     remark: str | None = None
     lines: list[InboundLineCreate] | None = None
     return_item_ids: list[int] | None = Field(
@@ -28,6 +29,7 @@ class InboundOrderUpdate(BaseModel):
     stock_condition: StockCondition | None = None
     partner_id: int | None = None
     related_outbound_order_id: int | None = None
+    change_reason: str | None = None
     remark: str | None = None
     lines: list[InboundLineCreate] | None = None
     return_item_ids: list[int] | None = Field(
@@ -83,6 +85,7 @@ class InboundOrderResponse(BaseModel):
     reviewed_by: int | None
     submitted_at: datetime | None
     reviewed_at: datetime | None
+    change_reason: str | None = None
     created_at: datetime
     updated_at: datetime
     lines: list[InboundOrderLineResponse] = []

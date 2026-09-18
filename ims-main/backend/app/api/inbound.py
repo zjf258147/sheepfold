@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from urllib.parse import quote
 
-from app.core.deps import get_current_user
+from app.core.deps import AllowWarehouseOrAbove, get_current_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.audit import AuditLogCreate
@@ -98,7 +98,7 @@ def create_order(
     data: InboundOrderCreate,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     try:
         order = inbound_service.create_order(db, data, user.id)
@@ -117,6 +117,7 @@ def create_order(
             summary=audit_service.build_summary(user, "CREATE", f"入库单「{order.order_no}」"),
             after_data=_order_audit_data(order),
             ip_address=get_client_ip(request),
+            change_reason=data.change_reason,
         ),
     )
     return R.ok(data=InboundOrderResponse.model_validate(order))
@@ -164,7 +165,7 @@ def download_inbound_template(_: User = Depends(get_current_user)):
 async def import_inbound(
     file: UploadFile,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(AllowWarehouseOrAbove),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail='请上传 .xlsx 或 .xls 文件')
@@ -200,7 +201,7 @@ def update_order(
     data: InboundOrderUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -224,6 +225,7 @@ def update_order(
             before_data=before,
             after_data=_order_audit_data(order),
             ip_address=get_client_ip(request),
+            change_reason=data.change_reason,
         ),
     )
     return R.ok(data=InboundOrderResponse.model_validate(order))
@@ -234,7 +236,7 @@ def submit_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -269,7 +271,7 @@ def approve_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -303,7 +305,7 @@ def cancel_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -338,7 +340,7 @@ def delete_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(AllowWarehouseOrAbove),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:

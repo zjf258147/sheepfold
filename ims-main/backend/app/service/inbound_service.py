@@ -356,6 +356,7 @@ def create_order(db: Session, data: InboundOrderCreate, user_id: int) -> Inbound
         stock_condition=data.stock_condition.value,
         partner_id=data.partner_id,
         related_outbound_order_id=data.related_outbound_order_id,
+        change_reason=data.change_reason,
         remark=data.remark,
         operation_status=OperationStatus.INITIATED.value,
         submitted_by=user_id,

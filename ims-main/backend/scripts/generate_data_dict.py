@@ -16,6 +16,8 @@ import inspect
 import os
 import pkgutil
 import sys
+import enum
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -111,6 +113,7 @@ def _discover_models() -> list[type]:
     import app.models
     pkg_path = os.path.dirname(app.models.__file__)
     models: list[type] = []
+    seen_tables: set[str] = set()
 
     for _, name, is_pkg in pkgutil.iter_modules([pkg_path]):
         if is_pkg or name.startswith("_"):
@@ -130,8 +133,14 @@ def _discover_models() -> list[type]:
             if not hasattr(obj, "__tablename__"):
                 continue
             if issubclass(obj, Base):
+                table_name = obj.__tablename__
+                if table_name in seen_tables:
+                    logging.getLogger(__name__).debug(f"跳过已处理的表: {table_name}（来源: {mod.__name__}）")
+                    continue
+                seen_tables.add(table_name)
                 models.append(obj)
 
+    logging.getLogger(__name__).info(f"共发现 {len(models)} 个唯一模型（已去重）")
     return models
 
 
@@ -147,13 +156,19 @@ def _extract_columns(model_cls: type) -> list[dict]:
 
     columns: list[dict] = []
     ts_inherited = _is_timestamp_mixin(model_cls)
+    pk_columns = list(mapper.primary_key)
+    is_composite_pk = len(pk_columns) > 1
 
     for col in mapper.columns:
         field_type = _type_to_str(col.type)
         is_pk = col.primary_key
 
         default_str = "—"
-        if is_pk and getattr(col, "autoincrement", False) in (True, "auto"):
+        if is_pk and is_composite_pk:
+            default_str = "联合主键"
+        elif is_pk and col.autoincrement is True:
+            default_str = "自增"
+        elif is_pk and col.autoincrement == "auto":
             default_str = "自增"
         elif col.server_default is not None:
             try:
@@ -161,20 +176,29 @@ def _extract_columns(model_cls: type) -> list[dict]:
             except Exception:
                 default_str = "DB默认"
         elif col.default is not None:
-            try:
-                default_str = str(col.default.arg)
-            except Exception:
-                default_str = "有默认值"
+            if isinstance(col.default.arg, enum.Enum):
+                default_str = col.default.arg.value
+            else:
+                try:
+                    default_str = str(col.default.arg)
+                except Exception:
+                    default_str = "有默认值"
 
         is_ts = ts_inherited and col.name in _TS_COLUMN_NAMES
-        type_str = field_type + "（继承）" if is_ts else field_type
+        type_str = field_type
+
+        comment = col.comment or ""
+        if is_ts and comment:
+            comment = f"{comment}（继承自 TimestampMixin）"
+        elif is_ts:
+            comment = "继承自 TimestampMixin"
 
         columns.append({
             "name":     col.name,
             "type":     type_str,
             "nullable": col.nullable if col.nullable is not None else True,
             "default":  default_str,
-            "comment":  col.comment or "",
+            "comment":  comment,
         })
 
     return columns

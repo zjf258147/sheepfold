@@ -32,6 +32,9 @@ class InboundOrder(Base, TimestampMixin):
     reviewed_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("sys_user.id"), nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    change_reason: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, comment="变更原因"
+    )
 
     lines: Mapped[list["InboundOrderLine"]] = relationship(back_populates="order", cascade="all, delete-orphan")
     items: Mapped[list["InboundOrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")

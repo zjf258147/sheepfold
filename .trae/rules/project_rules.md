@@ -93,6 +93,11 @@ docker exec ims-db mysqldump -u root -p ims > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # 查看Git提交记录
 git log --oneline -5
+
+# MD转Word（用Pandoc重新生成全部docx）
+& "ims-main/tools/pandoc/pandoc-3.11/pandoc.exe" "ims-main/docs/系统说明书/IMS系统说明书.md" -o "ims-main/docs/系统说明书/IMS系统说明书.docx" --from=gfm --to=docx
+& "ims-main/tools/pandoc/pandoc-3.11/pandoc.exe" "ims-main/docs/用户操作手册/IMS用户操作手册.md" -o "ims-main/docs/用户操作手册/IMS用户操作手册.docx" --from=gfm --to=docx
+# 二次开发说明书需先合并所有章节再转换
 ```
 
 > 📋 **开发使用说明**：`doc/开发使用说明.md` | 🐛 **环境问题排查**：`doc/开发环境问题记录.md`
@@ -189,6 +194,8 @@ AI 开始工作
     ↓
 阶段1（离线，无需启动服务，约15分钟）
     ① 后端测试 → ② 前端测试 → ③ Skill代码质量 → ④ 技术栈专项 → ⑤ 上线检查(离线)
+    ↓  （若 git diff 含 models/*.py 或 alembic/versions/*.py，则自动追加 ↓）
+    ⑤½ 模型变更专项检查（M-1/M-2/M-3，条件触发）
     ↓
 阶段1完成后，输出报告 + 询问：
     "阶段1完成。要现在启动前后端服务继续跑阶段2吗？"
@@ -208,6 +215,7 @@ AI 开始工作
 | ③ | **Skill 代码质量** | §2, §3 | `code-quality-skill` → `detect-code-smells` → `code-review-and-quality`；密钥管理检查（.env/前端硬编码/日志泄漏）、全局异常处理器检查、参考实现复用检查 |
 | ④ | **技术栈专项** | §2.2 | FastAPI / Vue / SQLAlchemy+Alembic / Pinia / MySQL / Docker（按修改范围调用） |
 | ⑤ | **上线检查（离线）** | §4.19, §5.1~5.2, §6.1, §A1~A4 | Git规范检查（commit格式+里程碑Tag）→ 数据库备份恢复演练 → 环境配置 → 数据字典更新 `generate_data_dict.py` → **APK离线检查** `uv run pytest tests/apk/ -v -m "not apkfull"`（43项：环境6+配置10+资源14+插件3） |
+| ⑤½ | **模型变更专项** ⚡条件触发 | M-1~M-3 | **[条件]** git diff 含 `models/*.py` 或 `alembic/versions/*.py` 时自动执行。M-1: 迁移双向验证 → M-2: 表结构验证 → M-3: 数据一致性。详见下方"模型变更专项检查"。 |
 
 **阶段2：在线检查（需启动服务后执行）**
 
@@ -234,6 +242,7 @@ AI 开始工作
 | ③ | Skill代码质量 | ✅/❌ | ... |
 | ④ | 技术栈专项 | ✅/❌ | ... |
 | ⑤ | 上线检查(离线)+APK离线 | ✅/❌ | ... |
+| ⑤½ | 模型变更专项（条件触发） | ✅/❌/— | —表示无模型变更，跳过 |
 
 ### 阶段2（在线）
 | 步骤 | 检查项 | 结果 | 备注 |
@@ -244,7 +253,7 @@ AI 开始工作
 | ⑨ | 性能+并发 | ✅/❌/⚠️ | ... |
 | ⑩ | APK编译+在线验收 | ✅/❌/⚠️ | ... |
 
-总结：阶段1 X/6 通过 | 阶段2 Y/5 通过（或 ⚠️ 待执行）
+总结：阶段1 X/6 通过（无模型变更时 X/5） | 阶段2 Y/5 通过（或 ⚠️ 待执行）
 未完成项剩余：N 项
 ```
 
@@ -255,6 +264,80 @@ AI 开始工作
 | "APK检查"、"APK离线检查" | `uv run pytest tests/apk/ -v -m "not apkfull"`（43项轻量检查） |
 | "APK编译"、"编译APK" | `uv run pytest tests/apk/ -v -m apkfull`（6项完整编译验证） |
 | "APK全量"、"APK全部" | `uv run pytest tests/apk/ -v`（49项全量） |
+
+### 模型变更专项检查（M-1/M-2/M-3）
+
+**触发条件**（满足任一）：
+
+| 条件 | 说明 |
+|------|------|
+| 手动触发 | 用户说："模型变更检查"、"迁移验证"、"数据字典检查" |
+| 自动触发 | 当执行"完整检测清单"时，`git diff HEAD --name-only` 包含 `models/*.py` 或 `alembic/versions/*.py`，则自动追加到阶段1-⑤½ |
+
+> ⚠️ 仅修改脚本（如 `generate_data_dict.py`）不触发，仅改模型注释不触发（无迁移文件）。
+
+**执行时机**：在阶段1-⑤（上线检查）之后、重新生成数据字典之前执行。
+
+**检查项**：
+
+| 编号 | 检查项 | 命令/操作 | 通过标准 |
+|:---:|--------|----------|---------|
+| M-1 | **迁移双向验证** | `alembic upgrade head` → `alembic downgrade -1` → `alembic upgrade head` | 三次执行均无报错；`downgrade` 后字段消失，`upgrade` 后字段恢复 |
+| M-2 | **表结构验证** | `inspect.get_columns('表名')` 逐个检查变更字段 | 字段名/类型/可空/默认值四项属性均符合预期 |
+| M-3 | **数据一致性** | 查询 NULL 值 → 验证回填结果 | 新增字段 NULL 值 = 0（回填后）；若回填，回填数量 = 预期 |
+
+**M-1 边界情况处理**：
+
+| 迁移类型 | 处理方式 |
+|---------|---------|
+| 新增表 | `downgrade` 删除表 → `upgrade` 重建表 |
+| 新增字段 | `downgrade` 删除字段 → `upgrade` 恢复字段 |
+| 修改字段类型 | `downgrade` 恢复原类型；若无法恢复，迁移文件标注 `# 不可逆迁移` |
+| 数据迁移 | `downgrade` 可能无法恢复原数据；迁移文件标注 `# 不可逆迁移` |
+| 不可逆迁移 | 标注后，M-1 只验证 `upgrade`，跳过 `downgrade` |
+
+**M-2 验证命令模板**：
+
+```bash
+cd backend
+uv run python -c "
+from app.db.database import SessionLocal
+from sqlalchemy import inspect
+db = SessionLocal()
+insp = inspect(db.bind)
+for c in insp.get_columns('表名'):
+    if c['name'] in ('新增字段名1', '新增字段名2'):
+        print(f\"{c['name']}: type={c['type']}, nullable={c['nullable']}, default={c.get('default')}\")
+db.close()
+"
+```
+
+**M-3 验证命令模板**：
+
+```bash
+cd backend
+uv run python -c "
+from app.db.database import SessionLocal
+from sqlalchemy import text
+db = SessionLocal()
+r = db.execute(text(\"SELECT COUNT(*) FROM 表名 WHERE 新字段 IS NULL\"))
+print(f'新字段 NULL 记录数: {r.scalar()}')
+db.close()
+"
+```
+
+**验证报告格式**：
+
+```
+## 模型变更专项检查报告
+| 编号 | 检查项 | 结果 | 备注 |
+|:---:|--------|:---:|------|
+| M-1 | 迁移双向验证 | ✅/❌ | upgrade/downgrade/upgrade 均成功 |
+| M-2 | 表结构验证 | ✅/❌ | 字段 属性 = ... |
+| M-3 | 数据一致性 | ✅/❌ | NULL=0，回填= N 条 |
+```
+
+> **强制规则**：M-1/M-2/M-3 任何一项失败 → 停止后续检查，先修复问题再继续。
 
 ### 规则3：单次改动可验证
 

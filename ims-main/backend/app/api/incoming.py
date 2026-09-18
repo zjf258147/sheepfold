@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user
+from app.core.deps import AllowQualityOrAbove, AllowWarehouseOrAbove, get_current_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import PageResult, R
@@ -112,7 +112,7 @@ def create_receipt(
     data: IncomingReceiptCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(AllowWarehouseOrAbove),
 ):
     return incoming_service.create_receipt(db, data, current_user, get_client_ip(request))
 
@@ -123,7 +123,7 @@ def confirm_receipt(
     data: IncomingReceiptConfirm,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(AllowWarehouseOrAbove),
 ):
     return incoming_service.confirm_receipt(db, receipt_id, data.change_reason, current_user, get_client_ip(request))
 
@@ -152,7 +152,7 @@ def create_inspection(
     data: IncomingInspectionCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(AllowQualityOrAbove),
 ):
     return incoming_service.create_inspection(db, data, current_user, get_client_ip(request))
 
@@ -162,7 +162,7 @@ def create_return(
     data: IncomingReturnCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(AllowWarehouseOrAbove),
 ):
     if data.operator_id is None:
         data.operator_id = current_user.id

@@ -17,6 +17,7 @@ DOCUMENTS = [
         "file": DOCS_ROOT / "系统说明书" / "IMS系统说明书.docx",
         "icon": "Document",
         "category": "用户文档",
+        "downloadable": True,
     },
     {
         "id": "manual",
@@ -25,6 +26,7 @@ DOCUMENTS = [
         "file": DOCS_ROOT / "用户操作手册" / "IMS用户操作手册.docx",
         "icon": "Notebook",
         "category": "用户文档",
+        "downloadable": True,
     },
     {
         "id": "dev",
@@ -33,6 +35,7 @@ DOCUMENTS = [
         "file": DOCS_ROOT / "二次开发说明书" / "IMS二次开发说明书.docx",
         "icon": "Document",
         "category": "开发文档",
+        "downloadable": False,
     },
     {
         "id": "style",
@@ -41,6 +44,7 @@ DOCUMENTS = [
         "file": DOCS_ROOT / "文档编写规范.docx",
         "icon": "EditPen",
         "category": "开发文档",
+        "downloadable": False,
     },
 ]
 
@@ -56,6 +60,7 @@ def list_documents():
             "description": doc["description"],
             "icon": doc["icon"],
             "category": doc["category"],
+            "downloadable": doc.get("downloadable", False),
             "downloadUrl": f"/api/v1/docs/download/{doc['id']}",
             "exists": doc["file"].exists(),
         }
@@ -68,9 +73,11 @@ def list_documents():
 
 @router.get("/download/{doc_id}")
 def download_document(doc_id: str):
-    """下载指定文档"""
+    """下载指定文档（仅限开放下载的文档）"""
     for doc in DOCUMENTS:
         if doc["id"] == doc_id:
+            if not doc.get("downloadable", False):
+                return {"detail": "此文档不提供下载"}
             if not doc["file"].exists():
                 return {"detail": "文件不存在"}
             filename = f"{doc['name']}.docx"

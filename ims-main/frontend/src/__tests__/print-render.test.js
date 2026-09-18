@@ -110,11 +110,11 @@ const makeBomData = () => ({
     plan_quantity: 100,
     status: '已发布',
     created_by: '管理员',
+    items: [
+      { row_no: 1, level: 0, material_sku_code: 'MAT-001', material_sku_name: '子物料A', spec: '100mm', quantity_per_unit: 2, unit: '个', wastage_rate: 1.5, remark: '' },
+      { row_no: 2, level: 1, material_sku_code: 'MAT-002', material_sku_name: '子物料B', spec: '200mm', quantity_per_unit: 1, unit: '个', wastage_rate: 0, remark: '备注' },
+    ],
   },
-  items: [
-    { row_no: 1, level: 0, material_sku_code: 'MAT-001', material_sku_name: '子物料A', spec: '100mm', quantity_per_unit: 2, unit: '个', wastage_rate: 1.5, remark: '' },
-    { row_no: 2, level: 1, material_sku_code: 'MAT-002', material_sku_name: '子物料B', spec: '200mm', quantity_per_unit: 1, unit: '个', wastage_rate: 0, remark: '备注' },
-  ],
 })
 
 describe('IncomingReceiptPrint 采购收货单渲染', () => {
@@ -390,7 +390,7 @@ describe('BomPrint 物料清单渲染', () => {
       })
     }
     const wrapper = mount(BomPrint, {
-      props: { data: { data: makeBomData().data, items } },
+      props: { data: { data: { ...makeBomData().data, items } } },
     })
     expect(wrapper.text()).toContain('第 1 页')
     expect(wrapper.text()).toContain('第 2 页')

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brand'
 import { changePassword } from '@/api/user'
 import {
-  House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton, Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock, InfoFilled,
+  House, Box, Download, Upload, Goods, OfficeBuilding, Setting, SwitchButton, Expand, Fold, Camera, List, User, Lock, ArrowDown, Tools, Connection, Bell, WarningFilled, Clock, InfoFilled, Document,
 } from '@element-plus/icons-vue'
 import { usePolling } from '@/composables/usePolling'
 import { useNetwork } from '@/composables/useNetwork'
@@ -86,6 +86,7 @@ const allMenus = [
   { path: '/partners', title: '往来单位', icon: OfficeBuilding },
   { path: '/workflow', title: '业务流程', icon: Connection },
   { path: '/settings', title: '系统设置', icon: Setting, adminOnly: true },
+  { path: '/docs', title: '文档下载', icon: Document },
 ]
 
 const menus = computed(() => {

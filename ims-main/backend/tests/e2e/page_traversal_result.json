@@ -2,7 +2,7 @@
   {
     "route": "/dashboard",
     "name": "首页",
-    "url": "http://localhost:5173/dashboard",
+    "url": "http://localhost:5174/dashboard",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -10,7 +10,7 @@
   {
     "route": "/inventory",
     "name": "实时库存",
-    "url": "http://localhost:5173/inventory",
+    "url": "http://localhost:5174/inventory",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -18,7 +18,7 @@
   {
     "route": "/inventory/sku",
     "name": "按SKU统计库存",
-    "url": "http://localhost:5173/inventory/sku",
+    "url": "http://localhost:5174/inventory/sku",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -26,7 +26,7 @@
   {
     "route": "/inventory/partner",
     "name": "按关联单位出库统计",
-    "url": "http://localhost:5173/inventory/partner",
+    "url": "http://localhost:5174/inventory/partner",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -34,7 +34,7 @@
   {
     "route": "/inbound",
     "name": "入库",
-    "url": "http://localhost:5173/inbound",
+    "url": "http://localhost:5174/inbound",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -42,7 +42,7 @@
   {
     "route": "/incoming",
     "name": "来料管理",
-    "url": "http://localhost:5173/incoming",
+    "url": "http://localhost:5174/incoming",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -50,7 +50,7 @@
   {
     "route": "/rma",
     "name": "返厂维修",
-    "url": "http://localhost:5173/rma",
+    "url": "http://localhost:5174/rma",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -58,7 +58,7 @@
   {
     "route": "/shipment",
     "name": "出货管理",
-    "url": "http://localhost:5173/shipment",
+    "url": "http://localhost:5174/shipment",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -66,7 +66,7 @@
   {
     "route": "/bom",
     "name": "BOM管理",
-    "url": "http://localhost:5173/bom",
+    "url": "http://localhost:5174/bom",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -74,7 +74,7 @@
   {
     "route": "/production-task",
     "name": "生产任务",
-    "url": "http://localhost:5173/production-task",
+    "url": "http://localhost:5174/production-task",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -82,7 +82,7 @@
   {
     "route": "/outbound",
     "name": "出库",
-    "url": "http://localhost:5173/outbound",
+    "url": "http://localhost:5174/outbound",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -90,7 +90,7 @@
   {
     "route": "/snapshot",
     "name": "库存流水",
-    "url": "http://localhost:5173/snapshot",
+    "url": "http://localhost:5174/snapshot",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -98,7 +98,7 @@
   {
     "route": "/snapshot/statistics",
     "name": "库存快照汇总",
-    "url": "http://localhost:5173/snapshot/statistics",
+    "url": "http://localhost:5174/snapshot/statistics",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -106,7 +106,7 @@
   {
     "route": "/snapshot/details",
     "name": "快照明细",
-    "url": "http://localhost:5173/snapshot/details",
+    "url": "http://localhost:5174/snapshot/details",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -114,7 +114,7 @@
   {
     "route": "/products",
     "name": "商品SKU",
-    "url": "http://localhost:5173/products",
+    "url": "http://localhost:5174/products",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -122,7 +122,7 @@
   {
     "route": "/partners",
     "name": "往来单位",
-    "url": "http://localhost:5173/partners",
+    "url": "http://localhost:5174/partners",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -130,7 +130,7 @@
   {
     "route": "/customers",
     "name": "客户管理",
-    "url": "http://localhost:5173/customers",
+    "url": "http://localhost:5174/customers",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -138,7 +138,7 @@
   {
     "route": "/settings",
     "name": "系统设置",
-    "url": "http://localhost:5173/settings",
+    "url": "http://localhost:5174/settings",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -146,7 +146,7 @@
   {
     "route": "/about",
     "name": "关于",
-    "url": "http://localhost:5173/about",
+    "url": "http://localhost:5174/about",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -154,7 +154,7 @@
   {
     "route": "/workflow",
     "name": "业务流程",
-    "url": "http://localhost:5173/workflow",
+    "url": "http://localhost:5174/workflow",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -162,7 +162,7 @@
   {
     "route": "/station",
     "name": "场站管理",
-    "url": "http://localhost:5173/station",
+    "url": "http://localhost:5174/station",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -170,7 +170,7 @@
   {
     "route": "/device-ledger",
     "name": "设备台账",
-    "url": "http://localhost:5173/device-ledger",
+    "url": "http://localhost:5174/device-ledger",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -178,7 +178,7 @@
   {
     "route": "/stocktake",
     "name": "盘点管理",
-    "url": "http://localhost:5173/stocktake",
+    "url": "http://localhost:5174/stocktake",
     "status": "OK",
     "errors": [],
     "http_status": 200
@@ -186,7 +186,7 @@
   {
     "route": "/adjustment",
     "name": "库存调整",
-    "url": "http://localhost:5173/adjustment",
+    "url": "http://localhost:5174/adjustment",
     "status": "OK",
     "errors": [],
     "http_status": 200

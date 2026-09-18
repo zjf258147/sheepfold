@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api import shipment, auth, user, dashboard, inventory, product, partner, customer, inbound, outbound, snapshot, audit, settings, incoming, rma, bom, print, station, device_ledger, stocktake, inventory_adjustment
+from app.api import shipment, auth, user, dashboard, inventory, product, partner, customer, inbound, outbound, snapshot, audit, settings, incoming, rma, bom, print, station, device_ledger, stocktake, inventory_adjustment, docs
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -28,3 +28,4 @@ api_router.include_router(station.router)
 api_router.include_router(device_ledger.router)
 api_router.include_router(stocktake.router)
 api_router.include_router(inventory_adjustment.router)
+api_router.include_router(docs.router)

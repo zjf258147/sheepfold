@@ -52,6 +52,7 @@ const routes = [
       { path: 'workflow', name: 'Workflow', component: () => import('@/views/WorkflowDiagram.vue'), meta: { title: '业务流程' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/Settings.vue'), meta: { title: '系统设置', admin: true } },
       { path: 'about', name: 'About', component: () => import('@/views/About.vue'), meta: { title: '关于' } },
+      { path: 'docs', name: 'Docs', component: () => import('@/views/Docs.vue'), meta: { title: '文档下载' } },
     ],
   },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue'), meta: { title: '404 页面未找到', public: true } },

@@ -67,3 +67,52 @@ export function ledgerQtyCellClass({ row, column }) {
   if (!LEDGER_QTY_LABELS.has(column.label)) return ''
   return ledgerQtyValue(row, column.label) === 0 ? 'qty-zero' : ''
 }
+
+/** 快照页面专用快捷选项（end=昨天，不超当天）。 */
+export const snapshotDateRangeShortcuts = [
+  {
+    text: '最近一周',
+    value: () => {
+      const end = getYesterday()
+      const start = new Date(end)
+      start.setDate(end.getDate() - 6)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一个月',
+    value: () => {
+      const end = getYesterday()
+      const start = new Date(end)
+      start.setMonth(end.getMonth() - 1)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近半年',
+    value: () => {
+      const end = getYesterday()
+      const start = new Date(end)
+      start.setMonth(end.getMonth() - 6)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一年',
+    value: () => {
+      const end = getYesterday()
+      const start = new Date(end)
+      start.setFullYear(end.getFullYear() - 1)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近两年',
+    value: () => {
+      const end = getYesterday()
+      const start = new Date(end)
+      start.setFullYear(end.getFullYear() - 2)
+      return [start, end]
+    },
+  },
+]

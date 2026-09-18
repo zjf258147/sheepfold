@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { listShipments, createShipment, updateShipment, deleteShipment } from '@/api/shipment'
 import { listSkus, listCategories } from '@/api/product'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
 import { getShipmentPrintData, getShipmentBatchPrintData } from '@/api/print'
 import PrintPreview from '@/print/components/PrintPreview.vue'
 import ShipmentPrint from '@/print/components/ShipmentPrint.vue'
@@ -154,7 +155,7 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
-  query.value = { keyword: '', category_id: null, sku_id: null, dateRange: [] }
+  query.value = { keyword: '', category_id: null, sku_id: null, dateRange: defaultDateRange({ months: 1 }) }
   page.value = 1
   fetchData()
 }
@@ -296,6 +297,7 @@ const handleSkuChange = (val) => {
 }
 
 onMounted(() => {
+  query.value.dateRange = defaultDateRange({ months: 1 })
   fetchCategories()
   fetchData()
 })
@@ -319,7 +321,8 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="发货日期">
-          <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" value-format="YYYY-MM-DD" style="width:240px" />
+          <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" :shortcuts="dateRangeShortcuts"
+          value-format="YYYY-MM-DD" style="width:240px" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>

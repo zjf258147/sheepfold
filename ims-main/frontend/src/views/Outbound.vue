@@ -15,7 +15,7 @@ import {
   OUTBOUND_TYPE_MAP, OPERATION_STATUS_MAP, PARTNER_TYPE_MAP,
   STOCK_CONDITION_MAP, statusTagType, selectableOutboundTypeEntries, selectableStockConditionEntries,
 } from '@/constants/enums'
-import { dateTimeColumnFormatter } from '@/utils/datetime'
+import { dateTimeColumnFormatter, dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
 
 const drawerVisible = ref(false)
 const drawerOrderNo = ref('')
@@ -77,7 +77,7 @@ const form = ref({ outbound_type: 'SOLD', partner_id: null, customer_name: '', r
 
 const dialogTitle = computed(() => (editingOrderId.value ? '编辑出库单' : '新增出库单'))
 
-onMounted(() => { loadData(); loadPartners(); loadCustomers(); loadSkus(); loadCategories() })
+onMounted(() => { query.value.dateRange = defaultDateRange({ months: 1 }); loadData(); loadPartners(); loadCustomers(); loadSkus(); loadCategories() })
 
 const filteredSkuList = computed(() => {
   if (!itemQuery.value.category_id) return skuList.value
@@ -155,7 +155,7 @@ function resetQuery() {
     outbound_type: '',
     partner_id: null,
     sku_id: null,
-    dateRange: [],
+    dateRange: defaultDateRange({ months: 1 }),
   }
   searchOrders()
 }
@@ -358,6 +358,7 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="YYYY-MM-DD"
+          :shortcuts="dateRangeShortcuts"
           style="width:260px"
         />
       </el-form-item>

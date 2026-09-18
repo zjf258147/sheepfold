@@ -5,7 +5,7 @@ import { listAuditLogs } from '@/api/audit'
 import { updateBranding, uploadLogo, clearLogo } from '@/api/settings'
 import { useBrandStore } from '@/stores/brand'
 import { USER_ROLE_MAP, AUDIT_ACTION_MAP, AUDIT_MODULE_MAP } from '@/constants/enums'
-import { dateTimeColumnFormatter } from '@/utils/datetime'
+import { dateTimeColumnFormatter, dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
 
 const brand = useBrandStore()
 const activeTab = ref('branding')
@@ -37,6 +37,7 @@ const detailVisible = ref(false)
 const detailRow = ref(null)
 
 onMounted(async () => {
+  auditQuery.value.dateRange = defaultDateRange({ days: 7 })
   await brand.fetchBranding()
   syncBrandingForm()
 })
@@ -125,7 +126,7 @@ function handleAuditSearch() {
 }
 
 function handleAuditReset() {
-  auditQuery.value = { operator_keyword: '', module: '', action: '', keyword: '', dateRange: [] }
+  auditQuery.value = { operator_keyword: '', module: '', action: '', keyword: '', dateRange: defaultDateRange({ days: 7 }) }
   handleAuditSearch()
 }
 
@@ -284,6 +285,7 @@ async function handleDeleteUser(row) {
               start-placeholder="开始"
               end-placeholder="结束"
               value-format="YYYY-MM-DD HH:mm:ss"
+              :shortcuts="dateRangeShortcuts"
               style="width:360px"
             />
           </el-form-item>

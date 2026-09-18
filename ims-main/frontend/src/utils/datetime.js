@@ -19,3 +19,64 @@ export function formatDateTime(value) {
 export function dateTimeColumnFormatter(_row, _column, cellValue) {
   return formatDateTime(cellValue)
 }
+
+const pad = (n) => String(n).padStart(2, '0')
+
+/** 计算默认日期范围 [start, end]，end=今天。 */
+export function defaultDateRange({ months = 1, days = 0 } = {}) {
+  const end = new Date()
+  const start = new Date()
+  if (days > 0) start.setDate(end.getDate() - days)
+  else start.setMonth(end.getMonth() - months)
+  const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return [fmt(start), fmt(end)]
+}
+
+/** el-date-picker daterange/datetimerange 快捷选项（end=今天）。 */
+export const dateRangeShortcuts = [
+  {
+    text: '最近一周',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 7 * 24 * 60 * 60 * 1000)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一个月',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setMonth(start.getMonth() - 1)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近半年',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setMonth(start.getMonth() - 6)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一年',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setFullYear(start.getFullYear() - 1)
+      return [start, end]
+    },
+  },
+  {
+    text: '最近两年',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setFullYear(start.getFullYear() - 2)
+      return [start, end]
+    },
+  },
+]

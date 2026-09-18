@@ -14,7 +14,7 @@ import {
   otherInboundBreakdownLines,
   otherOutboundBreakdownLines,
 } from '@/utils/ledgerDisplay'
-import { formatAmount, initDefaultDateRange, isSnapshotDateDisabled, ledgerQtyCellClass } from '@/utils/snapshotLedger'
+import { formatAmount, initDefaultDateRange, isSnapshotDateDisabled, ledgerQtyCellClass, snapshotDateRangeShortcuts } from '@/utils/snapshotLedger'
 import { Download, QuestionFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -92,6 +92,7 @@ async function handleSummaryExport() {
       end-placeholder="结束日期"
       value-format="YYYY-MM-DD"
       :disabled-date="isSnapshotDateDisabled"
+      :shortcuts="snapshotDateRangeShortcuts"
       style="width:260px"
     />
   </el-form-item>

@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { listRmaReturns, createRmaReturn, createRmaDiagnosis, createRmaRepair, createRmaScrap, assignRmaReturn, createRmaReship, createRmaQualityCheck, createRmaWarehouseIn, exportRmaReturns } from '@/api/rma'
 import { listSkus, listCategories } from '@/api/product'
+import { dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
 import { RMA_STATUS_MAP, RMA_STATUS_TAG, DIAGNOSIS_RESULT_MAP, ASSIGN_TYPE_MAP, QUALITY_CHECK_RESULT_MAP, WAREHOUSE_TYPE_MAP } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
@@ -226,7 +227,7 @@ async function handleExport() {
 }
 
 function reset() {
-  query.value = { keyword: '', category_id: null, sku_id: null, status: '', dateRange: [] }
+  query.value = { keyword: '', category_id: null, sku_id: null, status: '', dateRange: defaultDateRange({ months: 3 }) }
   skus.value = []
   search()
 }
@@ -479,6 +480,7 @@ async function submitReship() {
 }
 
 onMounted(() => {
+  query.value.dateRange = defaultDateRange({ months: 3 })
   loadOptions()
   loadData()
 })
@@ -497,7 +499,7 @@ onMounted(() => {
       <el-select v-model="query.status" placeholder="状态" clearable style="width:140px">
         <el-option v-for="(label, key) in RMA_STATUS_MAP" :key="key" :label="label" :value="key" />
       </el-select>
-      <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width:260px" />
+      <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" :shortcuts="dateRangeShortcuts" style="width:260px" />
       <el-button type="primary" @click="search">搜索</el-button>
       <el-button @click="reset">重置</el-button>
       <el-button type="primary" plain @click="openCreate">退货登记</el-button>

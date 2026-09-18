@@ -4,7 +4,7 @@ import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, 
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
 import { INCOMING_STATUS_MAP, INCOMING_STATUS_TAG, INSPECTION_RESULT_MAP } from '@/constants/enums'
-import { dateTimeColumnFormatter } from '@/utils/datetime'
+import { dateTimeColumnFormatter, dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
 import { Download } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getIncomingReceiptPrintData, getIncomingReceiptBatchPrintData, getIncomingInspectionPrintData, getIncomingInspectionBatchPrintData, getIncomingReturnPrintData, getIncomingReturnBatchPrintData } from '@/api/print'
@@ -251,7 +251,7 @@ function search() {
 }
 
 function resetQuery() {
-  query.value = { keyword: '', category_id: null, sku_id: null, supplier_id: null, status: '', dateRange: [] }
+  query.value = { keyword: '', category_id: null, sku_id: null, supplier_id: null, status: '', dateRange: defaultDateRange({ months: 1 }) }
   skus.value = []
   search()
 }
@@ -398,6 +398,7 @@ async function submitConfirm() {
 }
 
 onMounted(() => {
+  query.value.dateRange = defaultDateRange({ months: 1 })
   loadOptions()
   loadData()
 })
@@ -437,6 +438,7 @@ onMounted(() => {
           start-placeholder="开始"
           end-placeholder="结束"
           value-format="YYYY-MM-DD"
+          :shortcuts="dateRangeShortcuts"
           style="width:240px"
         />
       </el-form-item>

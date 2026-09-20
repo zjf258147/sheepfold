@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 import { listUsers, createUser, toggleUserStatus, deleteUser } from '@/api/user'
 import { listAuditLogs } from '@/api/audit'
 import { updateBranding, uploadLogo, clearLogo } from '@/api/settings'
@@ -33,11 +34,13 @@ const auditQuery = ref({
   keyword: '',
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('settings_audit', auditQuery, { defaultDays: 7 }).clearStorage
+
 const detailVisible = ref(false)
 const detailRow = ref(null)
 
 onMounted(async () => {
-  auditQuery.value.dateRange = defaultDateRange({ days: 7 })
   await brand.fetchBranding()
   syncBrandingForm()
 })
@@ -126,6 +129,7 @@ function handleAuditSearch() {
 }
 
 function handleAuditReset() {
+  clearStorage()
   auditQuery.value = { operator_keyword: '', module: '', action: '', keyword: '', dateRange: defaultDateRange({ days: 7 }) }
   handleAuditSearch()
 }

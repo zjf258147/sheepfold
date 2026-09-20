@@ -12,6 +12,7 @@ import { listPartners } from '@/api/partner'
 import { listOutboundOrders, getOutboundOrder } from '@/api/outbound'
 import { INBOUND_MODE_MAP, STOCK_CONDITION_MAP, OPERATION_STATUS_MAP, PARTNER_TYPE_MAP, statusTagType, inboundModeLabel, selectableReturnConditionEntries, stockConditionFromOutboundType, outboundOptionLabel, stockConditionLabel } from '@/constants/enums'
 import { dateTimeColumnFormatter, dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 
 const drawerVisible = ref(false)
 const drawerOrderNo = ref('')
@@ -31,6 +32,8 @@ const query = ref({
   sku_id: null,
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('inbound', query, { defaultMonths: 1 }).clearStorage
 
 const inboundTypeOptions = computed(() => [
   {
@@ -123,7 +126,7 @@ const form = ref({
   lines: [{ sku_id: null, quantity: 1, unit_price: null, item_sns: '' }],
 })
 
-onMounted(() => { query.value.dateRange = defaultDateRange({ months: 1 }); loadData(); loadSkus(); loadPartners(); loadCategories() })
+onMounted(() => { loadData(); loadSkus(); loadPartners(); loadCategories() })
 
 const selectedOutboundOrder = computed(() =>
   outboundOptions.value.find(o => o.id === form.value.related_outbound_order_id),
@@ -194,6 +197,7 @@ async function handleExport() {
 }
 
 function resetQuery() {
+  clearStorage()
   query.value = {
     order_no: '',
     operation_status: '',

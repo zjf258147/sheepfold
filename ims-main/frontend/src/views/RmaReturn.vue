@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { listRmaReturns, createRmaReturn, createRmaDiagnosis, createRmaRepair, createRmaScrap, assignRmaReturn, createRmaReship, createRmaQualityCheck, createRmaWarehouseIn, exportRmaReturns } from '@/api/rma'
 import { listSkus, listCategories } from '@/api/product'
 import { dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 import { RMA_STATUS_MAP, RMA_STATUS_TAG, DIAGNOSIS_RESULT_MAP, ASSIGN_TYPE_MAP, QUALITY_CHECK_RESULT_MAP, WAREHOUSE_TYPE_MAP } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
@@ -23,6 +24,8 @@ const query = ref({
   status: '',
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('rma_return', query, { defaultMonths: 3 }).clearStorage
 
 const printVisible = ref(false)
 const printData = ref(null)
@@ -227,6 +230,7 @@ async function handleExport() {
 }
 
 function reset() {
+  clearStorage()
   query.value = { keyword: '', category_id: null, sku_id: null, status: '', dateRange: defaultDateRange({ months: 3 }) }
   skus.value = []
   search()
@@ -480,7 +484,6 @@ async function submitReship() {
 }
 
 onMounted(() => {
-  query.value.dateRange = defaultDateRange({ months: 3 })
   loadOptions()
   loadData()
 })

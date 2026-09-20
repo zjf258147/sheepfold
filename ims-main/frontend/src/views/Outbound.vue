@@ -16,6 +16,7 @@ import {
   STOCK_CONDITION_MAP, statusTagType, selectableOutboundTypeEntries, selectableStockConditionEntries,
 } from '@/constants/enums'
 import { dateTimeColumnFormatter, dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 
 const drawerVisible = ref(false)
 const drawerOrderNo = ref('')
@@ -35,6 +36,8 @@ const query = ref({
   sku_id: null,
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('outbound', query, { defaultMonths: 1 }).clearStorage
 
 const dialogVisible = ref(false)
 const editingOrderId = ref(null)
@@ -77,7 +80,7 @@ const form = ref({ outbound_type: 'SOLD', partner_id: null, customer_name: '', r
 
 const dialogTitle = computed(() => (editingOrderId.value ? '编辑出库单' : '新增出库单'))
 
-onMounted(() => { query.value.dateRange = defaultDateRange({ months: 1 }); loadData(); loadPartners(); loadCustomers(); loadSkus(); loadCategories() })
+onMounted(() => { loadData(); loadPartners(); loadCustomers(); loadSkus(); loadCategories() })
 
 const filteredSkuList = computed(() => {
   if (!itemQuery.value.category_id) return skuList.value
@@ -148,6 +151,7 @@ async function handleExport() {
 }
 
 function resetQuery() {
+  clearStorage()
   query.value = {
     order_no: '',
     item_sn: '',

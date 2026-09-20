@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn, confirmIncomingReceipt, exportIncomingReceipts } from '@/api/incoming'
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
@@ -27,6 +28,8 @@ const query = ref({
   status: '',
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('incoming', query, { defaultMonths: 1 }).clearStorage
 
 const categories = ref([])
 const skus = ref([])
@@ -251,6 +254,7 @@ function search() {
 }
 
 function resetQuery() {
+  clearStorage()
   query.value = { keyword: '', category_id: null, sku_id: null, supplier_id: null, status: '', dateRange: defaultDateRange({ months: 1 }) }
   skus.value = []
   search()
@@ -398,7 +402,6 @@ async function submitConfirm() {
 }
 
 onMounted(() => {
-  query.value.dateRange = defaultDateRange({ months: 1 })
   loadOptions()
   loadData()
 })

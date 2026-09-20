@@ -4,6 +4,7 @@ import { listShipments, createShipment, updateShipment, deleteShipment } from '@
 import { listSkus, listCategories } from '@/api/product'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
+import { useFilterPersist } from '@/composables/useFilterPersist'
 import { getShipmentPrintData, getShipmentBatchPrintData } from '@/api/print'
 import PrintPreview from '@/print/components/PrintPreview.vue'
 import ShipmentPrint from '@/print/components/ShipmentPrint.vue'
@@ -19,6 +20,8 @@ const query = ref({
   sku_id: null,
   dateRange: [],
 })
+
+const clearStorage = useFilterPersist('shipment', query, { defaultMonths: 1 }).clearStorage
 
 const categories = ref([])
 const skus = ref([])
@@ -155,6 +158,7 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
+  clearStorage()
   query.value = { keyword: '', category_id: null, sku_id: null, dateRange: defaultDateRange({ months: 1 }) }
   page.value = 1
   fetchData()
@@ -302,7 +306,6 @@ const handleSkuChange = (val) => {
 }
 
 onMounted(() => {
-  query.value.dateRange = defaultDateRange({ months: 1 })
   fetchCategories()
   fetchData()
 })

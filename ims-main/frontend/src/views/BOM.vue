@@ -138,6 +138,9 @@ const handleSkuChange = (val) => {
   if (sku) {
     form.value.product_sku_code = sku.sku_code || ''
     form.value.product_sku_name = sku.name || ''
+  } else {
+    form.value.product_sku_code = ''
+    form.value.product_sku_name = ''
   }
 }
 
@@ -159,6 +162,11 @@ const onDetailMaterialChange = (index, val) => {
     formDetails.value[index].material_sku_name = mat.name || ''
     formDetails.value[index].spec = mat.spec || ''
     formDetails.value[index].unit = mat.unit || '个'
+  } else {
+    formDetails.value[index].material_sku_code = ''
+    formDetails.value[index].material_sku_name = ''
+    formDetails.value[index].spec = ''
+    formDetails.value[index].unit = ''
   }
 }
 

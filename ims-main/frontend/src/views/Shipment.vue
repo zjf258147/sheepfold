@@ -293,6 +293,11 @@ const handleSkuChange = (val) => {
     form.value.sku_name = sku.name || ''
     form.value.spec = sku.spec || ''
     form.value.unit = sku.unit || '个'
+  } else {
+    form.value.sku_code = ''
+    form.value.sku_name = ''
+    form.value.spec = ''
+    form.value.unit = ''
   }
 }
 

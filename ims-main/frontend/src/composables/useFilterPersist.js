@@ -11,36 +11,18 @@ export function useFilterPersist(key, query, opts = {}) {
   let watchStop = null
   let saveTimer = null
 
-  function readBool(val) {
-    return val === true || String(val).toLowerCase() === 'true'
-  }
-
   function load() {
     try {
       const raw = localStorage.getItem(storageKey)
       if (!raw) return false
       const saved = JSON.parse(raw)
-      const ago = Date.now() - saved._ts
-      if (ago > CACHE_TTL) {
+      if (Date.now() - saved._ts > CACHE_TTL) {
         localStorage.removeItem(storageKey)
         return false
       }
       const keys = Object.keys(saved).filter(k => !k.startsWith('_'))
       for (const k of keys) {
-        const v = saved[k]
-        if (Array.isArray(v)) {
-          if (k === 'dateRange' && readBool(saved._shortcut)) {
-            query.value.dateRange = defaultDateRange(
-              saved._shortcutDays
-                ? { days: saved._shortcutDays }
-                : { months: saved._shortcutMonths || defaultMonths }
-            )
-          } else {
-            query.value[k] = v
-          }
-        } else {
-          query.value[k] = v
-        }
+        query.value[k] = saved[k]
       }
       return true
     } catch {

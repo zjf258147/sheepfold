@@ -182,25 +182,28 @@ function formatDate(v) {
       <el-form-item label="地址">
         <el-input v-model="form.address" placeholder="地址" type="textarea" :rows="2" />
       </el-form-item>
-      <el-divider content-position="left">合同信息</el-divider>
-      <el-form-item label="合同编号">
-        <el-input v-model="form.contract_no" placeholder="合同编号" maxlength="50" />
-      </el-form-item>
-      <el-row :gutter="12">
-        <el-col :span="12">
-          <el-form-item label="合同起始">
-            <el-date-picker v-model="form.contract_start" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+      <el-collapse>
+        <el-collapse-item title="合同与扩展">
+          <el-form-item label="合同编号">
+            <el-input v-model="form.contract_no" placeholder="合同编号" maxlength="50" />
           </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="合同到期">
-            <el-date-picker v-model="form.contract_end" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+          <el-row :gutter="12">
+            <el-col :span="12">
+              <el-form-item label="合同起始">
+                <el-date-picker v-model="form.contract_start" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="合同到期">
+                <el-date-picker v-model="form.contract_end" type="date" placeholder="选择日期" style="width:100%" value-format="YYYY-MM-DD" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="备注">
+            <el-input v-model="form.remark" placeholder="备注" type="textarea" :rows="2" />
           </el-form-item>
-        </el-col>
-      </el-row>
-      <el-form-item label="备注">
-        <el-input v-model="form.remark" placeholder="备注" type="textarea" :rows="2" />
-      </el-form-item>
+        </el-collapse-item>
+      </el-collapse>
     </el-form>
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>

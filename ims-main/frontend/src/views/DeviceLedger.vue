@@ -292,17 +292,21 @@ function formatDate(v) {
       <el-form-item label="质保到期">
         <el-date-picker v-model="form.warranty_end" type="date" placeholder="请选择日期" style="width:100%" value-format="YYYY-MM-DD" />
       </el-form-item>
-      <el-form-item label="软件版本">
-        <el-input v-model="form.software_version" placeholder="请输入软件版本号" maxlength="50" />
-      </el-form-item>
-      <el-form-item v-if="form.id" label="状态">
-        <el-select v-model="form.status" style="width:100%">
-          <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注">
-        <el-input v-model="form.remark" placeholder="请输入备注" type="textarea" :rows="2" />
-      </el-form-item>
+      <el-collapse>
+        <el-collapse-item title="其他信息">
+          <el-form-item label="软件版本">
+            <el-input v-model="form.software_version" placeholder="请输入软件版本号" maxlength="50" />
+          </el-form-item>
+          <el-form-item v-if="form.id" label="状态">
+            <el-select v-model="form.status" style="width:100%">
+              <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input v-model="form.remark" placeholder="请输入备注" type="textarea" :rows="2" />
+          </el-form-item>
+        </el-collapse-item>
+      </el-collapse>
     </el-form>
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>

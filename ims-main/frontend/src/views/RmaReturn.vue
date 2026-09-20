@@ -332,7 +332,7 @@ function openRepair(row) {
     return_id: row.id,
     repair_by: null,
     old_sn: row.sn,
-    new_sn: '',
+    new_sn: row.sn,
     repair_description: '',
     materials_used: '',
     fault_code: '',
@@ -397,7 +397,7 @@ function openWarehouseIn(row) {
   currentReturn.value = row
   warehouseInForm.value = {
     return_id: row.id,
-    new_sn: row.new_sn || '',
+    new_sn: row.new_sn || row.sn,
     repair_count: 1,
     repair_reason: row.repair_reason || '',
     warehouse_type: 'ZERO_COST_FINISHED',

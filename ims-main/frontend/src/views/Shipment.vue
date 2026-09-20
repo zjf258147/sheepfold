@@ -398,10 +398,17 @@ onMounted(() => {
             <el-option v-for="s in dialogSkus" :key="s.id" :label="`${s.sku_code || ''} ${s.name}`" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="物料编码"><el-input v-model="form.sku_code" disabled /></el-form-item>
-        <el-form-item label="物料名称"><el-input v-model="form.sku_name" disabled /></el-form-item>
-        <el-form-item label="规格"><el-input v-model="form.spec" disabled /></el-form-item>
-        <el-form-item label="单位"><el-input v-model="form.unit" disabled /></el-form-item>
+        <el-form-item label="物料信息">
+          <div class="sku-info-bar">
+            <span class="info-item"><label>编码</label>{{ form.sku_code || '—' }}</span>
+            <el-divider direction="vertical" />
+            <span class="info-item"><label>名称</label>{{ form.sku_name || '—' }}</span>
+            <el-divider direction="vertical" />
+            <span class="info-item"><label>规格</label>{{ form.spec || '—' }}</span>
+            <el-divider direction="vertical" />
+            <span class="info-item"><label>单位</label>{{ form.unit || '—' }}</span>
+          </div>
+        </el-form-item>
         <el-form-item label="SN列表" required>
           <div style="display:flex;gap:8px;align-items:flex-start">
             <BarcodeScanner v-model="scanSn" placeholder="扫码添加SN" @scan="appendSn" style="flex:1" />
@@ -420,15 +427,19 @@ onMounted(() => {
         <el-form-item label="快递单号" required>
           <el-input v-model="form.tracking_no" placeholder="快递单号" />
         </el-form-item>
-        <el-form-item label="U9任务单号">
-          <el-input v-model="form.u9_task_no" placeholder="关联U9任务单号" />
-        </el-form-item>
-        <el-form-item label="TF卡版本">
-          <el-input v-model="form.tf_version" placeholder="TF卡版本号" />
-        </el-form-item>
-        <el-form-item label="上位机版本">
-          <el-input v-model="form.host_version" placeholder="上位机版本号" />
-        </el-form-item>
+        <el-collapse>
+          <el-collapse-item title="技术参数（可选）">
+            <el-form-item label="U9任务单号">
+              <el-input v-model="form.u9_task_no" placeholder="关联U9任务单号" />
+            </el-form-item>
+            <el-form-item label="TF卡版本">
+              <el-input v-model="form.tf_version" placeholder="TF卡版本号" />
+            </el-form-item>
+            <el-form-item label="上位机版本">
+              <el-input v-model="form.host_version" placeholder="上位机版本号" />
+            </el-form-item>
+          </el-collapse-item>
+        </el-collapse>
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="备注" />
         </el-form-item>
@@ -453,4 +464,7 @@ onMounted(() => {
 .search-card { margin-bottom: 16px; }
 .table-card { }
 .toolbar { margin-bottom: 16px; display: flex; gap: 8px; }
+.sku-info-bar { display:flex; align-items:center; gap:4px; padding:4px 0; }
+.sku-info-bar .info-item { white-space:nowrap; font-size:13px; }
+.sku-info-bar .info-item label { color:#909399; margin-right:2px; }
 </style>

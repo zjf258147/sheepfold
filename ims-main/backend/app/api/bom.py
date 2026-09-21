@@ -3,8 +3,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from urllib.parse import quote
 
-from app.core.deps import get_current_user, get_db, require_roles
-from app.models.enums import UserRole
+from app.core.deps import get_current_user, get_db
+from app.core.permissions import require_permission
 from app.models.user import User
 from app.schemas.bom import BomCreate, BomDetailResponse, BomResponse, BomUpdate, ProductionTaskCreate, ProductionTaskResponse, ProductionTaskUpdate
 from app.schemas.common import PageResult, R
@@ -12,11 +12,6 @@ from app.service import bom_service
 from app.utils.request_ip import get_client_ip
 
 router = APIRouter(prefix="/bom", tags=["主线D BOM管理"])
-
-# 允许创建/编辑 BOM 的角色
-BOM_EDIT_ROLES = require_roles(
-    UserRole.ADMIN.value, UserRole.WAREHOUSE.value, UserRole.PRODUCTION.value,
-)
 
 
 @router.get("/list")
@@ -61,7 +56,7 @@ def download_bom_template(_: User = Depends(get_current_user)):
 async def import_bom(
     file: UploadFile,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("bom.import")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         from fastapi import HTTPException
@@ -86,7 +81,7 @@ def create_bom(
     data: BomCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("bom.create_edit")),
 ):
     try:
         bom = bom_service.create_bom(db, data, current_user.username, get_client_ip(request))
@@ -101,7 +96,7 @@ def update_bom(
     data: BomUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("bom.create_edit")),
 ):
     try:
         bom = bom_service.update_bom(db, bom_id, data, current_user.username, get_client_ip(request))
@@ -115,7 +110,7 @@ def delete_bom(
     bom_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("bom.create_edit")),
 ):
     try:
         bom_service.delete_bom(db, bom_id, current_user.username, get_client_ip(request))
@@ -158,7 +153,7 @@ def create_task(
     data: ProductionTaskCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("production_task.create_edit")),
 ):
     try:
         task = bom_service.create_task(db, data, current_user.username, get_client_ip(request))
@@ -173,7 +168,7 @@ def update_task(
     data: ProductionTaskUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("production_task.create_edit")),
 ):
     try:
         task = bom_service.update_task(db, task_id, data, current_user.username, get_client_ip(request))
@@ -187,7 +182,7 @@ def delete_task(
     task_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(BOM_EDIT_ROLES),
+    current_user: User = Depends(require_permission("production_task.create_edit")),
 ):
     try:
         bom_service.delete_task(db, task_id, current_user.username, get_client_ip(request))

@@ -63,25 +63,24 @@ const allMenus = [
       { path: '/snapshot', title: '历史快照', icon: Camera },
     ],
   },
-  { path: '/inbound', title: '入库', icon: Download, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'PRODUCTION'] },
-  { path: '/incoming', title: '来料管理', icon: Box, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY'] },
-  { path: '/rma', title: '返厂维修', icon: Tools, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'TEST_ENGINEER', 'PRODUCTION'] },
-  { path: '/shipment', title: '出货管理', icon: Goods, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'PRODUCTION'] },
+  { path: '/inbound', title: '入库', icon: Download },
+  { path: '/incoming', title: '来料管理', icon: Box },
+  { path: '/rma', title: '返厂维修', icon: Tools },
+  { path: '/shipment', title: '出货管理', icon: Goods },
   {
     title: 'BOM',
     icon: Box,
-    roles: ['ADMIN', 'WAREHOUSE', 'PRODUCTION'],
     children: [
       { path: '/bom', title: 'BOM管理', icon: List },
       { path: '/production-task', title: '生产任务', icon: Setting },
     ],
   },
-  { path: '/outbound', title: '出库', icon: Upload, roles: ['ADMIN', 'WAREHOUSE', 'QUALITY', 'PRODUCTION'] },
+  { path: '/outbound', title: '出库', icon: Upload },
   { path: '/products', title: '商品SKU', icon: Goods },
-  { path: '/station', title: '场站管理', icon: OfficeBuilding, roles: ['ADMIN', 'WAREHOUSE'] },
-  { path: '/device-ledger', title: '设备台账', icon: Connection, roles: ['ADMIN', 'WAREHOUSE', 'TEST_ENGINEER'] },
-  { path: '/stocktake', title: '盘点管理', icon: List, roles: ['ADMIN', 'WAREHOUSE'] },
-  { path: '/adjustment', title: '库存调整', icon: Tools, roles: ['ADMIN', 'WAREHOUSE'] },
+  { path: '/station', title: '场站管理', icon: OfficeBuilding },
+  { path: '/device-ledger', title: '设备台账', icon: Connection },
+  { path: '/stocktake', title: '盘点管理', icon: List },
+  { path: '/adjustment', title: '库存调整', icon: Tools },
   { path: '/customers', title: '客户管理', icon: User },
   { path: '/partners', title: '往来单位', icon: OfficeBuilding },
   { path: '/workflow', title: '业务流程', icon: Connection },
@@ -90,10 +89,8 @@ const allMenus = [
 ]
 
 const menus = computed(() => {
-  const role = auth.role || ''
   return allMenus.filter((m) => {
     if (m.adminOnly && !auth.isAdmin) return false
-    if (m.roles && !m.roles.includes(role) && !auth.isAdmin) return false
     return true
   })
 })
@@ -257,7 +254,7 @@ async function submitPasswordChange() {
             <div class="notify-popover">
               <div v-if="!isOnline" class="notify-offline">
                 <el-icon><WarningFilled /></el-icon>
-                <span>网络异常，数据可能不是最新</span>
+                <span>未连接公司服务器，请连接公司WiFi</span>
               </div>
               <div class="notify-list">
                 <div class="notify-item" v-if="pollData.inbound_pending">
@@ -321,7 +318,7 @@ async function submitPasswordChange() {
       </el-header>
       <div v-if="!networkOnline" class="offline-banner">
         <el-icon><WarningFilled /></el-icon>
-        <span>网络已断开，请检查设备网络连接</span>
+        <span>网络已断开，请连接公司WiFi</span>
       </div>
       <el-main class="main">
         <router-view />

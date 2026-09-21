@@ -51,7 +51,14 @@ def seed_users(db: Session) -> dict:
         role=UserRole.TEST_ENGINEER.value,
         status=1,
     )
-    db.add_all([admin, warehouse, quality, production, test_eng])
+    staff = User(
+        username="staff",
+        password=hash_password("123456"),
+        nickname="普通员工",
+        role=UserRole.STAFF.value,
+        status=1,
+    )
+    db.add_all([admin, warehouse, quality, production, test_eng, staff])
     db.flush()
     return {
         "admin": admin,
@@ -59,6 +66,7 @@ def seed_users(db: Session) -> dict:
         "quality": quality,
         "production": production,
         "test_eng": test_eng,
+        "staff": staff,
     }
 
 

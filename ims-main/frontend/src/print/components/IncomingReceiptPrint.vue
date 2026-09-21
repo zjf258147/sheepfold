@@ -63,7 +63,7 @@ const globalPageNo = (entry) => allPages.value.indexOf(entry) + 1
 
 <template>
   <div class="print-document incoming-receipt-print">
-    <div v-for="(entry, entryIdx) in allPages" :key="`${entry.groupIdx}-${entry.pageInGroup}`" class="print-page">
+    <div v-for="(entry, _entryIdx) in allPages" :key="`${entry.groupIdx}-${entry.pageInGroup}`" class="print-page">
       <div class="header-accent"></div>
       <div class="brand-area">
         <div class="company-full">{{ COMPANY_INFO.fullName }}</div>

@@ -6,6 +6,7 @@ import {
 } from '@/api/partner'
 import { PARTNER_TYPE_MAP } from '@/constants/enums'
 import { Edit, Delete } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 
 const activeTab = ref('partner')
 const groups = ref([])
@@ -109,8 +110,12 @@ async function removePartner(row) {
 
 <template>
   <el-card shadow="never" style="position: relative;">
-    <el-button v-if="activeTab === 'partner'" type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openPartnerDialog()">新增单位</el-button>
-    <el-button v-if="activeTab === 'group'" type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openGroupDialog()">新增分组</el-button>
+    <PermissionButton v-if="activeTab === 'partner'" permKey="partner.manage" tip="仅仓库管理员可管理单位">
+      <el-button type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openPartnerDialog()">新增单位</el-button>
+    </PermissionButton>
+    <PermissionButton v-if="activeTab === 'group'" permKey="partner.manage" tip="仅仓库管理员可管理分组">
+      <el-button type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openGroupDialog()">新增分组</el-button>
+    </PermissionButton>
     <el-tabs v-model="activeTab">
       <el-tab-pane label="往来单位" name="partner">
         <el-table :data="partners" v-loading="loading" stripe style="margin-top:12px">
@@ -125,8 +130,12 @@ async function removePartner(row) {
           <el-table-column prop="remark" label="备注" show-overflow-tooltip />
           <el-table-column label="操作">
             <template #default="{ row }">
-              <el-button type="primary" link :icon="Edit" title="编辑" @click="openPartnerDialog(row)" />
-              <el-button type="danger" link :icon="Delete" title="删除" @click="removePartner(row)" />
+              <PermissionButton permKey="partner.manage">
+                <el-button type="primary" link :icon="Edit" title="编辑" @click="openPartnerDialog(row)" />
+              </PermissionButton>
+              <PermissionButton permKey="partner.manage">
+                <el-button type="danger" link :icon="Delete" title="删除" @click="removePartner(row)" />
+              </PermissionButton>
             </template>
           </el-table-column>
         </el-table>
@@ -148,8 +157,12 @@ async function removePartner(row) {
           <el-table-column prop="name" label="分组名称" />
           <el-table-column label="操作">
             <template #default="{ row }">
-              <el-button type="primary" link :icon="Edit" title="编辑" @click="openGroupDialog(row)" />
-              <el-button type="danger" link :icon="Delete" title="删除" @click="removeGroup(row)" />
+              <PermissionButton permKey="partner.manage">
+                <el-button type="primary" link :icon="Edit" title="编辑" @click="openGroupDialog(row)" />
+              </PermissionButton>
+              <PermissionButton permKey="partner.manage">
+                <el-button type="danger" link :icon="Delete" title="删除" @click="removeGroup(row)" />
+              </PermissionButton>
             </template>
           </el-table-column>
         </el-table>

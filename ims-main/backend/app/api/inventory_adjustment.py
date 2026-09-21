@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import R, PageResult
@@ -53,7 +54,7 @@ def get_adjustment(
 def create_adjustment(
     body: InventoryAdjustmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("adjustment.confirm")),
 ):
     try:
         adj = inventory_adjustment_service.create_adjustment(db, body, current_user.id)
@@ -66,7 +67,7 @@ def create_adjustment(
 def confirm_adjustments(
     body: InventoryAdjustmentConfirmRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("adjustment.confirm")),
 ):
     try:
         items = inventory_adjustment_service.confirm_adjustments(db, body.adjustment_ids, current_user.id)

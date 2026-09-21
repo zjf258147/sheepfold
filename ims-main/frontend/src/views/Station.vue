@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { Edit, Delete, Search } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listStations, createStation, updateStation, deleteStation } from '@/api/station'
 import { listCustomers } from '@/api/customer'
 
@@ -172,7 +173,9 @@ async function handleDelete(row) {
     </el-form>
 
     <div style="margin-bottom: 12px">
-      <el-button type="primary" @click="openDialog()">新增场站</el-button>
+      <PermissionButton permKey="station.create_edit" tip="仅仓库管理员可管理场站">
+        <el-button type="primary" @click="openDialog()">新增场站</el-button>
+      </PermissionButton>
     </div>
 
     <el-table :data="stations" v-loading="loading" stripe>
@@ -196,8 +199,12 @@ async function handleDelete(row) {
       <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
       <el-table-column label="操作" width="140">
         <template #default="{ row }">
-          <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
-          <el-button type="danger" link :icon="Delete" @click="handleDelete(row)">删除</el-button>
+          <PermissionButton permKey="station.create_edit">
+            <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="station.create_edit">
+            <el-button type="danger" link :icon="Delete" @click="handleDelete(row)">删除</el-button>
+          </PermissionButton>
         </template>
       </el-table-column>
     </el-table>

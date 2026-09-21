@@ -2,7 +2,7 @@
 import asyncio, httpx, time, sys, os, json
 from datetime import datetime
 
-BASE_URL = "http://localhost:8001"
+BASE_URL = "http://localhost:8000"
 FRONT_URL = "http://localhost:5174"
 PASS = 0; FAIL = 0; RESULTS = []
 

@@ -6,11 +6,13 @@ from sqlalchemy.orm import Session
 from urllib.parse import quote
 
 from app.core.deps import get_current_user, get_db
+from app.core.permissions import require_permission
 from app.models.user import User
 from app.schemas.rma import (
     RmaAssignCreate,
     RmaDiagnosisCreate,
     RmaDiagnosisResponse,
+    RmaKnowledgeBaseCreate,
     RmaQualityCheckCreate,
     RmaQualityCheckResponse,
     RmaRepairCreate,
@@ -66,7 +68,7 @@ def create_return(
     data: RmaReturnCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.create_return")),
 ):
     return rma_service.create_return(db, data, current_user, get_client_ip(request))
 
@@ -77,7 +79,7 @@ def assign_return(
     data: RmaAssignCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.assign")),
 ):
     return rma_service.assign_return(db, return_id, data, current_user, get_client_ip(request))
 
@@ -88,7 +90,7 @@ def transfer_return(
     data: RmaTransferRequest,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.warehouse_in")),
 ):
     return rma_service.transfer_return(db, return_id, data, current_user, get_client_ip(request))
 
@@ -103,7 +105,7 @@ def create_diagnosis(
     data: RmaDiagnosisCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.diagnose")),
 ):
     return rma_service.create_diagnosis(db, data, current_user, get_client_ip(request))
 
@@ -118,7 +120,7 @@ def create_repair(
     data: RmaRepairCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.repair")),
 ):
     return rma_service.create_repair(db, data, current_user, get_client_ip(request))
 
@@ -133,7 +135,7 @@ def create_scrap(
     data: RmaScrapCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.request_scrap")),
 ):
     return rma_service.create_scrap(db, data, current_user, get_client_ip(request))
 
@@ -144,7 +146,7 @@ def approve_scrap(
     data: RmaScrapApprove,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.approve_scrap")),
 ):
     return rma_service.approve_scrap(db, scrap_id, data, current_user, get_client_ip(request))
 
@@ -159,7 +161,7 @@ def create_reship(
     data: RmaReshipCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.reship")),
 ):
     return rma_service.create_reship(db, data, current_user, get_client_ip(request))
 
@@ -174,7 +176,7 @@ def create_quality_check(
     data: RmaQualityCheckCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.quality_check")),
 ):
     return rma_service.create_quality_check(db, data, current_user, get_client_ip(request))
 
@@ -189,7 +191,7 @@ def create_warehouse_in(
     data: RmaWarehouseInCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.warehouse_in")),
 ):
     return rma_service.create_warehouse_in(db, data, current_user, get_client_ip(request))
 
@@ -230,10 +232,82 @@ def download_rma_template(_: User = Depends(get_current_user)):
 async def import_rma(
     file: UploadFile,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("rma.create_return")),
 ):
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail='请上传 .xlsx 或 .xls 文件')
     content = await file.read()
     result = rma_service.import_rma_xlsx(db, content, current_user.username)
     return R.ok(data=result, msg=f"成功 {result['success']} 条，失败 {len(result['errors'])} 条")
+
+
+# ============================================================
+# 知识库
+# ============================================================
+
+
+@router.post("/knowledge-base", status_code=201, summary="创建知识库条目")
+def create_knowledge_base(
+    data: RmaKnowledgeBaseCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("rma.knowledge_base")),
+):
+    entry = rma_service.create_knowledge_base_entry(
+        db=db,
+        title=data.title,
+        fault_code=data.fault_code,
+        fault_symptom=data.fault_symptom,
+        solution=data.solution,
+        user=current_user,
+        tags=data.tags,
+        ip_address=get_client_ip(request),
+    )
+    return R.ok(data=rma_service._kb_entry_to_dict(entry))
+
+
+@router.get("/knowledge-base/search", summary="搜索知识库")
+def search_knowledge_base(
+    keyword: str = Query(..., min_length=1, description="搜索关键词"),
+    fault_code: str | None = Query(None, description="故障码精确匹配"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    items, total = rma_service.search_knowledge_base(
+        db, keyword=keyword, fault_code=fault_code, page=page, page_size=page_size
+    )
+    return R.ok(data=[rma_service._kb_entry_to_dict(item) for item in items])
+
+
+@router.post("/knowledge-base/from-repair/{repair_id}", status_code=201, summary="从维修工单沉淀知识")
+def create_knowledge_base_from_repair(
+    repair_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("rma.knowledge_base")),
+):
+    entry = rma_service.create_knowledge_base_from_repair(
+        db=db,
+        repair_id=repair_id,
+        user=current_user,
+        ip_address=get_client_ip(request),
+    )
+    return R.ok(data=rma_service._kb_entry_to_dict(entry))
+
+
+@router.post("/knowledge-base/{entry_id}/publish", summary="发布知识库条目")
+def publish_knowledge_base(
+    entry_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("rma.knowledge_base")),
+):
+    entry = rma_service.publish_knowledge_base_entry(
+        db=db,
+        entry_id=entry_id,
+        user=current_user,
+        ip_address=get_client_ip(request),
+    )
+    return R.ok(data=rma_service._kb_entry_to_dict(entry))

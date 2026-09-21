@@ -13,6 +13,6 @@ from app.models.inbound import InboundOrder, InboundOrderLine, InboundOrderItem 
 from app.models.outbound import OutboundOrder, OutboundOrderItem  # noqa: F401
 from app.models.audit_log import AuditLog  # noqa: F401
 from app.models.system_config import SystemConfig  # noqa: F401
-from app.models.rma import RmaReturn, RmaDiagnosis, RmaRepair, RmaQualityCheck, RmaWarehouseIn, RmaScrap, RmaReship  # noqa: F401
+from app.models.rma import RmaReturn, RmaDiagnosis, RmaRepair, RmaQualityCheck, RmaWarehouseIn, RmaScrap, RmaReship, RmaKnowledgeBase  # noqa: F401
 from app.models.shipment import Shipment  # noqa: F401
 from app.models.bom import BomHeader, BomDetail, ProductionTask  # noqa: F401

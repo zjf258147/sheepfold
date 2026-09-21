@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-17T12:38:14.801583",
+  "timestamp": "2026-09-18T15:58:03.666969",
   "pass": 60,
   "fail": 0,
   "total": 60,
@@ -152,103 +152,103 @@
       "section": "API",
       "test": "库存",
       "status": "PASS",
-      "detail": "200/270ms"
+      "detail": "200/287ms"
     },
     {
       "section": "API",
       "test": "到货",
       "status": "PASS",
-      "detail": "200/11ms"
+      "detail": "200/61ms"
     },
     {
       "section": "API",
       "test": "出货",
       "status": "PASS",
-      "detail": "200/7ms"
+      "detail": "200/59ms"
     },
     {
       "section": "API",
       "test": "返厂",
       "status": "PASS",
-      "detail": "200/10ms"
+      "detail": "200/21ms"
     },
     {
       "section": "API",
       "test": "BOM",
       "status": "PASS",
-      "detail": "200/10ms"
+      "detail": "200/75ms"
     },
     {
       "section": "API",
       "test": "场站",
       "status": "PASS",
-      "detail": "200/9ms"
+      "detail": "200/11ms"
     },
     {
       "section": "API",
       "test": "设备",
       "status": "PASS",
-      "detail": "200/9ms"
+      "detail": "200/16ms"
     },
     {
       "section": "API",
       "test": "盘点",
       "status": "PASS",
-      "detail": "200/7ms"
+      "detail": "200/15ms"
     },
     {
       "section": "API",
       "test": "调整",
       "status": "PASS",
-      "detail": "200/9ms"
+      "detail": "200/13ms"
     },
     {
       "section": "API",
       "test": "客户",
       "status": "PASS",
-      "detail": "200/7ms"
+      "detail": "200/13ms"
     },
     {
       "section": "API",
       "test": "往来单位",
       "status": "PASS",
-      "detail": "200/15ms"
+      "detail": "200/20ms"
     },
     {
       "section": "API",
       "test": "分类",
       "status": "PASS",
-      "detail": "200/8ms"
+      "detail": "200/10ms"
     },
     {
       "section": "API",
       "test": "看板",
       "status": "PASS",
-      "detail": "200/21ms"
+      "detail": "200/28ms"
     },
     {
       "section": "并发",
       "test": "×50 items",
       "status": "PASS",
-      "detail": "50/50/5.54s"
+      "detail": "50/50/5.46s"
     },
     {
       "section": "并发",
       "test": "×50 receipts",
       "status": "PASS",
-      "detail": "50/50/5.29s"
+      "detail": "50/50/5.65s"
     },
     {
       "section": "并发",
       "test": "×50 phase2-stats",
       "status": "PASS",
-      "detail": "50/50/5.29s"
+      "detail": "50/50/5.46s"
     },
     {
       "section": "并发",
       "test": "×50 stations",
       "status": "PASS",
-      "detail": "50/50/5.28s"
+      "detail": "50/50/6.18s"
     },
     {
       "section": "404",
@@ -320,43 +320,43 @@
       "section": "导出",
       "test": "库存",
       "status": "PASS",
-      "detail": "9938B/0.76s"
+      "detail": "9938B/0.34s"
     },
     {
       "section": "导出",
       "test": "到货",
       "status": "PASS",
-      "detail": "5864B/0.02s"
+      "detail": "5864B/0.04s"
     },
     {
       "section": "导出",
       "test": "返厂",
       "status": "PASS",
-      "detail": "5812B/0.02s"
+      "detail": "5812B/0.08s"
     },
     {
       "section": "导出",
       "test": "BOM",
       "status": "PASS",
-      "detail": "5429B/0.04s"
+      "detail": "5429B/0.03s"
     },
     {
       "section": "导出",
       "test": "出库",
       "status": "PASS",
-      "detail": "5641B/0.02s"
+      "detail": "5641B/0.03s"
     },
     {
       "section": "导出",
       "test": "入库",
       "status": "PASS",
-      "detail": "5560B/0.02s"
+      "detail": "5560B/0.15s"
     },
     {
       "section": "导出",
       "test": "SKU",
       "status": "PASS",
-      "detail": "6136B/0.03s"
+      "detail": "6136B/0.04s"
     },
     {
       "section": "导出",

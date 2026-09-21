@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.audit import AuditLogCreate
@@ -187,7 +188,7 @@ def download_inventory_template(_: User = Depends(get_current_user)):
 async def import_inventory(
     file: UploadFile,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("inventory.import")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
@@ -218,7 +219,7 @@ def complete_offline_sale(
     item_sn: str,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_permission("inventory.import")),
 ):
     item = inventory_service.get_item_by_sn(db, item_sn)
     if not item:

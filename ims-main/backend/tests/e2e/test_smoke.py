@@ -128,7 +128,7 @@ def main():
         (f"{BASE_URL}/inbound", "入库管理"),
         (f"{BASE_URL}/outbound", "出库管理"),
         (f"{BASE_URL}/inventory", "库存管理"),
-        (f"{BASE_URL}/rma/returns", "RMA返修"),
+        (f"{BASE_URL}/rma", "RMA返修"),
         (f"{BASE_URL}/bom", "BOM管理"),
         (f"{BASE_URL}/settings", "系统设置"),
     ]

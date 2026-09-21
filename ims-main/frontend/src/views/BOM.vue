@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listBoms, createBom, updateBom, deleteBom, checkAvailability, listTasks, createTask, updateTask, deleteTask, exportBoms } from '@/api/bom'
 import { listSkus, listCategories } from '@/api/product'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -110,7 +111,9 @@ const fetchCategories = async () => {
     categories.value = res.data || []
     const rmRes = await listSkus({ sku_type: 'RAW_MATERIAL', page_size: 1000 })
     rawMaterials.value = rmRes.data?.items || []
-  } catch {}
+  } catch (e) {
+    console.error('fetchCategories error:', e)
+  }
 }
 
 watch(() => query.value.category_id, async (val) => {
@@ -129,7 +132,9 @@ const onSkuCategoryChange = async (val) => {
     try {
       const res = await listSkus({ category_id: val, sku_type: 'FINISHED_GOODS' })
       dialogSkus.value = res.data || []
-    } catch {}
+    } catch (e) {
+      console.error('onSkuCategoryChange error:', e)
+    }
   }
 }
 
@@ -321,7 +326,9 @@ onMounted(() => { fetchCategories(); fetchData() })
 
     <el-card class="table-card">
       <div class="toolbar">
-        <el-button type="primary" @click="openCreate">创建BOM</el-button>
+        <PermissionButton permKey="bom.create" tip="仅仓库管理员或生产主管可创建BOM">
+          <el-button type="primary" @click="openCreate">创建BOM</el-button>
+        </PermissionButton>
         <el-button :loading="exportLoading" @click="handleExport">导出Excel</el-button>
         <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedBoms.length === 0" @click="handleBatchPrint">
           批量打印 {{ selectedBoms.length > 0 ? `(${selectedBoms.length})` : '' }}
@@ -347,11 +354,19 @@ onMounted(() => { fetchCategories(); fetchData() })
         <el-table-column label="操作" width="340">
             <template #default="{ row }">
               <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">打印</el-button>
-              <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
+              <PermissionButton permKey="bom.edit">
+                <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
+              </PermissionButton>
             <el-button type="success" link size="small" @click="openDetail(row)">明细</el-button>
-            <el-button type="warning" link size="small" @click="openAvailability(row)">齐套</el-button>
-            <el-button type="info" link size="small" @click="openTaskCreate(row)">任务</el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            <PermissionButton permKey="bom.publish">
+              <el-button type="warning" link size="small" @click="openAvailability(row)">齐套</el-button>
+            </PermissionButton>
+            <PermissionButton permKey="bom.create">
+              <el-button type="info" link size="small" @click="openTaskCreate(row)">任务</el-button>
+            </PermissionButton>
+            <PermissionButton permKey="bom.edit">
+              <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            </PermissionButton>
           </template>
         </el-table-column>
       </el-table>

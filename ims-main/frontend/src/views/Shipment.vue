@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listShipments, createShipment, updateShipment, deleteShipment } from '@/api/shipment'
 import { listSkus, listCategories } from '@/api/product'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -111,7 +112,9 @@ const onSkuCategoryChange = async (val) => {
     try {
       const res = await listSkus({ category_id: val })
       dialogSkus.value = res.data || []
-    } catch {}
+    } catch (e) {
+      console.error('onSkuCategoryChange error:', e)
+    }
   }
 }
 
@@ -138,7 +141,9 @@ const fetchCategories = async () => {
   try {
     const res = await listCategories()
     categories.value = res.data || []
-  } catch {}
+  } catch (e) {
+    console.error('fetchCategories error:', e)
+  }
 }
 
 watch(() => query.value.category_id, async (val) => {
@@ -148,7 +153,9 @@ watch(() => query.value.category_id, async (val) => {
     try {
       const res = await listSkus({ category_id: val })
       skus.value = res.data || []
-    } catch {}
+    } catch (e) {
+      console.error('watch category_id error:', e)
+    }
   }
 })
 
@@ -341,7 +348,9 @@ onMounted(() => {
 
     <el-card class="table-card">
       <div class="toolbar">
-        <el-button type="primary" @click="openCreate">出货登记</el-button>
+        <PermissionButton permKey="shipment.create" tip="仅仓库管理员可登记出货">
+          <el-button type="primary" @click="openCreate">出货登记</el-button>
+        </PermissionButton>
         <el-button :loading="exportLoading" @click="handleExport">导出CSV</el-button>
         <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedShipments.length === 0" @click="handleBatchPrint">
           批量打印 {{ selectedShipments.length > 0 ? `(${selectedShipments.length})` : '' }}
@@ -371,8 +380,12 @@ onMounted(() => {
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">打印</el-button>
-            <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            <PermissionButton permKey="shipment.edit">
+              <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
+            </PermissionButton>
+            <PermissionButton permKey="shipment.edit">
+              <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            </PermissionButton>
           </template>
         </el-table-column>
       </el-table>

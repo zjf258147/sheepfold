@@ -12,7 +12,7 @@ function showOfflineToast() {
   if (lastOnline === false) return
   ElMessage.closeAll()
   ElMessage({
-    message: '网络已断开，请检查设备网络连接',
+    message: '网络已断开，请连接公司WiFi',
     type: 'warning',
     duration: 0,
     showClose: true,
@@ -20,14 +20,36 @@ function showOfflineToast() {
   })
 }
 
-function showOnlineToast() {
+async function showOnlineToast() {
   ElMessage.closeAll()
-  ElMessage({
-    message: '网络已恢复',
-    type: 'success',
-    duration: 3000,
-    showClose: true,
-  })
+
+  let serverReachable = false
+  try {
+    const { getApiBaseUrl } = await import('@/utils/apiConfig')
+    const baseUrl = await getApiBaseUrl()
+    if (baseUrl) {
+      const controller = new AbortController()
+      setTimeout(() => controller.abort(), 2000)
+      const res = await fetch(`${baseUrl}/health`, { signal: controller.signal })
+      serverReachable = res.ok
+    }
+  } catch { /* ignore */ }
+
+  if (serverReachable) {
+    ElMessage({
+      message: '已连接公司网络 ✓',
+      type: 'success',
+      duration: 3000,
+      showClose: true,
+    })
+  } else {
+    ElMessage({
+      message: '设备已联网，请连接公司WiFi以访问服务器',
+      type: 'warning',
+      duration: 5000,
+      showClose: true,
+    })
+  }
 }
 
 function init() {
@@ -86,7 +108,9 @@ async function setupNative() {
 
 function cleanupNative() {
   listeners.forEach((h) => {
-    try { h.remove() } catch {}
+    try { h.remove() } catch (e) {
+    // ignore native listener removal errors
+  }
   })
   listeners = []
 }

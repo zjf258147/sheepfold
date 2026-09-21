@@ -6,7 +6,7 @@ import os, sys, time, subprocess
 from playwright.sync_api import sync_playwright
 
 BASE_URL = os.environ.get("E2E_BASE_URL", "http://localhost:5173")
-API_URL = os.environ.get("API_URL", "http://localhost:8001")
+API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
 def login(page):
     page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded", timeout=20000)

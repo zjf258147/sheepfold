@@ -1,8 +1,8 @@
 {
-  "total": 120,
-  "ok": 120,
+  "total": 135,
+  "ok": 131,
   "locked": 0,
-  "warn": 0,
+  "warn": 4,
   "fail": 0,
   "results": [
     {
@@ -10,840 +10,945 @@
       "page": "首页",
       "route": "/dashboard",
       "result": "✅",
-      "detail": "HTTP200 1284chars"
+      "detail": "HTTP200 1289chars"
     },
     {
       "role": "管理员",
       "page": "实时库存",
       "route": "/inventory",
       "result": "✅",
-      "detail": "HTTP200 1611chars"
+      "detail": "HTTP200 1616chars"
     },
     {
       "role": "管理员",
       "page": "按SKU统计库存",
       "route": "/inventory/sku",
       "result": "✅",
-      "detail": "HTTP200 1091chars"
+      "detail": "HTTP200 1096chars"
     },
     {
       "role": "管理员",
       "page": "按关联单位出库统计",
       "route": "/inventory/partner",
       "result": "✅",
-      "detail": "HTTP200 299chars"
+      "detail": "HTTP200 304chars"
     },
     {
       "role": "管理员",
       "page": "入库",
       "route": "/inbound",
       "result": "✅",
-      "detail": "HTTP200 519chars"
+      "detail": "HTTP200 524chars"
+    },
+    {
+      "role": "管理员",
+      "page": "入库详情",
+      "route": "/inbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 111chars err1"
     },
     {
       "role": "管理员",
       "page": "来料管理",
       "route": "/incoming",
       "result": "✅",
-      "detail": "HTTP200 1540chars"
+      "detail": "HTTP200 1545chars"
     },
     {
       "role": "管理员",
       "page": "返厂维修",
       "route": "/rma",
       "result": "✅",
-      "detail": "HTTP200 1203chars"
+      "detail": "HTTP200 1208chars"
     },
     {
       "role": "管理员",
       "page": "出货管理",
       "route": "/shipment",
       "result": "✅",
-      "detail": "HTTP200 259chars"
+      "detail": "HTTP200 264chars"
     },
     {
       "role": "管理员",
       "page": "BOM管理",
       "route": "/bom",
       "result": "✅",
-      "detail": "HTTP200 219chars"
+      "detail": "HTTP200 224chars"
     },
     {
       "role": "管理员",
       "page": "生产任务",
       "route": "/production-task",
       "result": "✅",
-      "detail": "HTTP200 529chars"
+      "detail": "HTTP200 214chars"
     },
     {
       "role": "管理员",
       "page": "出库",
       "route": "/outbound",
       "result": "✅",
-      "detail": "HTTP200 621chars"
+      "detail": "HTTP200 209chars"
+    },
+    {
+      "role": "管理员",
+      "page": "出库详情",
+      "route": "/outbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 100chars err1"
     },
     {
       "role": "管理员",
       "page": "库存流水",
       "route": "/snapshot",
       "result": "✅",
-      "detail": "HTTP200 2954chars"
+      "detail": "HTTP200 328chars"
     },
     {
       "role": "管理员",
       "page": "库存快照汇总",
       "route": "/snapshot/statistics",
       "result": "✅",
-      "detail": "HTTP200 1169chars"
+      "detail": "HTTP200 342chars"
     },
     {
       "role": "管理员",
       "page": "快照明细",
       "route": "/snapshot/details",
-      "result": "✅",
-      "detail": "HTTP200 1401chars"
+      "result": "⚠️",
+      "detail": "HTTP200 0chars"
     },
     {
       "role": "管理员",
       "page": "商品SKU",
       "route": "/products",
       "result": "✅",
-      "detail": "HTTP200 1236chars"
+      "detail": "HTTP200 185chars"
     },
     {
       "role": "管理员",
       "page": "往来单位",
       "route": "/partners",
-      "result": "✅",
-      "detail": "HTTP200 499chars"
+      "result": "⚠️",
+      "detail": "HTTP200 0chars"
     },
     {
       "role": "管理员",
       "page": "客户管理",
       "route": "/customers",
-      "result": "✅",
-      "detail": "HTTP200 576chars"
+      "result": "⚠️",
+      "detail": "HTTP200 0chars"
     },
     {
       "role": "管理员",
       "page": "系统设置",
       "route": "/settings",
       "result": "✅",
-      "detail": "HTTP200 220chars"
+      "detail": "HTTP200 222chars"
     },
     {
       "role": "管理员",
       "page": "关于",
       "route": "/about",
       "result": "✅",
-      "detail": "HTTP200 207chars"
+      "detail": "HTTP200 212chars"
+    },
+    {
+      "role": "管理员",
+      "page": "文档下载",
+      "route": "/docs",
+      "result": "✅",
+      "detail": "HTTP200 144chars err1"
     },
     {
       "role": "管理员",
       "page": "业务流程",
       "route": "/workflow",
-      "result": "✅",
-      "detail": "HTTP200 1471chars"
+      "result": "⚠️",
+      "detail": "HTTP200 0chars"
     },
     {
       "role": "管理员",
       "page": "场站管理",
       "route": "/station",
+      "result": "✅",
+      "detail": "HTTP200 172chars"
+    },
+    {
+      "role": "管理员",
+      "page": "设备台账",
+      "route": "/device-ledger",
+      "result": "✅",
+      "detail": "HTTP200 199chars"
+    },
+    {
+      "role": "管理员",
+      "page": "盘点管理",
+      "route": "/stocktake",
+      "result": "✅",
+      "detail": "HTTP200 170chars"
+    },
+    {
+      "role": "管理员",
+      "page": "库存调整",
+      "route": "/adjustment",
+      "result": "✅",
+      "detail": "HTTP200 183chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "首页",
+      "route": "/dashboard",
+      "result": "✅",
+      "detail": "HTTP200 1286chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "实时库存",
+      "route": "/inventory",
+      "result": "✅",
+      "detail": "HTTP200 1613chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "按SKU统计库存",
+      "route": "/inventory/sku",
+      "result": "✅",
+      "detail": "HTTP200 1093chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "按关联单位出库统计",
+      "route": "/inventory/partner",
+      "result": "✅",
+      "detail": "HTTP200 293chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "入库",
+      "route": "/inbound",
+      "result": "✅",
+      "detail": "HTTP200 521chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "入库详情",
+      "route": "/inbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "来料管理",
+      "route": "/incoming",
+      "result": "✅",
+      "detail": "HTTP200 1542chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "返厂维修",
+      "route": "/rma",
+      "result": "✅",
+      "detail": "HTTP200 1205chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "出货管理",
+      "route": "/shipment",
+      "result": "✅",
+      "detail": "HTTP200 261chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "BOM管理",
+      "route": "/bom",
+      "result": "✅",
+      "detail": "HTTP200 221chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "生产任务",
+      "route": "/production-task",
+      "result": "✅",
+      "detail": "HTTP200 531chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "出库",
+      "route": "/outbound",
+      "result": "✅",
+      "detail": "HTTP200 623chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "出库详情",
+      "route": "/outbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "库存流水",
+      "route": "/snapshot",
+      "result": "✅",
+      "detail": "HTTP200 3836chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "库存快照汇总",
+      "route": "/snapshot/statistics",
+      "result": "✅",
+      "detail": "HTTP200 1171chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "快照明细",
+      "route": "/snapshot/details",
+      "result": "✅",
+      "detail": "HTTP200 1403chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "商品SKU",
+      "route": "/products",
+      "result": "✅",
+      "detail": "HTTP200 1238chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "往来单位",
+      "route": "/partners",
+      "result": "✅",
+      "detail": "HTTP200 501chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "客户管理",
+      "route": "/customers",
+      "result": "✅",
+      "detail": "HTTP200 578chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "系统设置",
+      "route": "/settings",
+      "result": "✅",
+      "detail": "HTTP200 1286chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "关于",
+      "route": "/about",
+      "result": "✅",
+      "detail": "HTTP200 209chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "文档下载",
+      "route": "/docs",
+      "result": "✅",
+      "detail": "HTTP200 141chars err1"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "业务流程",
+      "route": "/workflow",
+      "result": "✅",
+      "detail": "HTTP200 1473chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "场站管理",
+      "route": "/station",
+      "result": "✅",
+      "detail": "HTTP200 169chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "设备台账",
+      "route": "/device-ledger",
+      "result": "✅",
+      "detail": "HTTP200 196chars"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "盘点管理",
+      "route": "/stocktake",
       "result": "✅",
       "detail": "HTTP200 167chars"
     },
     {
-      "role": "管理员",
-      "page": "设备台账",
-      "route": "/device-ledger",
-      "result": "✅",
-      "detail": "HTTP200 194chars"
-    },
-    {
-      "role": "管理员",
-      "page": "盘点管理",
-      "route": "/stocktake",
-      "result": "✅",
-      "detail": "HTTP200 165chars"
-    },
-    {
-      "role": "管理员",
-      "page": "库存调整",
-      "route": "/adjustment",
-      "result": "✅",
-      "detail": "HTTP200 178chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "首页",
-      "route": "/dashboard",
-      "result": "✅",
-      "detail": "HTTP200 1281chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "实时库存",
-      "route": "/inventory",
-      "result": "✅",
-      "detail": "HTTP200 1608chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "按SKU统计库存",
-      "route": "/inventory/sku",
-      "result": "✅",
-      "detail": "HTTP200 1088chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "按关联单位出库统计",
-      "route": "/inventory/partner",
-      "result": "✅",
-      "detail": "HTTP200 296chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "入库",
-      "route": "/inbound",
-      "result": "✅",
-      "detail": "HTTP200 516chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "来料管理",
-      "route": "/incoming",
-      "result": "✅",
-      "detail": "HTTP200 1537chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "返厂维修",
-      "route": "/rma",
-      "result": "✅",
-      "detail": "HTTP200 1200chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "出货管理",
-      "route": "/shipment",
-      "result": "✅",
-      "detail": "HTTP200 256chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "BOM管理",
-      "route": "/bom",
-      "result": "✅",
-      "detail": "HTTP200 216chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "生产任务",
-      "route": "/production-task",
-      "result": "✅",
-      "detail": "HTTP200 526chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "出库",
-      "route": "/outbound",
-      "result": "✅",
-      "detail": "HTTP200 618chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "库存流水",
-      "route": "/snapshot",
-      "result": "✅",
-      "detail": "HTTP200 2951chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "库存快照汇总",
-      "route": "/snapshot/statistics",
-      "result": "✅",
-      "detail": "HTTP200 1166chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "快照明细",
-      "route": "/snapshot/details",
-      "result": "✅",
-      "detail": "HTTP200 1398chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "商品SKU",
-      "route": "/products",
-      "result": "✅",
-      "detail": "HTTP200 1233chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "往来单位",
-      "route": "/partners",
-      "result": "✅",
-      "detail": "HTTP200 496chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "客户管理",
-      "route": "/customers",
-      "result": "✅",
-      "detail": "HTTP200 573chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "系统设置",
-      "route": "/settings",
-      "result": "✅",
-      "detail": "HTTP200 1281chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "关于",
-      "route": "/about",
-      "result": "✅",
-      "detail": "HTTP200 204chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "业务流程",
-      "route": "/workflow",
-      "result": "✅",
-      "detail": "HTTP200 1468chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "场站管理",
-      "route": "/station",
-      "result": "✅",
-      "detail": "HTTP200 164chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "设备台账",
-      "route": "/device-ledger",
-      "result": "✅",
-      "detail": "HTTP200 191chars"
-    },
-    {
-      "role": "仓库管理员",
-      "page": "盘点管理",
-      "route": "/stocktake",
-      "result": "✅",
-      "detail": "HTTP200 162chars"
-    },
-    {
       "role": "仓库管理员",
       "page": "库存调整",
       "route": "/adjustment",
-      "result": "✅",
-      "detail": "HTTP200 175chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "首页",
-      "route": "/dashboard",
-      "result": "✅",
-      "detail": "HTTP200 1257chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "实时库存",
-      "route": "/inventory",
-      "result": "✅",
-      "detail": "HTTP200 1584chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "按SKU统计库存",
-      "route": "/inventory/sku",
-      "result": "✅",
-      "detail": "HTTP200 1064chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "按关联单位出库统计",
-      "route": "/inventory/partner",
-      "result": "✅",
-      "detail": "HTTP200 272chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "入库",
-      "route": "/inbound",
-      "result": "✅",
-      "detail": "HTTP200 492chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "来料管理",
-      "route": "/incoming",
-      "result": "✅",
-      "detail": "HTTP200 1513chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "返厂维修",
-      "route": "/rma",
-      "result": "✅",
-      "detail": "HTTP200 1176chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "出货管理",
-      "route": "/shipment",
-      "result": "✅",
-      "detail": "HTTP200 232chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "BOM管理",
-      "route": "/bom",
-      "result": "✅",
-      "detail": "HTTP200 1257chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "生产任务",
-      "route": "/production-task",
-      "result": "✅",
-      "detail": "HTTP200 1257chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "出库",
-      "route": "/outbound",
-      "result": "✅",
-      "detail": "HTTP200 594chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "库存流水",
-      "route": "/snapshot",
-      "result": "✅",
-      "detail": "HTTP200 2927chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "库存快照汇总",
-      "route": "/snapshot/statistics",
-      "result": "✅",
-      "detail": "HTTP200 1142chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "快照明细",
-      "route": "/snapshot/details",
-      "result": "✅",
-      "detail": "HTTP200 1374chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "商品SKU",
-      "route": "/products",
-      "result": "✅",
-      "detail": "HTTP200 1209chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "往来单位",
-      "route": "/partners",
-      "result": "✅",
-      "detail": "HTTP200 472chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "客户管理",
-      "route": "/customers",
-      "result": "✅",
-      "detail": "HTTP200 549chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "系统设置",
-      "route": "/settings",
-      "result": "✅",
-      "detail": "HTTP200 1257chars"
-    },
-    {
-      "role": "质量负责人",
-      "page": "关于",
-      "route": "/about",
       "result": "✅",
       "detail": "HTTP200 180chars"
     },
     {
       "role": "质量负责人",
+      "page": "首页",
+      "route": "/dashboard",
+      "result": "✅",
+      "detail": "HTTP200 1286chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "实时库存",
+      "route": "/inventory",
+      "result": "✅",
+      "detail": "HTTP200 1613chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "按SKU统计库存",
+      "route": "/inventory/sku",
+      "result": "✅",
+      "detail": "HTTP200 1093chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "按关联单位出库统计",
+      "route": "/inventory/partner",
+      "result": "✅",
+      "detail": "HTTP200 301chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "入库",
+      "route": "/inbound",
+      "result": "✅",
+      "detail": "HTTP200 521chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "入库详情",
+      "route": "/inbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
+    },
+    {
+      "role": "质量负责人",
+      "page": "来料管理",
+      "route": "/incoming",
+      "result": "✅",
+      "detail": "HTTP200 255chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "返厂维修",
+      "route": "/rma",
+      "result": "✅",
+      "detail": "HTTP200 1205chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "出货管理",
+      "route": "/shipment",
+      "result": "✅",
+      "detail": "HTTP200 261chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "BOM管理",
+      "route": "/bom",
+      "result": "✅",
+      "detail": "HTTP200 221chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "生产任务",
+      "route": "/production-task",
+      "result": "✅",
+      "detail": "HTTP200 531chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "出库",
+      "route": "/outbound",
+      "result": "✅",
+      "detail": "HTTP200 623chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "出库详情",
+      "route": "/outbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
+    },
+    {
+      "role": "质量负责人",
+      "page": "库存流水",
+      "route": "/snapshot",
+      "result": "✅",
+      "detail": "HTTP200 3836chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "库存快照汇总",
+      "route": "/snapshot/statistics",
+      "result": "✅",
+      "detail": "HTTP200 1171chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "快照明细",
+      "route": "/snapshot/details",
+      "result": "✅",
+      "detail": "HTTP200 1403chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "商品SKU",
+      "route": "/products",
+      "result": "✅",
+      "detail": "HTTP200 1238chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "往来单位",
+      "route": "/partners",
+      "result": "✅",
+      "detail": "HTTP200 501chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "客户管理",
+      "route": "/customers",
+      "result": "✅",
+      "detail": "HTTP200 578chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "系统设置",
+      "route": "/settings",
+      "result": "✅",
+      "detail": "HTTP200 1286chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "关于",
+      "route": "/about",
+      "result": "✅",
+      "detail": "HTTP200 209chars"
+    },
+    {
+      "role": "质量负责人",
+      "page": "文档下载",
+      "route": "/docs",
+      "result": "✅",
+      "detail": "HTTP200 141chars err1"
+    },
+    {
+      "role": "质量负责人",
       "page": "业务流程",
       "route": "/workflow",
       "result": "✅",
-      "detail": "HTTP200 1444chars"
+      "detail": "HTTP200 1473chars"
     },
     {
       "role": "质量负责人",
       "page": "场站管理",
       "route": "/station",
       "result": "✅",
-      "detail": "HTTP200 1257chars"
+      "detail": "HTTP200 169chars"
     },
     {
       "role": "质量负责人",
       "page": "设备台账",
       "route": "/device-ledger",
       "result": "✅",
-      "detail": "HTTP200 1257chars"
+      "detail": "HTTP200 196chars"
     },
     {
       "role": "质量负责人",
       "page": "盘点管理",
       "route": "/stocktake",
       "result": "✅",
-      "detail": "HTTP200 1257chars"
+      "detail": "HTTP200 167chars"
     },
     {
       "role": "质量负责人",
       "page": "库存调整",
       "route": "/adjustment",
       "result": "✅",
-      "detail": "HTTP200 1257chars"
+      "detail": "HTTP200 180chars"
     },
     {
       "role": "生产负责人",
       "page": "首页",
       "route": "/dashboard",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 1286chars"
     },
     {
       "role": "生产负责人",
       "page": "实时库存",
       "route": "/inventory",
       "result": "✅",
-      "detail": "HTTP200 1583chars"
+      "detail": "HTTP200 1613chars"
     },
     {
       "role": "生产负责人",
       "page": "按SKU统计库存",
       "route": "/inventory/sku",
       "result": "✅",
-      "detail": "HTTP200 1063chars"
+      "detail": "HTTP200 1093chars"
     },
     {
       "role": "生产负责人",
       "page": "按关联单位出库统计",
       "route": "/inventory/partner",
       "result": "✅",
-      "detail": "HTTP200 271chars"
+      "detail": "HTTP200 301chars"
     },
     {
       "role": "生产负责人",
       "page": "入库",
       "route": "/inbound",
       "result": "✅",
-      "detail": "HTTP200 491chars"
+      "detail": "HTTP200 521chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "入库详情",
+      "route": "/inbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
     },
     {
       "role": "生产负责人",
       "page": "来料管理",
       "route": "/incoming",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 1542chars"
     },
     {
       "role": "生产负责人",
       "page": "返厂维修",
       "route": "/rma",
       "result": "✅",
-      "detail": "HTTP200 1175chars"
+      "detail": "HTTP200 1205chars"
     },
     {
       "role": "生产负责人",
       "page": "出货管理",
       "route": "/shipment",
       "result": "✅",
-      "detail": "HTTP200 231chars"
+      "detail": "HTTP200 261chars"
     },
     {
       "role": "生产负责人",
       "page": "BOM管理",
       "route": "/bom",
       "result": "✅",
-      "detail": "HTTP200 191chars"
+      "detail": "HTTP200 221chars"
     },
     {
       "role": "生产负责人",
       "page": "生产任务",
       "route": "/production-task",
+      "result": "✅",
+      "detail": "HTTP200 531chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "出库",
+      "route": "/outbound",
+      "result": "✅",
+      "detail": "HTTP200 623chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "出库详情",
+      "route": "/outbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
+    },
+    {
+      "role": "生产负责人",
+      "page": "库存流水",
+      "route": "/snapshot",
+      "result": "✅",
+      "detail": "HTTP200 3836chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "库存快照汇总",
+      "route": "/snapshot/statistics",
+      "result": "✅",
+      "detail": "HTTP200 1171chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "快照明细",
+      "route": "/snapshot/details",
+      "result": "✅",
+      "detail": "HTTP200 1403chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "商品SKU",
+      "route": "/products",
+      "result": "✅",
+      "detail": "HTTP200 1238chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "往来单位",
+      "route": "/partners",
       "result": "✅",
       "detail": "HTTP200 501chars"
     },
     {
       "role": "生产负责人",
-      "page": "出库",
-      "route": "/outbound",
-      "result": "✅",
-      "detail": "HTTP200 593chars"
-    },
-    {
-      "role": "生产负责人",
-      "page": "库存流水",
-      "route": "/snapshot",
-      "result": "✅",
-      "detail": "HTTP200 2926chars"
-    },
-    {
-      "role": "生产负责人",
-      "page": "库存快照汇总",
-      "route": "/snapshot/statistics",
-      "result": "✅",
-      "detail": "HTTP200 1141chars"
-    },
-    {
-      "role": "生产负责人",
-      "page": "快照明细",
-      "route": "/snapshot/details",
-      "result": "✅",
-      "detail": "HTTP200 1373chars"
-    },
-    {
-      "role": "生产负责人",
-      "page": "商品SKU",
-      "route": "/products",
-      "result": "✅",
-      "detail": "HTTP200 1208chars"
-    },
-    {
-      "role": "生产负责人",
-      "page": "往来单位",
-      "route": "/partners",
-      "result": "✅",
-      "detail": "HTTP200 471chars"
-    },
-    {
-      "role": "生产负责人",
       "page": "客户管理",
       "route": "/customers",
       "result": "✅",
-      "detail": "HTTP200 548chars"
+      "detail": "HTTP200 578chars"
     },
     {
       "role": "生产负责人",
       "page": "系统设置",
       "route": "/settings",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 1286chars"
     },
     {
       "role": "生产负责人",
       "page": "关于",
       "route": "/about",
       "result": "✅",
-      "detail": "HTTP200 179chars"
+      "detail": "HTTP200 209chars"
+    },
+    {
+      "role": "生产负责人",
+      "page": "文档下载",
+      "route": "/docs",
+      "result": "✅",
+      "detail": "HTTP200 141chars err1"
     },
     {
       "role": "生产负责人",
       "page": "业务流程",
       "route": "/workflow",
       "result": "✅",
-      "detail": "HTTP200 1443chars"
+      "detail": "HTTP200 1473chars"
     },
     {
       "role": "生产负责人",
       "page": "场站管理",
       "route": "/station",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 169chars"
     },
     {
       "role": "生产负责人",
       "page": "设备台账",
       "route": "/device-ledger",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 196chars"
     },
     {
       "role": "生产负责人",
       "page": "盘点管理",
       "route": "/stocktake",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 167chars"
     },
     {
       "role": "生产负责人",
       "page": "库存调整",
       "route": "/adjustment",
       "result": "✅",
-      "detail": "HTTP200 1256chars"
+      "detail": "HTTP200 180chars"
     },
     {
       "role": "测试工程师",
       "page": "首页",
       "route": "/dashboard",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 1286chars"
     },
     {
       "role": "测试工程师",
       "page": "实时库存",
       "route": "/inventory",
       "result": "✅",
-      "detail": "HTTP200 1573chars"
+      "detail": "HTTP200 1613chars"
     },
     {
       "role": "测试工程师",
       "page": "按SKU统计库存",
       "route": "/inventory/sku",
       "result": "✅",
-      "detail": "HTTP200 1053chars"
+      "detail": "HTTP200 1093chars"
     },
     {
       "role": "测试工程师",
       "page": "按关联单位出库统计",
       "route": "/inventory/partner",
       "result": "✅",
-      "detail": "HTTP200 261chars"
+      "detail": "HTTP200 301chars"
     },
     {
       "role": "测试工程师",
       "page": "入库",
       "route": "/inbound",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 521chars"
+    },
+    {
+      "role": "测试工程师",
+      "page": "入库详情",
+      "route": "/inbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
     },
     {
       "role": "测试工程师",
       "page": "来料管理",
       "route": "/incoming",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 1542chars"
     },
     {
       "role": "测试工程师",
       "page": "返厂维修",
       "route": "/rma",
       "result": "✅",
-      "detail": "HTTP200 1165chars"
+      "detail": "HTTP200 1205chars"
     },
     {
       "role": "测试工程师",
       "page": "出货管理",
       "route": "/shipment",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 261chars"
     },
     {
       "role": "测试工程师",
       "page": "BOM管理",
       "route": "/bom",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 221chars"
     },
     {
       "role": "测试工程师",
       "page": "生产任务",
       "route": "/production-task",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 531chars"
     },
     {
       "role": "测试工程师",
       "page": "出库",
       "route": "/outbound",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 623chars"
+    },
+    {
+      "role": "测试工程师",
+      "page": "出库详情",
+      "route": "/outbound/99999",
+      "result": "✅",
+      "detail": "HTTP200 108chars err1"
     },
     {
       "role": "测试工程师",
       "page": "库存流水",
       "route": "/snapshot",
       "result": "✅",
-      "detail": "HTTP200 2916chars"
+      "detail": "HTTP200 3836chars"
     },
     {
       "role": "测试工程师",
       "page": "库存快照汇总",
       "route": "/snapshot/statistics",
       "result": "✅",
-      "detail": "HTTP200 1131chars"
+      "detail": "HTTP200 1171chars"
     },
     {
       "role": "测试工程师",
       "page": "快照明细",
       "route": "/snapshot/details",
       "result": "✅",
-      "detail": "HTTP200 1363chars"
+      "detail": "HTTP200 1403chars"
     },
     {
       "role": "测试工程师",
       "page": "商品SKU",
       "route": "/products",
       "result": "✅",
-      "detail": "HTTP200 1198chars"
+      "detail": "HTTP200 1238chars"
     },
     {
       "role": "测试工程师",
       "page": "往来单位",
       "route": "/partners",
       "result": "✅",
-      "detail": "HTTP200 461chars"
+      "detail": "HTTP200 501chars"
     },
     {
       "role": "测试工程师",
       "page": "客户管理",
       "route": "/customers",
       "result": "✅",
-      "detail": "HTTP200 538chars"
+      "detail": "HTTP200 578chars"
     },
     {
       "role": "测试工程师",
       "page": "系统设置",
       "route": "/settings",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 1286chars"
     },
     {
       "role": "测试工程师",
       "page": "关于",
       "route": "/about",
       "result": "✅",
-      "detail": "HTTP200 169chars"
+      "detail": "HTTP200 209chars"
+    },
+    {
+      "role": "测试工程师",
+      "page": "文档下载",
+      "route": "/docs",
+      "result": "✅",
+      "detail": "HTTP200 141chars err1"
     },
     {
       "role": "测试工程师",
       "page": "业务流程",
       "route": "/workflow",
       "result": "✅",
-      "detail": "HTTP200 1433chars"
+      "detail": "HTTP200 1473chars"
     },
     {
       "role": "测试工程师",
       "page": "场站管理",
       "route": "/station",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 169chars"
     },
     {
       "role": "测试工程师",
       "page": "设备台账",
       "route": "/device-ledger",
       "result": "✅",
-      "detail": "HTTP200 156chars"
+      "detail": "HTTP200 196chars"
     },
     {
       "role": "测试工程师",
       "page": "盘点管理",
       "route": "/stocktake",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 167chars"
     },
     {
       "role": "测试工程师",
       "page": "库存调整",
       "route": "/adjustment",
       "result": "✅",
-      "detail": "HTTP200 1246chars"
+      "detail": "HTTP200 180chars"
     }
   ]
 }

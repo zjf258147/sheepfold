@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.deps import AllowQualityOrAbove, AllowWarehouseOrAbove, get_current_user
+from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import PageResult, R
@@ -88,7 +89,7 @@ def download_incoming_template(_: User = Depends(get_current_user)):
 async def import_incoming(
     file: UploadFile,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("incoming.create")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         from fastapi import HTTPException
@@ -112,7 +113,7 @@ def create_receipt(
     data: IncomingReceiptCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(AllowWarehouseOrAbove),
+    current_user: User = Depends(require_permission("incoming.create")),
 ):
     return incoming_service.create_receipt(db, data, current_user, get_client_ip(request))
 
@@ -123,7 +124,7 @@ def confirm_receipt(
     data: IncomingReceiptConfirm,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(AllowWarehouseOrAbove),
+    current_user: User = Depends(require_permission("incoming.confirm")),
 ):
     return incoming_service.confirm_receipt(db, receipt_id, data.change_reason, current_user, get_client_ip(request))
 
@@ -133,7 +134,7 @@ def update_receipt(
     receipt_id: int,
     data: IncomingReceiptUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("incoming.create")),
 ):
     return incoming_service.update_receipt(db, receipt_id, data)
 
@@ -152,7 +153,7 @@ def create_inspection(
     data: IncomingInspectionCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(AllowQualityOrAbove),
+    current_user: User = Depends(require_permission("incoming.inspect")),
 ):
     return incoming_service.create_inspection(db, data, current_user, get_client_ip(request))
 
@@ -162,7 +163,7 @@ def create_return(
     data: IncomingReturnCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(AllowWarehouseOrAbove),
+    current_user: User = Depends(require_permission("incoming.return")),
 ):
     if data.operator_id is None:
         data.operator_id = current_user.id

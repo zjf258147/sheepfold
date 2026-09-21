@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.partner import PartnerGroup, Partner
 from app.models.user import User
@@ -28,7 +29,7 @@ def create_group(
     data: GroupCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     try:
         group = partner_service.create_group(db, data)
@@ -57,7 +58,7 @@ def update_group(
     data: GroupUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     group = db.get(PartnerGroup, group_id)
     if not group:
@@ -90,7 +91,7 @@ def delete_group(
     group_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     group = db.get(PartnerGroup, group_id)
     if not group:
@@ -134,7 +135,7 @@ def create_partner(
     data: PartnerCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     partner = partner_service.create_partner(db, data)
     audit_service.record(
@@ -168,7 +169,7 @@ def update_partner(
     data: PartnerUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     partner = partner_service.get_partner_by_id(db, partner_id)
     if not partner:
@@ -198,7 +199,7 @@ def delete_partner(
     partner_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("partner.manage")),
 ):
     partner = partner_service.get_partner_by_id(db, partner_id)
     if not partner:
@@ -255,7 +256,7 @@ def download_partner_template(_: User = Depends(get_current_user)):
 async def import_partners(
     file: UploadFile,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("partner.manage")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")

@@ -2,8 +2,11 @@
 
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
+
+from app.core.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/docs", tags=["文档下载"])
 
@@ -50,7 +53,7 @@ DOCUMENTS = [
 
 
 @router.get("")
-def list_documents():
+def list_documents(_: User = Depends(get_current_user)):
     """获取可下载的文档列表"""
     items = []
     for doc in DOCUMENTS:
@@ -72,8 +75,8 @@ def list_documents():
 
 
 @router.get("/download/{doc_id}")
-def download_document(doc_id: str):
-    """下载指定文档（仅限开放下载的文档）"""
+def download_document(doc_id: str, _: User = Depends(get_current_user)):
+    """下载指定文档"""
     for doc in DOCUMENTS:
         if doc["id"] == doc_id:
             if not doc.get("downloadable", False):

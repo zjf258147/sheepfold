@@ -63,17 +63,19 @@ class TestDocsDownloadContract:
         assert res.status_code == 200
         assert len(res.content) > 1000
 
-    def test_download_dev_returns_file(self, client, auth_headers):
-        """GET /docs/download/dev 返回 .docx 文件。"""
+    def test_download_dev_not_allowed(self, client, auth_headers):
+        """GET /docs/download/dev 不提供下载（内部开发文档）。"""
         res = client.get("/api/v1/docs/download/dev", headers=auth_headers)
         assert res.status_code == 200
-        assert len(res.content) > 1000
+        data = res.json()
+        assert data.get("detail") == "此文档不提供下载"
 
-    def test_download_style_returns_file(self, client, auth_headers):
-        """GET /docs/download/style 返回 .docx 文件。"""
+    def test_download_style_not_allowed(self, client, auth_headers):
+        """GET /docs/download/style 不提供下载（内部开发文档）。"""
         res = client.get("/api/v1/docs/download/style", headers=auth_headers)
         assert res.status_code == 200
-        assert len(res.content) > 1000
+        data = res.json()
+        assert data.get("detail") == "此文档不提供下载"
 
     def test_download_invalid_doc_returns_error(self, client, auth_headers):
         """GET /docs/download/nonexistent 返回错误。"""
@@ -83,11 +85,15 @@ class TestDocsDownloadContract:
         assert "detail" in data
 
     def test_download_no_auth_works(self, client):
-        """下载无需鉴权。"""
-        for doc_id in ("spec", "manual", "dev", "style"):
+        """下载无需鉴权（仅可下载文档返回文件，内部文档返回提示）。"""
+        for doc_id in ("spec", "manual"):
             res = client.get(f"/api/v1/docs/download/{doc_id}")
             assert res.status_code == 200, f"Failed for doc_id={doc_id}"
             assert len(res.content) > 1000
+        for doc_id in ("dev", "style"):
+            res = client.get(f"/api/v1/docs/download/{doc_id}")
+            assert res.status_code == 200, f"Failed for doc_id={doc_id}"
+            assert res.json().get("detail") == "此文档不提供下载"
 
     def test_download_filename_header(self, client, auth_headers):
         """下载响应包含正确的文件名头。"""

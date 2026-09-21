@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.product import ProductCategory
 from app.models.user import User
@@ -28,7 +29,7 @@ def create_category(
     data: CategoryCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     try:
         cat = product_service.create_category(db, data)
@@ -57,7 +58,7 @@ def update_category(
     data: CategoryUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     cat = db.get(ProductCategory, cat_id)
     if not cat:
@@ -90,7 +91,7 @@ def delete_category(
     cat_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     cat = db.get(ProductCategory, cat_id)
     if not cat:
@@ -131,7 +132,7 @@ def create_sku(
     data: SkuCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     try:
         sku = product_service.create_sku(db, data)
@@ -185,7 +186,7 @@ def download_sku_template(_: User = Depends(get_current_user)):
 async def import_skus(
     file: UploadFile,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("product.manage")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="请上传 .xlsx 或 .xls 文件")
@@ -208,7 +209,7 @@ def update_sku(
     data: SkuUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     sku = product_service.get_sku_by_id(db, sku_id)
     if not sku:
@@ -241,7 +242,7 @@ def delete_sku(
     sku_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("product.manage")),
 ):
     sku = product_service.get_sku_by_id(db, sku_id)
     if not sku:

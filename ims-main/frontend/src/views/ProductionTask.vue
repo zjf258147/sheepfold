@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listTasks, createTask, updateTask, deleteTask, exportTasks } from '@/api/bom'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
@@ -124,8 +125,12 @@ onMounted(() => { fetchData() })
         <el-table-column prop="created_by" label="创建人" width="90" />
         <el-table-column label="操作" width="140">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            <PermissionButton permKey="production.edit">
+              <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
+            </PermissionButton>
+            <PermissionButton permKey="production.edit">
+              <el-button type="danger" link size="small" @click="handleDelete(row)">删除</el-button>
+            </PermissionButton>
           </template>
         </el-table-column>
       </el-table>

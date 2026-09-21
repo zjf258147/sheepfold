@@ -1,12 +1,19 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { Search, Edit, Check, Close } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import {
   listStocktakes, getStocktakeLines, createStocktake,
   scanItems, updateLineReason, completeStocktake, cancelStocktake
 } from '@/api/stocktake'
+import { dateTimeColumnFormatter } from '@/utils/datetime'
 
 const loading = ref(false)
+const creating = ref(false)
+const completing = ref(false)
+const cancelling = ref(false)
+const scanning = ref(false)
+const savingReason = ref(false)
 const tasks = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -70,6 +77,7 @@ async function loadTasks() {
 function handleSearch() { page.value = 1; loadTasks() }
 function handleReset() { statusFilter.value = ''; page.value = 1; loadTasks() }
 function handlePageChange(p) { page.value = p; loadTasks() }
+function handleSizeChange(s) { pageSize.value = s; page.value = 1; loadTasks() }
 
 function openCreate() {
   Object.assign(createForm, { mode: 'CYCLE', warehouse: '', remark: '' })
@@ -79,10 +87,13 @@ function openCreate() {
 async function handleCreate() {
   const valid = await createRef.value?.validate().catch(() => false)
   if (!valid) return
-  await createStocktake({ ...createForm })
-  ElMessage.success('盘点任务已创建')
-  createVisible.value = false
-  loadTasks()
+  creating.value = true
+  try {
+    await createStocktake({ ...createForm })
+    ElMessage.success('盘点任务已创建')
+    createVisible.value = false
+    loadTasks()
+  } finally { creating.value = false }
 }
 
 async function openDetail(row) {
@@ -120,10 +131,13 @@ async function handleScan() {
     ElMessage.warning('请添加盘点设备')
     return
   }
-  await scanItems(detailTask.value.id, { items: scanLines.value })
-  ElMessage.success('扫码完成')
-  scanVisible.value = false
-  openDetail(detailTask.value)
+  scanning.value = true
+  try {
+    await scanItems(detailTask.value.id, { items: scanLines.value })
+    ElMessage.success('扫码完成')
+    scanVisible.value = false
+    openDetail(detailTask.value)
+  } finally { scanning.value = false }
 }
 
 function openReason(line) {
@@ -133,10 +147,13 @@ function openReason(line) {
 }
 
 async function handleReason() {
-  await updateLineReason(reasonForm.line_id, { diff_reason: reasonForm.diff_reason })
-  ElMessage.success('已更新')
-  reasonVisible.value = false
-  openDetail(detailTask.value)
+  savingReason.value = true
+  try {
+    await updateLineReason(reasonForm.line_id, { diff_reason: reasonForm.diff_reason })
+    ElMessage.success('已更新')
+    reasonVisible.value = false
+    openDetail(detailTask.value)
+  } finally { savingReason.value = false }
 }
 
 async function handleComplete(row) {
@@ -144,10 +161,15 @@ async function handleComplete(row) {
     const { value: remark } = await ElMessageBox.prompt('请输入完成备注（可选）', '完成盘点', {
       confirmButtonText: '确认', cancelButtonText: '取消'
     })
-    await completeStocktake(row.id, { remark: remark || '' })
-    ElMessage.success('盘点已完成')
-    loadTasks()
-  } catch { /* cancelled */ }
+    completing.value = true
+    try {
+      await completeStocktake(row.id, { remark: remark || '' })
+      ElMessage.success('盘点已完成')
+      loadTasks()
+    } finally { completing.value = false }
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') throw e
+  }
 }
 
 async function handleCancel(row) {
@@ -155,15 +177,15 @@ async function handleCancel(row) {
     await ElMessageBox.confirm(`确认取消盘点任务 ${row.stocktake_no}？`, '取消盘点', {
       confirmButtonText: '确认取消', cancelButtonText: '返回', type: 'warning'
     })
-    await cancelStocktake(row.id)
-    ElMessage.success('已取消')
-    loadTasks()
-  } catch { /* cancelled */ }
-}
-
-function formatDate(v) {
-  if (!v) return '-'
-  return v
+    cancelling.value = true
+    try {
+      await cancelStocktake(row.id)
+      ElMessage.success('已取消')
+      loadTasks()
+    } finally { cancelling.value = false }
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') throw e
+  }
 }
 </script>
 
@@ -182,7 +204,9 @@ function formatDate(v) {
     </el-form>
 
     <div class="toolbar">
-      <el-button type="primary" @click="openCreate">创建盘点</el-button>
+      <PermissionButton permKey="stocktake.create" tip="仅仓库管理员可创建盘点">
+        <el-button type="primary" @click="openCreate">创建盘点</el-button>
+      </PermissionButton>
     </div>
 
     <el-table :data="tasks" v-loading="loading" stripe>
@@ -197,32 +221,34 @@ function formatDate(v) {
         </template>
       </el-table-column>
       <el-table-column prop="created_by_name" label="创建人" width="90" />
-      <el-table-column label="开始时间" width="160">
-        <template #default="{ row }">{{ formatDate(row.started_at) }}</template>
-      </el-table-column>
-      <el-table-column label="完成时间" width="160">
-        <template #default="{ row }">{{ formatDate(row.completed_at) }}</template>
-      </el-table-column>
+      <el-table-column prop="started_at" label="开始时间" width="160" :formatter="dateTimeColumnFormatter" />
+      <el-table-column prop="completed_at" label="完成时间" width="160" :formatter="dateTimeColumnFormatter" />
       <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
       <el-table-column label="操作" width="200">
         <template #default="{ row }">
           <el-button type="primary" link :icon="Search" @click="openDetail(row)">明細</el-button>
-          <el-button
-            v-if="row.status === 'IN_PROGRESS'"
-            type="success" link :icon="Check" @click="handleComplete(row)"
-          >完成</el-button>
-          <el-button
-            v-if="row.status !== 'CANCELLED'"
-            type="danger" link :icon="Close" @click="handleCancel(row)"
-          >取消</el-button>
+          <PermissionButton v-if="row.status === 'IN_PROGRESS'" permKey="stocktake.complete" tip="仅仓库管理员可完成盘点">
+            <el-button
+              type="success" link :icon="Check" :loading="completing" @click="handleComplete(row)"
+            >完成</el-button>
+          </PermissionButton>
+          <PermissionButton v-if="row.status !== 'CANCELLED'" permKey="stocktake.cancel" tip="仅仓库管理员可取消盘点">
+            <el-button
+              type="danger" link :icon="Close" :loading="cancelling" @click="handleCancel(row)"
+            >取消</el-button>
+          </PermissionButton>
         </template>
       </el-table-column>
     </el-table>
 
     <el-pagination
       v-if="total > 0" class="list-pagination" background
-      layout="total, prev, pager, next" :total="total"
-      :page-size="pageSize" :current-page="page" @current-change="handlePageChange"
+      layout="total, sizes, prev, pager, next, jumper"
+      :page-sizes="[10, 15, 20, 50]"
+      :total="total"
+      :page-size="pageSize" :current-page="page"
+      @size-change="handleSizeChange"
+      @current-change="handlePageChange"
     />
   </el-card>
 
@@ -242,13 +268,15 @@ function formatDate(v) {
     </el-form>
     <template #footer>
       <el-button @click="createVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleCreate">创建</el-button>
+      <el-button type="primary" :loading="creating" @click="handleCreate">创建</el-button>
     </template>
   </el-dialog>
 
   <el-dialog v-model="detailVisible" :title="detailTask?.stocktake_no + ' 盘点明细'" width="800px" destroy-on-close>
     <div class="toolbar" v-if="detailTask?.status === 'IN_PROGRESS'">
-      <el-button type="primary" @click="openScan">扫码盘点</el-button>
+      <PermissionButton permKey="stocktake.scan" tip="仅仓库管理员可扫码盘点">
+        <el-button type="primary" @click="openScan">扫码盘点</el-button>
+      </PermissionButton>
       <span class="hint">差异数量 ≠ 0 的条目可填写差异原因</span>
     </div>
     <el-table :data="detailLines" v-loading="detailLoading" stripe max-height="400">
@@ -263,9 +291,7 @@ function formatDate(v) {
         </template>
       </el-table-column>
       <el-table-column prop="diff_reason" label="差异原因" min-width="120" show-overflow-tooltip />
-      <el-table-column label="扫码时间" width="160">
-        <template #default="{ row }">{{ formatDate(row.scanned_at) }}</template>
-      </el-table-column>
+      <el-table-column prop="scanned_at" label="扫码时间" width="160" :formatter="dateTimeColumnFormatter" />
       <el-table-column v-if="detailTask?.status === 'IN_PROGRESS'" label="操作" width="80">
         <template #default="{ row }">
           <el-button v-if="row.diff_qty !== 0" type="primary" link :icon="Edit" @click="openReason(row)">原因</el-button>
@@ -301,7 +327,7 @@ function formatDate(v) {
     </el-table>
     <template #footer>
       <el-button @click="scanVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleScan" :disabled="scanLines.length === 0">提交盘点</el-button>
+      <el-button type="primary" :loading="scanning" :disabled="scanLines.length === 0" @click="handleScan">提交盘点</el-button>
     </template>
   </el-dialog>
 
@@ -309,7 +335,7 @@ function formatDate(v) {
     <el-input v-model="reasonForm.diff_reason" placeholder="说明差异原因" maxlength="255" type="textarea" :rows="3" />
     <template #footer>
       <el-button @click="reasonVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleReason">保存</el-button>
+      <el-button type="primary" :loading="savingReason" @click="handleReason">保存</el-button>
     </template>
   </el-dialog>
 </template>

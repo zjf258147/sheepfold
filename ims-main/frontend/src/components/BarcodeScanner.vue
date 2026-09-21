@@ -383,7 +383,9 @@ function onInput(e) {
 onUnmounted(() => {
   stopScan()
   if (isCapacitor) {
-    try { import('@capacitor/barcode-scanner').then(m => m.BarcodeScanner.stopScan()).catch(() => {}) } catch {}
+    try { import('@capacitor/barcode-scanner').then(m => m.BarcodeScanner.stopScan()).catch(() => {}) } catch (e) {
+      // ignore dynamic import failure on non-Capacitor platforms
+    }
   }
 })
 </script>

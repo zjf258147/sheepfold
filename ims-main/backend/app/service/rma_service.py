@@ -589,3 +589,152 @@ def import_rma_xlsx(db: Session, content: bytes, username: str) -> dict:
     if success > 0:
         db.commit()
     return {"success": success, "errors": errors}
+
+
+# ============================================================
+# 知识库
+# ============================================================
+
+import json as _json
+
+from app.models.rma import RmaKnowledgeBase
+
+
+def create_knowledge_base_entry(
+    db: Session,
+    title: str,
+    fault_symptom: str,
+    solution: str,
+    user: User,
+    fault_code: str | None = None,
+    tags: list[str] | None = None,
+    source_type: str = "MANUAL",
+    source_repair_id: int | None = None,
+    ip_address: str | None = None,
+) -> RmaKnowledgeBase:
+    entry = RmaKnowledgeBase(
+        title=title,
+        fault_code=fault_code,
+        fault_symptom=fault_symptom,
+        solution=solution,
+        tags=_json.dumps(tags, ensure_ascii=False) if tags else None,
+        source_type=source_type,
+        source_repair_id=source_repair_id,
+        created_by=user.id,
+    )
+    db.add(entry)
+    db.flush()
+    write_audit_log(
+        db, user, action="CREATE", module="rma",
+        resource_type="rma_knowledge_base", resource_id=str(entry.id),
+        resource_name=f"知识库条目 {entry.title}",
+        summary=f"创建知识库条目：{entry.title}",
+        ip_address=ip_address,
+    )
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+def search_knowledge_base(
+    db: Session,
+    keyword: str,
+    fault_code: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> tuple[list[RmaKnowledgeBase], int]:
+    query = db.query(RmaKnowledgeBase).filter(RmaKnowledgeBase.status == "PUBLISHED")
+    if keyword:
+        query = query.filter(
+            RmaKnowledgeBase.title.like(f"%{keyword}%")
+            | RmaKnowledgeBase.fault_symptom.like(f"%{keyword}%")
+            | RmaKnowledgeBase.tags.like(f"%{keyword}%")
+        )
+    if fault_code:
+        query = query.filter(RmaKnowledgeBase.fault_code == fault_code)
+    total = query.count()
+    items = query.order_by(RmaKnowledgeBase.usage_count.desc(), RmaKnowledgeBase.id.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+    return items, total
+
+
+def create_knowledge_base_from_repair(
+    db: Session,
+    repair_id: int,
+    user: User,
+    ip_address: str | None = None,
+) -> RmaKnowledgeBase:
+    repair = db.query(RmaRepair).filter(RmaRepair.id == repair_id).first()
+    if not repair:
+        raise ValueError(f"维修工单不存在：{repair_id}")
+    diag = db.query(RmaDiagnosis).filter(RmaDiagnosis.return_id == repair.return_id).order_by(
+        RmaDiagnosis.id.desc()
+    ).first()
+
+    title = f"故障修复-{repair.old_sn}"
+    fault_symptom = repair.repair_description or "无描述"
+    solution = diag.repair_plan if diag and diag.repair_plan else repair.materials_used or repair.repair_description or "无方案"
+
+    return create_knowledge_base_entry(
+        db=db,
+        title=title,
+        fault_code=repair.fault_code,
+        fault_symptom=fault_symptom,
+        solution=solution,
+        user=user,
+        tags=[repair.fault_code] if repair.fault_code else None,
+        source_type="FROM_REPAIR",
+        source_repair_id=repair_id,
+        ip_address=ip_address,
+    )
+
+
+def publish_knowledge_base_entry(
+    db: Session,
+    entry_id: int,
+    user: User,
+    ip_address: str | None = None,
+) -> RmaKnowledgeBase:
+    entry = db.query(RmaKnowledgeBase).filter(RmaKnowledgeBase.id == entry_id).first()
+    if not entry:
+        raise ValueError(f"知识库条目不存在：{entry_id}")
+    if entry.status != "DRAFT":
+        raise ValueError("只能发布草稿状态的知识库条目")
+    entry.status = "PUBLISHED"
+    db.flush()
+    write_audit_log(
+        db, user, action="PUBLISH", module="rma",
+        resource_type="rma_knowledge_base", resource_id=str(entry.id),
+        resource_name=f"知识库条目 {entry.title}",
+        summary=f"发布知识库条目：{entry.title}",
+        ip_address=ip_address,
+    )
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+def _kb_entry_to_dict(entry: RmaKnowledgeBase) -> dict:
+    tags = None
+    if entry.tags:
+        try:
+            tags = _json.loads(entry.tags)
+        except (_json.JSONDecodeError, TypeError):
+            tags = [entry.tags]
+    return {
+        "id": entry.id,
+        "title": entry.title,
+        "fault_code": entry.fault_code,
+        "fault_symptom": entry.fault_symptom,
+        "solution": entry.solution,
+        "tags": tags,
+        "source_type": entry.source_type,
+        "source_repair_id": entry.source_repair_id,
+        "usage_count": entry.usage_count,
+        "status": entry.status,
+        "created_by": entry.created_by,
+        "creator_name": entry.creator.nickname or entry.creator.username if entry.creator else None,
+        "created_at": entry.created_at,
+        "updated_at": entry.updated_at,
+    }

@@ -65,7 +65,7 @@ const totalQuantity = (doc, items) => {
 
 <template>
   <div class="print-document shipment-print">
-    <div v-for="(entry, entryIdx) in allPages" :key="`${entry.shipmentIndex}-${entry.pageIndex}`" class="print-page">
+    <div v-for="(entry, _entryIdx) in allPages" :key="`${entry.shipmentIndex}-${entry.pageIndex}`" class="print-page">
       <div class="header-accent"></div>
       <div class="brand-area">
         <div class="company-full">{{ COMPANY_INFO.fullName }}</div>

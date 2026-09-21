@@ -1,0 +1,60 @@
+# IMS CI/CD Pipeline — 改善点 #15
+# 自动运行后端 pytest + 前端 vitest，测试通过后方可合并 PR。
+
+name: IMS CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-tests:
+    name: Backend Tests (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ims-main/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Install dependencies
+        run: uv sync
+      - name: Run pytest
+        run: uv run pytest tests/ -v --tb=short -q
+      - name: Verify Alembic migrations
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+
+  frontend-tests:
+    name: Frontend Tests (vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ims-main/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ims-main/frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run vitest
+        run: npx vitest run --reporter=verbose
+
+  docker-build:
+    name: Docker Build
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t ims-backend:ci ./ims-main/backend
+      - name: Build frontend image
+        run: docker build -t ims-frontend:ci ./ims-main/frontend

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { Search, Edit } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listCustomers, createCustomer, updateCustomer } from '@/api/customer'
 
 const loading = ref(false)
@@ -121,7 +122,9 @@ function formatDate(v) {
     </el-form>
 
     <div class="toolbar">
-      <el-button type="primary" @click="openDialog()">新增客户</el-button>
+      <PermissionButton permKey="customer.manage" tip="仅仓库管理员可管理客户">
+        <el-button type="primary" @click="openDialog()">新增客户</el-button>
+      </PermissionButton>
     </div>
 
     <el-table :data="customers" v-loading="loading" stripe>
@@ -144,7 +147,9 @@ function formatDate(v) {
       <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
       <el-table-column label="操作" width="70">
         <template #default="{ row }">
+          <PermissionButton permKey="customer.manage">
           <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
+        </PermissionButton>
         </template>
       </el-table-column>
     </el-table>

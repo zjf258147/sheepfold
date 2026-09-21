@@ -5,45 +5,21 @@
 
 执行完整检测清单"
 
-我就会自动按 5 步顺序执行：
 
-text
+检测项目清单.md
+    ↓ 定义检查内容和通过标准
 
+测试脚本
+    ↓ 实际执行
 
+测试结果文件 / CI报告
+    ↓ 产生证据
 
-① 后端测试 → ② 前端测试 → ③ Skill 代码质量检查 → ④ 技术栈专项检查 → ⑤ 上线检查
-
-
-cd ims-main/backend
-
-# 全部测试
-uv run pytest tests/ -v
-
-# 按类型
-uv run pytest tests/contract/ -v -m contract    # 合约测试
-uv run pytest tests/scenario/ -v -m scenario    # 场景测试
-
-# 按主线
-uv run pytest tests/contract/test_incoming_contract.py tests/scenario/test_scenario_mainline_a.py -v  # 主线A
-
-# 安全测试
-uv run pytest tests/security/ -v
-
-# 性能测试
-uv run pytest tests/performance/ -v
-
-# 含覆盖率
-uv run pytest tests/ -v --cov=app --cov-report=html
+PROJECT_STATE.md
+    ↓ 汇总当前状态
 
 
-你不需要记 24 条规则。你只需要说需求，我来匹配触发词：
-
-你说	我自动做
-"新增场站管理页面"	Rule 0 → Rule 4（先做前端）→ Rule 9/10（按规范写）→ Rule 12（改完检查）
-"修这个 bug"	调 systematic-debugging Skill → Rule 19（记录到 bug记录.md）
-"这报错了"	调 systematic-debugging Skill（4阶段铁律）
-"主线X收尾"	Rule 16：自动执行 7 步收尾检查
-"执行完整检测清单"	Rule 17：5 步全部跑一遍
-"全局检查"	Rule 15：搜索所有相关文件逐一核对
-"导出 Excel"	Rule 13：按 IMS 格式导出
-"提交代码"	Rule 1：[模块] 说明 格式→Rule 12 先过 Skill
+检测项目清单.md → 定义检查内容
+测试脚本        → 修复 + 执行
+测试结果        → 产生证据
+PROJECT_STATE.md → 汇总状态

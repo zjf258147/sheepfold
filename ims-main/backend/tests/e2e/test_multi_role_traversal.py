@@ -1,5 +1,5 @@
 """
-多角色遍历检查 — 5角色 × 24页面
+多角色遍历检查 — 5角色 × 27页面
 验证各角色权限隔离是否正确
 运行：$env:E2E_BASE_URL="http://localhost:5174"; uv run python tests/e2e/test_multi_role_traversal.py
 """
@@ -22,12 +22,14 @@ ALL_PAGES = [
     {"route": "/inventory/sku", "name": "按SKU统计库存"},
     {"route": "/inventory/partner", "name": "按关联单位出库统计"},
     {"route": "/inbound", "name": "入库"},
+    {"route": "/inbound/99999", "name": "入库详情"},
     {"route": "/incoming", "name": "来料管理"},
     {"route": "/rma", "name": "返厂维修"},
     {"route": "/shipment", "name": "出货管理"},
     {"route": "/bom", "name": "BOM管理"},
     {"route": "/production-task", "name": "生产任务"},
     {"route": "/outbound", "name": "出库"},
+    {"route": "/outbound/99999", "name": "出库详情"},
     {"route": "/snapshot", "name": "库存流水"},
     {"route": "/snapshot/statistics", "name": "库存快照汇总"},
     {"route": "/snapshot/details", "name": "快照明细"},
@@ -36,6 +38,7 @@ ALL_PAGES = [
     {"route": "/customers", "name": "客户管理"},
     {"route": "/settings", "name": "系统设置"},
     {"route": "/about", "name": "关于"},
+    {"route": "/docs", "name": "文档下载"},
     {"route": "/workflow", "name": "业务流程"},
     {"route": "/station", "name": "场站管理"},
     {"route": "/device-ledger", "name": "设备台账"},
@@ -74,7 +77,7 @@ def check_page(page, route, name):
         status = resp.status if resp else 0
         body = page.locator("body").inner_text(timeout=3000).strip()
         has_content = len(body) > 10
-        
+
         # 判断：有内容 + 非登录页 = 可访问
         if has_content and "/login" not in page.url and status in [200, 304]:
             result = "✅"
@@ -82,7 +85,7 @@ def check_page(page, route, name):
             result = "🔒"  # 权限拒绝（符合预期）
         else:
             result = "⚠️" if status in [200, 304] else "❌"
-        
+
         detail = f"HTTP{status} {len(body)}chars"
         if console_errors:
             detail += f" err{len(console_errors)}"
@@ -93,10 +96,12 @@ def check_page(page, route, name):
         page.remove_listener("console", on_console)
 
 def main():
+    page_count = len(ALL_PAGES)
+    role_count = len(ROLES)
     print("=" * 60)
-    print("多角色遍历检查 — 5角色 × 24页面")
+    print(f"多角色遍历检查 — {role_count}角色 × {page_count}页面")
     print("=" * 60)
-    
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         for role_info in ROLES:
@@ -104,7 +109,7 @@ def main():
             print(f"\n--- {role_name} ({role_info['username']}) ---")
             context = browser.new_context(viewport={"width": 1440, "height": 900})
             page = context.new_page()
-            
+
             logged_in = login(page, role_info["username"], role_info["password"], role_name)
             if not logged_in:
                 print(f"  ❌ 登录失败")
@@ -112,19 +117,19 @@ def main():
                 for pg in ALL_PAGES:
                     RESULTS.append({"role": role_name, "page": pg["name"], "route": pg["route"], "result": "❌", "detail": "登录失败"})
                 continue
-            
+
             page_results = []
             for pg in ALL_PAGES:
                 r, d = check_page(page, pg["route"], pg["name"])
                 page_results.append((r, d))
                 RESULTS.append({"role": role_name, "page": pg["name"], "route": pg["route"], "result": r, "detail": d})
-            
+
             # 汇总该角色
             ok = sum(1 for r, _ in page_results if r == "✅")
             locked = sum(1 for r, _ in page_results if r == "🔒")
             warn = sum(1 for r, _ in page_results if r == "⚠️")
             fail = sum(1 for r, _ in page_results if r == "❌")
-            
+
             # 列式输出
             cols = 4
             for i in range(0, len(ALL_PAGES), cols):
@@ -134,15 +139,15 @@ def main():
                     if idx < len(ALL_PAGES):
                         line += f"{page_results[idx][0]} {ALL_PAGES[idx]['name']:<12}"
                 print(f"  {line}")
-            
+
             print(f"  → 可访问:{ok} 拒绝:{locked} 警告:{warn} 失败:{fail}")
             context.close()
-    
+
     # 汇总表
     print("\n" + "=" * 60)
     print("多角色权限矩阵")
     print("=" * 60)
-    
+
     # 表头
     roles = [r["role"] for r in ROLES]
     header = f"{'页面':<22}"
@@ -151,7 +156,7 @@ def main():
         header += f" {short:<6}"
     print(header)
     print("-" * (22 + 7 * len(roles)))
-    
+
     for pg in ALL_PAGES:
         line = f"{pg['name']:<22}"
         for role in roles:
@@ -159,7 +164,7 @@ def main():
             icon = item["result"] if item else "⬜"
             line += f" {icon:<5}"
         print(line)
-    
+
     # 统计
     print("-" * (22 + 7 * len(roles)))
     total_checks = len(RESULTS)
@@ -168,7 +173,7 @@ def main():
     warn_count = sum(1 for r in RESULTS if r["result"] == "⚠️")
     fail_count = sum(1 for r in RESULTS if r["result"] == "❌")
     print(f"总检查:{total_checks} | 可访问:{ok_count} 拒绝:{locked_count} 警告:{warn_count} 失败:{fail_count}")
-    
+
     json_path = os.path.join(os.path.dirname(__file__), "multi_role_traversal_result.json")
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump({"total": total_checks, "ok": ok_count, "locked": locked_count, "warn": warn_count, "fail": fail_count, "results": RESULTS}, f, ensure_ascii=False, indent=2)

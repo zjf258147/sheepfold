@@ -12,24 +12,32 @@ class TestDocsDownloadScenario:
     """文档下载端到端流程。"""
 
     def test_browse_and_download_all_docs(self, client):
-        """场景：进入文档中心 → 查看4份文档 → 逐个下载。"""
+        """场景：进入文档中心 → 查看4份文档 → 可下载的下载，不可下载的返回提示。"""
         # 步骤1：获取文档列表
         res = client.get("/api/v1/docs")
         assert res.status_code == 200
         items = res.json()["items"]
         assert len(items) == 4
 
-        # 步骤2：验证每份文档都可下载
+        # 步骤2：可下载文档返回文件，内部文档返回"不提供下载"
         downloaded = 0
+        not_allowed = 0
         for item in items:
             doc_id = item["id"]
             dl_res = client.get(f"/api/v1/docs/download/{doc_id}")
             assert dl_res.status_code == 200, f"Download failed for {doc_id}"
-            content = dl_res.content
-            assert len(content) > 500, f"{doc_id} file too small"
-            downloaded += 1
 
-        assert downloaded == 4, f"Expected 4 downloads, got {downloaded}"
+            if item.get("downloadable"):
+                content = dl_res.content
+                assert len(content) > 500, f"{doc_id} file too small"
+                downloaded += 1
+            else:
+                data = dl_res.json()
+                assert data.get("detail") == "此文档不提供下载", f"Unexpected detail for {doc_id}"
+                not_allowed += 1
+
+        assert downloaded == 2, f"Expected 2 downloadable docs, got {downloaded}"
+        assert not_allowed == 2, f"Expected 2 non-downloadable docs, got {not_allowed}"
 
     def test_invalid_doc_returns_proper_message(self, client):
         """场景：请求不存在的文档，返回明确错误信息。"""

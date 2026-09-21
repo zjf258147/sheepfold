@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import {
   listCategories, createCategory, updateCategory, deleteCategory,
   listSkus, createSku, updateSku, deleteSku,
@@ -92,8 +93,12 @@ async function removeSku(row) {
 
 <template>
   <el-card shadow="never" style="position: relative;">
-    <el-button v-if="activeTab === 'sku'" type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openSkuDialog()">新增商品</el-button>
-    <el-button v-if="activeTab === 'category'" type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openCatDialog()">新增分类</el-button>
+    <PermissionButton v-if="activeTab === 'sku'" permKey="product.manage">
+      <el-button type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openSkuDialog()">新增商品</el-button>
+    </PermissionButton>
+    <PermissionButton v-if="activeTab === 'category'" permKey="product.manage">
+      <el-button type="primary" style="position: absolute; right: 20px; top: 12px; z-index: 1000;" @click="openCatDialog()">新增分类</el-button>
+    </PermissionButton>
     <el-tabs v-model="activeTab">
 
       <el-tab-pane label="商品列表" name="sku">
@@ -120,8 +125,12 @@ async function removeSku(row) {
           </el-table-column>
           <el-table-column label="操作">
             <template #default="{ row }">
-              <el-button type="primary" link :icon="Edit" title="编辑" @click="openSkuDialog(row)" />
-              <el-button type="danger" link :icon="Delete" title="删除" @click="removeSku(row)" />
+              <PermissionButton permKey="product.manage">
+                <el-button type="primary" link :icon="Edit" title="编辑" @click="openSkuDialog(row)" />
+              </PermissionButton>
+              <PermissionButton permKey="product.manage">
+                <el-button type="danger" link :icon="Delete" title="删除" @click="removeSku(row)" />
+              </PermissionButton>
             </template>
           </el-table-column>
         </el-table>
@@ -133,8 +142,12 @@ async function removeSku(row) {
           <el-table-column prop="name" label="分类名称" />
           <el-table-column label="操作">
             <template #default="{ row }">
-              <el-button type="primary" link :icon="Edit" title="编辑" @click="openCatDialog(row)" />
-              <el-button type="danger" link :icon="Delete" title="删除" @click="removeCategory(row)" />
+              <PermissionButton permKey="product.manage">
+                <el-button type="primary" link :icon="Edit" title="编辑" @click="openCatDialog(row)" />
+              </PermissionButton>
+              <PermissionButton permKey="product.manage">
+                <el-button type="danger" link :icon="Delete" title="删除" @click="removeCategory(row)" />
+              </PermissionButton>
             </template>
           </el-table-column>
         </el-table>

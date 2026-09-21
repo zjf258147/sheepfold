@@ -246,3 +246,36 @@ class RmasResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class RmaKnowledgeBaseCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200, description="知识标题")
+    fault_code: str | None = Field(None, max_length=50, description="故障码")
+    fault_symptom: str = Field(..., min_length=1, description="故障现象")
+    solution: str = Field(..., min_length=1, description="解决方案")
+    tags: list[str] | None = Field(None, description="标签列表")
+
+
+class RmaKnowledgeBaseResponse(BaseModel):
+    id: int
+    title: str
+    fault_code: str | None = None
+    fault_symptom: str
+    solution: str
+    tags: list[str] | None = None
+    source_type: str
+    source_repair_id: int | None = None
+    usage_count: int
+    status: str
+    created_by: int
+    creator_name: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class RmaKnowledgeBaseSearchResult(BaseModel):
+    items: list[RmaKnowledgeBaseResponse]
+    total: int
+    keyword: str

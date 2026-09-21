@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { login as loginApi, getMe } from '@/api/auth'
+import { PERMISSION_MAP } from '@/constants/permissions'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || '')
@@ -16,6 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   function hasRole(...roles) {
     return isAdmin.value || roles.includes(role.value)
+  }
+
+  function canEdit(permKey) {
+    if (isAdmin.value) return true
+    const roles = PERMISSION_MAP[permKey]
+    if (!roles) return false
+    return roles.includes(role.value)
   }
 
   async function login(username, password) {
@@ -37,5 +45,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { token, user, role, isAdmin, isWarehouse, isQuality, isProduction, isTestEngineer, isStaff, hasRole, login, fetchUser, logout }
+  return { token, user, role, isAdmin, isWarehouse, isQuality, isProduction, isTestEngineer, isStaff, hasRole, canEdit, login, fetchUser, logout }
 })

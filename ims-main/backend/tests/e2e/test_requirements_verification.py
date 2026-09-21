@@ -3,7 +3,7 @@
 """
 import os, sys, json, httpx
 
-BASE_URL = os.environ.get("BACKEND_URL", "http://localhost:8001")
+BASE_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 TIMEOUT = 15
 
 def get_tk():
@@ -24,7 +24,9 @@ def api_ok(tk, method, path, label):
             elif s == 404: return "❌ 404"
             elif s == 405: return "⚠️ 405"
             elif s in [401, 403]: return "🔒"
-            elif s == 422: return "⚠️ 422"  # validation error, but endpoint exists
+            elif s == 422 and method == "POST":
+                return "✅"  # POST 422 = 端点存在、校验正常，只是缺请求体
+            elif s == 422: return "⚠️ 422"  # GET 422 = 缺必填参数
             else: return f"⚠️ {s}"
     except Exception as e:
         return f"❌ {str(e)[:20]}"
@@ -103,8 +105,8 @@ def main():
         # === 支撑 §6.3 库存 ===
         ("§6.3", "库存查询一物一码", "GET", "/api/v1/inventory/items?page=1&page_size=1"),
         ("§6.3", "库存快照", "GET", "/api/v1/snapshots?page=1&page_size=1"),
-        ("§6.3", "库存流水", "GET", "/api/v1/snapshots/daily-ledger?date=2026-09-17"),
-        ("§6.3", "快照明细", "GET", "/api/v1/snapshots/items?page=1&page_size=1"),
+        ("§6.3", "库存流水", "GET", "/api/v1/snapshots/daily-ledger?date_from=2026-09-17&date_to=2026-09-17"),
+        ("§6.3", "快照明细", "GET", "/api/v1/snapshots/items?snapshot_date=2026-09-17&page=1&page_size=1"),
         ("§6.3", "Excel导出库存", "GET", "/api/v1/inventory/items/export"),
 
         # === 支撑 §6.4 SKU ===

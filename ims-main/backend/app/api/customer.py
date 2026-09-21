@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import R, PageResult
@@ -34,7 +35,7 @@ def list_customers(
 def create_customer(
     body: CustomerCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("customer.manage")),
 ):
     customer = customer_service.get_or_create(db, body.name)
     for key, value in body.model_dump(exclude={"name"}).items():
@@ -49,7 +50,7 @@ def update_customer(
     customer_id: int,
     body: CustomerUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("customer.manage")),
 ):
     customer = db.query(customer_service.Customer).filter(customer_service.Customer.id == customer_id).first()
     if not customer:

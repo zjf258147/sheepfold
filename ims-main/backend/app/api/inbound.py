@@ -5,7 +5,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from urllib.parse import quote
 
-from app.core.deps import AllowWarehouseOrAbove, get_current_user
+from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.audit import AuditLogCreate
@@ -98,7 +99,7 @@ def create_order(
     data: InboundOrderCreate,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.create")),
 ):
     try:
         order = inbound_service.create_order(db, data, user.id)
@@ -165,7 +166,7 @@ def download_inbound_template(_: User = Depends(get_current_user)):
 async def import_inbound(
     file: UploadFile,
     db: Session = Depends(get_db),
-    current_user: User = Depends(AllowWarehouseOrAbove),
+    current_user: User = Depends(require_permission("inbound.create")),
 ):
     if not file.filename or not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail='请上传 .xlsx 或 .xls 文件')
@@ -201,7 +202,7 @@ def update_order(
     data: InboundOrderUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.edit")),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -236,7 +237,7 @@ def submit_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.submit")),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -271,7 +272,7 @@ def approve_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.approve")),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -305,7 +306,7 @@ def cancel_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.cancel")),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:
@@ -340,7 +341,7 @@ def delete_order(
     order_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(AllowWarehouseOrAbove),
+    user: User = Depends(require_permission("inbound.edit")),
 ):
     order = inbound_service.get_order_detail(db, order_id)
     if not order:

@@ -1,0 +1,629 @@
+{
+  "summary": "✅78 ❌0 ⚠️0 | leaked:0 denied:0 not_found:0",
+  "results": [
+    {
+      "role": "管理员",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "管理员",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "仓库管理员",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "质量负责人",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确可用 (opacity=1)",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "生产负责人",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "测试工程师",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/inbound",
+      "perm": "inbound.create",
+      "result": "✅",
+      "detail": "inbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/incoming",
+      "perm": "incoming.create",
+      "result": "✅",
+      "detail": "incoming.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/stocktake",
+      "perm": "stocktake.create",
+      "result": "✅",
+      "detail": "stocktake.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/outbound",
+      "perm": "outbound.create",
+      "result": "✅",
+      "detail": "outbound.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/bom",
+      "perm": "bom.create",
+      "result": "✅",
+      "detail": "bom.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/products",
+      "perm": "product.manage",
+      "result": "✅",
+      "detail": "product.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/adjustment",
+      "perm": "adjustment.confirm",
+      "result": "✅",
+      "detail": "adjustment.confirm → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/rma",
+      "perm": "rma.create_return",
+      "result": "✅",
+      "detail": "rma.create_return → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/device-ledger",
+      "perm": "device_ledger.create_edit",
+      "result": "✅",
+      "detail": "device_ledger.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/station",
+      "perm": "station.create_edit",
+      "result": "✅",
+      "detail": "station.create_edit → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/shipment",
+      "perm": "shipment.create",
+      "result": "✅",
+      "detail": "shipment.create → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/partners",
+      "perm": "partner.manage",
+      "result": "✅",
+      "detail": "partner.manage → 正确禁用",
+      "code": "ok"
+    },
+    {
+      "role": "普通员工",
+      "page": "/customers",
+      "perm": "customer.manage",
+      "result": "✅",
+      "detail": "customer.manage → 正确禁用",
+      "code": "ok"
+    }
+  ]
+}

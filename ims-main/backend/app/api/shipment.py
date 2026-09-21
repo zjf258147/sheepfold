@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
+from app.core.permissions import require_permission
 from app.models.user import User
 from app.models.shipment import Shipment
 from app.schemas.shipment import ShipmentCreate, ShipmentResponse, ShipmentUpdate
@@ -43,7 +44,7 @@ def create_shipment(
     data: ShipmentCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("shipment.create")),
 ):
     try:
         shipment = shipment_service.create_shipment(
@@ -60,7 +61,7 @@ def update_shipment(
     data: ShipmentUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("shipment.edit")),
 ):
     try:
         shipment = shipment_service.update_shipment(
@@ -76,7 +77,7 @@ def delete_shipment(
     shipment_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("shipment.edit")),
 ):
     try:
         shipment_service.delete_shipment(

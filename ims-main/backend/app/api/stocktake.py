@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import R, PageResult
@@ -63,7 +64,7 @@ def list_lines(
 def create_stocktake(
     body: StocktakeCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("stocktake.create")),
 ):
     stocktake = stocktake_service.create_stocktake(db, body, current_user.id)
     return R.ok(data=StocktakeResponse.model_validate(stocktake))
@@ -74,7 +75,7 @@ def scan_items(
     stocktake_id: int,
     body: StocktakeScanRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("stocktake.scan")),
 ):
     try:
         stocktake = stocktake_service.scan_items(db, stocktake_id, body.items, current_user.id)
@@ -88,7 +89,7 @@ def update_line(
     line_id: int,
     body: StocktakeLineUpdateRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("stocktake.scan")),
 ):
     try:
         line = stocktake_service.update_line_reason(db, line_id, body.diff_reason)
@@ -102,7 +103,7 @@ def complete_stocktake(
     stocktake_id: int,
     body: StocktakeCompleteRequest = None,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("stocktake.complete")),
 ):
     try:
         stocktake = stocktake_service.complete_stocktake(db, stocktake_id, body.remark if body else None)
@@ -115,7 +116,7 @@ def complete_stocktake(
 def cancel_stocktake(
     stocktake_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_permission("stocktake.cancel")),
 ):
     try:
         stocktake = stocktake_service.cancel_stocktake(db, stocktake_id)

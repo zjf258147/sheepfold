@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { Search, Check } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listAdjustments, createAdjustment, confirmAdjustments } from '@/api/adjustment'
 import { listStocktakes, getStocktakeLines } from '@/api/stocktake'
 
@@ -134,7 +135,9 @@ function formatDate(v) {
     </el-form>
 
     <div class="toolbar">
-      <el-button type="primary" @click="openCreate">创建调整</el-button>
+      <PermissionButton permKey="adjustment.confirm" tip="仅仓库管理员可创建调整">
+        <el-button type="primary" @click="openCreate">创建调整</el-button>
+      </PermissionButton>
     </div>
 
     <el-table :data="items" v-loading="loading" stripe @selection-change="v => selected = v">

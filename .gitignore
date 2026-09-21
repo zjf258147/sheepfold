@@ -29,5 +29,8 @@ mysql_data/
 *.zip
 *.rar
 
+# Local documentation tool binaries
+ims-main/tools/pandoc/pandoc-3.11/pandoc.exe
+
 # Logs
 *.log

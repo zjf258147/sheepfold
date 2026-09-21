@@ -201,3 +201,32 @@ class RmaReship(Base, TimestampMixin):
     remark: Mapped[str | None] = mapped_column(Text, nullable=True, comment="备注")
 
     operator = relationship("User", foreign_keys=[operator_id], lazy="joined")
+
+
+class RmaKnowledgeBase(Base, TimestampMixin):
+    """维修知识库。"""
+
+    __tablename__ = "rma_knowledge_base"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, comment="知识标题")
+    fault_code: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True, comment="故障码")
+    fault_symptom: Mapped[str] = mapped_column(Text, nullable=False, comment="故障现象")
+    solution: Mapped[str] = mapped_column(Text, nullable=False, comment="解决方案")
+    tags: Mapped[str | None] = mapped_column(String(500), nullable=True, comment="标签 JSON 数组")
+    source_type: Mapped[str] = mapped_column(
+        String(20), default="MANUAL", nullable=False, comment="来源: MANUAL/FROM_REPAIR"
+    )
+    source_repair_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("rma_repair.id"), nullable=True, comment="来源维修工单ID"
+    )
+    usage_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, comment="引用次数")
+    status: Mapped[str] = mapped_column(
+        String(20), default="DRAFT", nullable=False, index=True, comment="状态: DRAFT/PUBLISHED"
+    )
+    created_by: Mapped[int] = mapped_column(
+        Integer, ForeignKey("sys_user.id"), nullable=False, comment="创建人"
+    )
+
+    creator = relationship("User", foreign_keys=[created_by], lazy="joined")
+    source_repair = relationship("RmaRepair", foreign_keys=[source_repair_id], lazy="joined")

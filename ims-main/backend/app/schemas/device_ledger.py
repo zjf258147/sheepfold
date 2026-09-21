@@ -53,3 +53,17 @@ class WarrantyCheckResponse(BaseModel):
     warranty_end: Optional[date] = None
     days_remaining: Optional[int] = None
     status: Optional[str] = None
+
+
+class LifecycleEvent(BaseModel):
+    timestamp: datetime
+    event_type: str
+    description: str
+    order_no: str | None = None
+    detail: dict | None = None
+
+
+class DeviceLifecycleResponse(BaseModel):
+    item_sn: str
+    events: list[LifecycleEvent]
+    total_events: int

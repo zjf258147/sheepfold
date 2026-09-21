@@ -1,15 +1,18 @@
+import mimetypes
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from app.core.config import settings
 from app.core.logger import setup_logger
 from app.api.router import api_router
+
+mimetypes.add_type("application/vnd.android.package-archive", ".apk")
 
 
 def run_migrations_if_enabled() -> None:
@@ -122,14 +125,26 @@ def create_app() -> FastAPI:
         name="uploads",
     )
 
-    # ── APK 下载目录 ──────────────────────────────────────────
+    # ── APK 下载（专用路由，确保正确的 Content-Type）───────────
     download_dir = Path("static/download")
     download_dir.mkdir(parents=True, exist_ok=True)
-    app.mount(
-        "/download",
-        StaticFiles(directory=str(download_dir)),
-        name="download",
-    )
+
+    @app.get("/download/ims-latest.apk", tags=["系统"], summary="下载最新 APK")
+    async def download_apk():
+        apk_path = download_dir / "ims-latest.apk"
+        if not apk_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"code": 404, "msg": "APK 文件不存在，请先执行打包脚本", "data": None},
+            )
+        return FileResponse(
+            path=str(apk_path),
+            filename="DL-IMS.apk",
+            media_type="application/vnd.android.package-archive",
+            headers={
+                "Content-Disposition": 'attachment; filename="DL-IMS.apk"',
+            },
+        )
 
     # ── 健康检查（不需要鉴权）────────────────────────────────────
     @app.get("/health", tags=["系统"], summary="健康检查")

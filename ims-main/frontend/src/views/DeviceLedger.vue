@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import { Edit, Delete, Search, Checked } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listDevices, createDevice, updateDevice, removeDevice, checkWarranty } from '@/api/deviceLedger'
 import { listAllActiveStations } from '@/api/station'
 
@@ -223,7 +224,9 @@ function formatDate(v) {
     </el-form>
 
     <div class="toolbar">
-      <el-button type="primary" @click="openDialog()">登记设备</el-button>
+      <PermissionButton permKey="device_ledger.create_edit" tip="仅仓库管理员可管理设备台账">
+        <el-button type="primary" @click="openDialog()">登记设备</el-button>
+      </PermissionButton>
       <el-input v-model="warrantySn" placeholder="输入SN查质保" style="width:200px;margin-left:12px" clearable />
       <el-button :icon="Checked" :loading="warrantyChecking" @click="handleWarrantyCheck">质保查询</el-button>
     </div>
@@ -255,8 +258,12 @@ function formatDate(v) {
       <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip />
       <el-table-column label="操作" width="180">
         <template #default="{ row }">
-          <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
-          <el-button v-if="!row.removed_date" type="warning" link :icon="Delete" @click="openRemoveDialog(row)">回收</el-button>
+          <PermissionButton permKey="device_ledger.create_edit">
+            <el-button type="primary" link :icon="Edit" @click="openDialog(row)">编辑</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="device_ledger.create_edit">
+            <el-button v-if="!row.removed_date" type="warning" link :icon="Delete" @click="openRemoveDialog(row)">回收</el-button>
+          </PermissionButton>
         </template>
       </el-table-column>
     </el-table>

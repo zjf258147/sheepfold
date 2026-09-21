@@ -79,10 +79,10 @@ async function switchToOnline() {
       const frontendUrl = getFrontendUrl(baseUrl)
       window.location.href = `${frontendUrl}/login?token=${encodeURIComponent(token)}`
     } else {
-      ElMessage.error('服务器不可达，请检查网络或服务器地址')
+      ElMessage.warning('服务器不可达，请确认已连接公司WiFi')
     }
   } catch {
-    ElMessage.error('服务器不可达，请检查网络或服务器地址')
+    ElMessage.warning('服务器不可达，请确认已连接公司WiFi')
   } finally {
     switchingToOnline.value = false
   }
@@ -137,6 +137,18 @@ async function handleLogin() {
         <template #default>
           <p style="margin:0 0 8px;font-size:13px">请先配置服务器地址，或联系管理员获取</p>
           <el-button type="primary" size="small" @click="serverRef?.open()">配置服务器地址</el-button>
+        </template>
+      </el-alert>
+      <el-alert
+        v-if="isApp && hasServerConfig && !onlineAvailable"
+        title="未连接公司服务器"
+        type="warning"
+        show-icon
+        :closable="false"
+        style="margin-bottom:16px"
+      >
+        <template #default>
+          <p style="margin:0;font-size:13px">请连接公司WiFi后点击下方按钮使用在线版本</p>
         </template>
       </el-alert>
       <div v-if="isApp && hasServerConfig && onlineAvailable" style="margin-bottom:16px;text-align:center">

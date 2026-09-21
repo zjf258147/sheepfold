@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.deps import AllowWarehouseOrAbove
+from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.common import R, PageResult
@@ -19,7 +20,7 @@ def list_stations(
     status: str | None = None,
     customer_id: int | None = None,
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(get_current_user),
 ):
     total, items = station_service.get_station_list(db, page, page_size, keyword, status, customer_id)
     return R.ok(
@@ -35,7 +36,7 @@ def list_stations(
 @router.get("/all", response_model=R[list[StationResponse]], summary="全部启用场站")
 def list_all_active(
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(get_current_user),
 ):
     items = station_service.get_all_active(db)
     return R.ok(data=[StationResponse.model_validate(s) for s in items])
@@ -45,7 +46,7 @@ def list_all_active(
 def get_station(
     station_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(get_current_user),
 ):
     station = station_service.get_station_by_id(db, station_id)
     if not station:
@@ -57,7 +58,7 @@ def get_station(
 def create_station(
     body: StationCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(require_permission("station.create_edit")),
 ):
     try:
         station = station_service.create_station(db, body)
@@ -71,7 +72,7 @@ def update_station(
     station_id: int,
     body: StationUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(require_permission("station.create_edit")),
 ):
     try:
         station = station_service.update_station(db, station_id, body)
@@ -84,7 +85,7 @@ def update_station(
 def delete_station(
     station_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(AllowWarehouseOrAbove),
+    _: User = Depends(require_permission("station.create_edit")),
 ):
     try:
         station_service.delete_station(db, station_id)

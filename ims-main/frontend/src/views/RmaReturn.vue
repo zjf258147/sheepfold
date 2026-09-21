@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listRmaReturns, createRmaReturn, createRmaDiagnosis, createRmaRepair, createRmaScrap, assignRmaReturn, createRmaReship, createRmaQualityCheck, createRmaWarehouseIn, exportRmaReturns } from '@/api/rma'
 import { listSkus, listCategories } from '@/api/product'
 import { dateRangeShortcuts, defaultDateRange } from '@/utils/datetime'
@@ -505,7 +506,9 @@ onMounted(() => {
       <el-date-picker v-model="query.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" :shortcuts="dateRangeShortcuts" style="width:260px" />
       <el-button type="primary" @click="search">搜索</el-button>
       <el-button @click="reset">重置</el-button>
-      <el-button type="primary" plain @click="openCreate">退货登记</el-button>
+      <PermissionButton permKey="rma.create_return" tip="仅仓库管理员可登记返厂退货">
+        <el-button type="primary" plain @click="openCreate">退货登记</el-button>
+      </PermissionButton>
       <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       <el-button type="warning" :loading="batchPrintLoading" :disabled="!selectedReturns.some(r => r.repair_id)" @click="handleBatchPrintRepair">
         批量打印维修单 {{ selectedReturns.filter(r => r.repair_id).length > 0 ? `(${selectedReturns.filter(r => r.repair_id).length})` : '' }}
@@ -534,13 +537,27 @@ onMounted(() => {
       <el-table-column label="操作" width="260" align="center">
         <template #default="{ row }">
           <el-button v-if="row.repair_id" type="warning" link size="small" @click="handlePrintRepair(row)" :loading="printLoading">维修单</el-button>
-          <el-button v-if="row.status === 'PENDING_DIAGNOSIS'" type="primary" link size="small" @click="openDiagnosis(row)">诊断</el-button>
-          <el-button v-if="row.status === 'DIAGNOSED'" type="warning" link size="small" @click="openAssign(row)">分配</el-button>
-          <el-button v-if="row.status === 'ASSIGNED' || row.status === 'REPAIRING'" type="primary" link size="small" @click="openRepair(row)">维修</el-button>
-          <el-button v-if="row.status === 'REPAIRED'" type="success" link size="small" @click="openQualityCheck(row)">质量检验</el-button>
-          <el-button v-if="row.status === 'QUALITY_CHECK'" type="primary" link size="small" @click="openWarehouseIn(row)">入库审核</el-button>
-          <el-button v-if="row.status === 'WAREHOUSED'" type="success" link size="small" @click="openReship(row)">再出货</el-button>
-          <el-button v-if="row.status === 'REPAIRED'" type="danger" link size="small" @click="openScrap(row)">报废</el-button>
+          <PermissionButton permKey="rma.diagnose" tip="仅质检员或测试工程师可诊断">
+            <el-button v-if="row.status === 'PENDING_DIAGNOSIS'" type="primary" link size="small" @click="openDiagnosis(row)">诊断</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.assign" tip="仅质检员可分配任务">
+            <el-button v-if="row.status === 'DIAGNOSED'" type="warning" link size="small" @click="openAssign(row)">分配</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.repair" tip="仅生产主管或测试工程师可维修">
+            <el-button v-if="row.status === 'ASSIGNED' || row.status === 'REPAIRING'" type="primary" link size="small" @click="openRepair(row)">维修</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.quality_check" tip="仅质检员可执行质量检验">
+            <el-button v-if="row.status === 'REPAIRED'" type="success" link size="small" @click="openQualityCheck(row)">质量检验</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.warehouse_in" tip="仅仓库管理员可审核入库">
+            <el-button v-if="row.status === 'QUALITY_CHECK'" type="primary" link size="small" @click="openWarehouseIn(row)">入库审核</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.reship" tip="仅仓库管理员可再出货">
+            <el-button v-if="row.status === 'WAREHOUSED'" type="success" link size="small" @click="openReship(row)">再出货</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="rma.request_scrap" tip="仅质检员或测试工程师可申请报废">
+            <el-button v-if="row.status === 'REPAIRED'" type="danger" link size="small" @click="openScrap(row)">报废</el-button>
+          </PermissionButton>
         </template>
       </el-table-column>
     </el-table>

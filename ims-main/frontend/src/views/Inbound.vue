@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { Delete, View, Promotion, Select, Close, Edit, Download } from '@element-plus/icons-vue'
+import PermissionButton from '@/components/PermissionButton.vue'
 import InboundDetail from '@/views/InboundDetail.vue'
 import {
   listInboundOrders, createInboundOrder, updateInboundOrder, getInboundOrder, submitInboundOrder,
@@ -615,7 +616,9 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
       <el-form-item>
         <el-button type="primary" @click="searchOrders">查询</el-button>
         <el-button @click="resetQuery">重置</el-button>
-        <el-button type="primary" plain @click="openCreate">新增入库</el-button>
+        <PermissionButton permKey="inbound.create" tip="仅仓库管理员可创建入库单">
+          <el-button type="primary" plain @click="openCreate">新增入库</el-button>
+        </PermissionButton>
         <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       </el-form-item>
     </el-form>
@@ -652,21 +655,31 @@ function canDelete(row) { return row.operation_status === 'INITIATED' && !row.su
             <el-tooltip content="详情" placement="top">
               <el-button type="primary" plain size="small" :icon="View" circle @click="showDetail(row)" />
             </el-tooltip>
-            <el-tooltip v-if="canEdit(row)" content="编辑" placement="top">
-              <el-button type="primary" plain size="small" :icon="Edit" circle @click="openEdit(row)" />
-            </el-tooltip>
-            <el-tooltip v-if="canSubmit(row)" content="提交审核" placement="top">
-              <el-button type="warning" plain size="small" :icon="Promotion" circle @click="handleAction('submit', row)" />
-            </el-tooltip>
-            <el-tooltip v-if="canApprove(row)" content="确认通过" placement="top">
-              <el-button type="primary" size="small" :icon="Select" circle @click="handleAction('approve', row)" />
-            </el-tooltip>
-            <el-tooltip v-if="canCancel(row)" content="取消" placement="top">
-              <el-button type="info" plain size="small" :icon="Close" circle @click="handleAction('cancel', row)" />
-            </el-tooltip>
-            <el-tooltip v-if="canDelete(row)" content="删除" placement="top">
-              <el-button type="danger" plain size="small" :icon="Delete" circle @click="handleAction('delete', row)" />
-            </el-tooltip>
+            <PermissionButton permKey="inbound.edit">
+              <el-tooltip v-if="canEdit(row)" content="编辑" placement="top">
+                <el-button type="primary" plain size="small" :icon="Edit" circle @click="openEdit(row)" />
+              </el-tooltip>
+            </PermissionButton>
+            <PermissionButton permKey="inbound.submit">
+              <el-tooltip v-if="canSubmit(row)" content="提交审核" placement="top">
+                <el-button type="warning" plain size="small" :icon="Promotion" circle @click="handleAction('submit', row)" />
+              </el-tooltip>
+            </PermissionButton>
+            <PermissionButton permKey="inbound.approve">
+              <el-tooltip v-if="canApprove(row)" content="确认通过" placement="top">
+                <el-button type="primary" size="small" :icon="Select" circle @click="handleAction('approve', row)" />
+              </el-tooltip>
+            </PermissionButton>
+            <PermissionButton permKey="inbound.cancel">
+              <el-tooltip v-if="canCancel(row)" content="取消" placement="top">
+                <el-button type="info" plain size="small" :icon="Close" circle @click="handleAction('cancel', row)" />
+              </el-tooltip>
+            </PermissionButton>
+            <PermissionButton permKey="inbound.edit">
+              <el-tooltip v-if="canDelete(row)" content="删除" placement="top">
+                <el-button type="danger" plain size="small" :icon="Delete" circle @click="handleAction('delete', row)" />
+              </el-tooltip>
+            </PermissionButton>
           </div>
         </template>
       </el-table-column>

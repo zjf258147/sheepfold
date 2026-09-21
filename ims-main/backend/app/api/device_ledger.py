@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.user import User
 from app.models.station import Station
@@ -12,6 +13,7 @@ from app.schemas.device_ledger import (
     DeviceLedgerUpdate,
     DeviceRemoveRequest,
     WarrantyCheckResponse,
+    DeviceLifecycleResponse,
 )
 from app.service import device_ledger_service
 
@@ -63,10 +65,10 @@ def get_device(
 def create_device(
     body: DeviceLedgerCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("device_ledger.create_edit")),
 ):
     try:
-        ledger = device_ledger_service.create_device_ledger(db, body)
+        ledger = device_ledger_service.create_device_ledger(db, body, current_user)
         r = DeviceLedgerResponse.model_validate(ledger)
         if ledger.station:
             r.station_name = ledger.station.name
@@ -80,10 +82,10 @@ def update_device(
     ledger_id: int,
     body: DeviceLedgerUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("device_ledger.create_edit")),
 ):
     try:
-        ledger = device_ledger_service.update_device_ledger(db, ledger_id, body)
+        ledger = device_ledger_service.update_device_ledger(db, ledger_id, body, current_user)
         r = DeviceLedgerResponse.model_validate(ledger)
         if ledger.station:
             r.station_name = ledger.station.name
@@ -97,10 +99,10 @@ def remove_device(
     ledger_id: int,
     body: DeviceRemoveRequest,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("device_ledger.create_edit")),
 ):
     try:
-        ledger = device_ledger_service.remove_device(db, ledger_id, body.removed_date)
+        ledger = device_ledger_service.remove_device(db, ledger_id, body.removed_date, current_user)
         r = DeviceLedgerResponse.model_validate(ledger)
         if ledger.station:
             r.station_name = ledger.station.name
@@ -117,3 +119,16 @@ def check_warranty(
 ):
     result = device_ledger_service.check_warranty(db, item_sn)
     return R.ok(data=result)
+
+
+@router.get("/{sn}/lifecycle", response_model=R[DeviceLifecycleResponse], summary="设备生命周期追溯")
+def get_device_lifecycle(
+    sn: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    try:
+        result = device_ledger_service.get_device_lifecycle(db, sn)
+        return R.ok(data=DeviceLifecycleResponse(**result))
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"设备 SN 不存在：{sn}")

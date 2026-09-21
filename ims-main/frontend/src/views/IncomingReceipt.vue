@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useFilterPersist } from '@/composables/useFilterPersist'
+import PermissionButton from '@/components/PermissionButton.vue'
 import { listIncomingReceipts, createIncomingReceipt, createIncomingInspection, createIncomingReturn, confirmIncomingReceipt, exportIncomingReceipts } from '@/api/incoming'
 import { listSkus, listCategories } from '@/api/product'
 import { listPartners } from '@/api/partner'
@@ -452,7 +453,9 @@ onMounted(() => {
     </el-form>
 
     <div class="toolbar">
-      <el-button type="primary" @click="openCreate">到货登记</el-button>
+      <PermissionButton permKey="incoming.create" tip="仅仓库管理员可登记来料">
+        <el-button type="primary" @click="openCreate">到货登记</el-button>
+      </PermissionButton>
       <el-button type="success" :icon="Download" :loading="exportLoading" @click="handleExport">导出</el-button>
       <el-button type="warning" :loading="batchPrintLoading" :disabled="selectedReceipts.length === 0" @click="handleBatchPrint">
         批量打印收货单 {{ selectedReceipts.length > 0 ? `(${selectedReceipts.length})` : '' }}
@@ -488,9 +491,15 @@ onMounted(() => {
           <el-button type="primary" link size="small" @click="handlePrint(row)" :loading="printLoading">收货单</el-button>
           <el-button v-if="row.inspection_id" type="success" link size="small" @click="handleInspectionPrint(row)" :loading="inspectionPrintLoading">检验报告</el-button>
           <el-button v-if="row.return_id" type="danger" link size="small" @click="handleReturnPrint(row)" :loading="returnPrintLoading">退货单</el-button>
-          <el-button v-if="row.status === 'PENDING_INSPECTION' || row.status === 'INSPECTED'" type="primary" link size="small" @click="openInspection(row)">检验</el-button>
-          <el-button v-if="row.status === 'INSPECTED'" type="danger" link size="small" @click="openReturn(row)">退货</el-button>
-          <el-button v-if="row.status === 'ACCEPTED'" type="success" link size="small" @click="openConfirm(row)">确认入库</el-button>
+          <PermissionButton permKey="incoming.inspect" tip="仅质检员可执行检验">
+            <el-button v-if="row.status === 'PENDING_INSPECTION' || row.status === 'INSPECTED'" type="primary" link size="small" @click="openInspection(row)">检验</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="incoming.return" tip="仅仓库管理员或质检员可执行退货">
+            <el-button v-if="row.status === 'INSPECTED'" type="danger" link size="small" @click="openReturn(row)">退货</el-button>
+          </PermissionButton>
+          <PermissionButton permKey="incoming.confirm" tip="仅仓库管理员可确认入库">
+            <el-button v-if="row.status === 'ACCEPTED'" type="success" link size="small" @click="openConfirm(row)">确认入库</el-button>
+          </PermissionButton>
         </template>
       </el-table-column>
     </el-table>
